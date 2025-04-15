@@ -57,7 +57,7 @@ CREATE TABLE vehicles (
 -- TABEL 5: vehicle_documents
 CREATE TABLE vehicle_documents (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    vehicle_id BIGINT NOT NULL,
+    vehicle_id char(7) NOT NULL,
     stnk VARCHAR(255) NOT NULL,
     bpkb VARCHAR(255) NOT NULL,
     service_note VARCHAR(255) NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE partners (
 CREATE TABLE vehicle_loans (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     partner_id BIGINT NOT NULL,
-    vehicle_id BIGINT NOT NULL,
+    vehicle_id char(7) NOT NULL,
     user_id BIGINT NOT NULL,
     loan_date DATE NOT NULL,
     return_date DATE NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE orders (
     name VARCHAR(155) NOT NULL,
     phone VARCHAR(12) UNIQUE NOT NULL,
     address LONGTEXT NOT NULL,
-    vehicle_id BIGINT NOT NULL,
+    vehicle_id char(7) NOT NULL,
     date_order DATE NOT NULL,
     status ENUM('cancel','test_driver', 'transaction', 'finish') NOT NULL,
     created_at TIMESTAMP NULL,
@@ -138,7 +138,7 @@ CREATE TABLE transactions (
 -- TABEL 11: vehicle_photos
 CREATE TABLE vehicle_photos (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    vehicle_id BIGINT NOT NULL,
+    vehicle_id char(7) NOT NULL,
     photo_path VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
