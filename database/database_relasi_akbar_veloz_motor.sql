@@ -40,39 +40,39 @@ ADD CONSTRAINT fk_vehicle_loans_user
 FOREIGN KEY (user_id) REFERENCES users(id)
 ON DELETE CASCADE;
 
--- Relasi TABEL carts ke customers
-ALTER TABLE carts
-ADD CONSTRAINT fk_carts_customer
-FOREIGN KEY (customer_id) REFERENCES customers(id)
-ON DELETE CASCADE;
-
--- Relasi TABEL carts ke vehicles
-ALTER TABLE carts
-ADD CONSTRAINT fk_carts_vehicle
+-- Relasi TABEL orders ke vehicles
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_vehicles
 FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
 ON DELETE CASCADE;
 
--- Relasi TABEL carts ke users
-ALTER TABLE carts
-ADD CONSTRAINT fk_carts_user
+-- Relasi TABEL test_drivers ke orders
+ALTER TABLE test_drivers
+ADD CONSTRAINT fk_test_drivers_orders
+FOREIGN KEY (order_id) REFERENCES orders(id)
+ON DELETE CASCADE;
+
+-- Relasi TABEL test_drivers ke users
+ALTER TABLE test_drivers
+ADD CONSTRAINT fk_test_drivers_users
 FOREIGN KEY (user_id) REFERENCES users(id)
 ON DELETE CASCADE;
 
--- Relasi TABEL checkouts ke customers
-ALTER TABLE checkouts
-ADD CONSTRAINT fk_checkouts_customer
-FOREIGN KEY (customer_id) REFERENCES customers(id)
+-- Relasi TABEL transactions ke orders
+ALTER TABLE transactions
+ADD CONSTRAINT fk_transactions_orders
+FOREIGN KEY (order_id) REFERENCES orders(id)
 ON DELETE CASCADE;
 
--- Relasi TABEL checkouts ke partners
-ALTER TABLE checkouts
-ADD CONSTRAINT fk_checkouts_partner
+-- Relasi TABEL transactions ke partners
+ALTER TABLE transactions
+ADD CONSTRAINT fk_transactions_partners
 FOREIGN KEY (partner_id) REFERENCES partners(id)
 ON DELETE CASCADE;
 
--- Relasi TABEL checkouts ke users
-ALTER TABLE checkouts
-ADD CONSTRAINT fk_checkouts_user
+-- Relasi TABEL transactions ke users
+ALTER TABLE transactions
+ADD CONSTRAINT fk_transactions_users
 FOREIGN KEY (user_id) REFERENCES users(id)
 ON DELETE CASCADE;
 
