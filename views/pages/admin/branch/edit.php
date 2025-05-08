@@ -4,17 +4,17 @@ include '../../../../config/koneksi.php';
 include '../../../../helpers/functionGenerateSlug.php'; 
 // 🔗 Hubungin ke function Generate Slug
 
-$id = $_GET['id'] ?? null; 
+$slug = $_GET['slug'] ?? null;
 // 🪢 Ambil ID cabang dari URL
 
-if (!$id) {
-    // ❗ Kalau gak ada ID di URL
-    die("ID tidak ditemukan.");
+if (!$slug) {
+    // ❗ Kalau gak ada Slug di URL
+    die("Slug tidak ditemukan.");
 }
 
 // 🪢 Ambil data cabang berdasarkan ID
-$stmt = $koneksi->prepare("SELECT * FROM branches WHERE id = ?");
-$stmt->execute([$id]);
+$stmt = $koneksi->prepare("SELECT * FROM branches WHERE slug = ? AND deleted_at IS NULL");
+$stmt->execute([$slug]);
 $cabang = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$cabang) {
@@ -26,11 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 🕹️ Proses form saat tombol submit diklik
     $name = $_POST['name'];
     $address = $_POST['address'];
-    $slug = generateSlug($name);
+    $newSlug = generateSlug($name);
 
     // ⬇️ Update data ke database
     $stmt = $koneksi->prepare("UPDATE branches SET name = ?, slug = ?, address = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->execute([$name, $slug, $address, $id]);
+    $stmt->execute([$name, $newSlug, $address, $cabang['id']]);
 
     // 🚀 Balik ke halaman index
     header("Location: index.php");

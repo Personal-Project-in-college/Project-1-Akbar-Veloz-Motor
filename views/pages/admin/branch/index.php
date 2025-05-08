@@ -34,7 +34,7 @@ foreach ($data as $row) {
         <td>{$row['address']}</td>
         <td>
             <!-- Link untuk edit dan hapus berdasarkan ID -->
-            <a href='edit.php?id={$row['id']}'>Edit</a> |
+            <a href='edit.php?slug={$row['slug']}'>Edit</a> |
             <a href='delete.php?id={$row['id']}'>Hapus</a>
         </td>
     </tr>";
