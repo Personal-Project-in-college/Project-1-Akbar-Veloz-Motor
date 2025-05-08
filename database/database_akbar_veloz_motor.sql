@@ -46,7 +46,7 @@ CREATE TABLE vehicles (
     cc_engine INT(11) NOT NULL,
     `description` LONGTEXT NOT NULL,
     price INT(11) NOT NULL,
-    status ENUM('available', 'service', 'test_drive', 'sold') NOT NULL DEFAULT 'available',
+    status ENUM('available', 'service', 'test_drive', 'transaction', 'sold') NOT NULL DEFAULT 'available',
     user_id BIGINT NOT NULL,
     branch_id BIGINT NOT NULL,
     created_at TIMESTAMP NULL,
