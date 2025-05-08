@@ -72,6 +72,7 @@ CREATE TABLE vehicle_documents (
 CREATE TABLE partners (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(155) NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(12) UNIQUE NOT NULL,
     address LONGTEXT NOT NULL,
     created_at TIMESTAMP NULL,
