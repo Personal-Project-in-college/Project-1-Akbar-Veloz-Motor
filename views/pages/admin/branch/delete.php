@@ -6,10 +6,9 @@ include '../../../../config/koneksi.php';
 $id = $_GET['id'];
 
 // ⬇️ Soft delete: Update kolom deleted_at, bukan hapus permanen
-$stmt = $koneksi->prepare("UPDATE branches SET deleted_at = NOW() WHERE id = ?");
-$stmt->execute([$id]);
+$data = $koneksi->prepare("UPDATE branches SET deleted_at = NOW() WHERE id = ?");
+$data->execute([$id]);
 
 // 🚀 Setelah update, alihkan kembali ke halaman index
 header("Location: index.php");
 exit;
-?>
