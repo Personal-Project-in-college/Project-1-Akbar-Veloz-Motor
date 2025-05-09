@@ -10,6 +10,7 @@
 
 <h2>Data Branches</h2>
 <a href="create.php">Tambah Branch</a><br><br>
+<a href="../../../../index.php">Kembali</a><br><br>
 <!-- 🕹️ Tombol untuk masuk ke halaman tambah cabang -->
 
 <table border="1" cellpadding="10">
@@ -23,12 +24,15 @@
 
 <?php
 // 🪢 Ambil data cabang dari database yang belum dihapus (deleted_at NULL)
-$data = $koneksi->query("SELECT * FROM branches WHERE deleted_at IS NULL ORDER BY created_at DESC");
+$data = $koneksi->query("SELECT * FROM branches WHERE deleted_at IS NULL ORDER BY created_at ASC");
+
+// 🔁 Inisialisasi nomor urut
+$no = 1;
 
 // ♾️ Loop untuk tampilkan tiap data dalam bentuk baris tabel
 foreach ($data as $row) {
     echo "<tr>
-        <td>{$row['id']}</td>
+        <td>{$no}</td>
         <td>{$row['name']}</td>
         <td>{$row['slug']}</td>
         <td>{$row['address']}</td>
@@ -38,6 +42,7 @@ foreach ($data as $row) {
             <a href='delete.php?id={$row['id']}'>Hapus</a>
         </td>
     </tr>";
+    $no++; // ➕ Tambah nomor di tiap loop
 }
 ?>
 </table>
