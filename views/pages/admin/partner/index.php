@@ -16,6 +16,9 @@
     <a href="../../../../index.php">Kembali</a><br><br>
     <!-- 🕹️ Tombol untuk kembali ke halaman index -->
 
+    <a href="delete.php">Lihat Data Terhapus</a><br><br>
+    <!-- 🕹️ Tombol untuk kembali ke halaman index -->
+
     <table border="1" cellpadding="10">
         <tr>
             <th>No</th>
@@ -42,7 +45,7 @@
                     <td>
                         <!-- Link untuk edit berdasarkan Slug dan hapus berdasarkan ID -->
                         <a href='edit.php?slug={$row['slug']}'>Edit</a> |
-                        <a href='delete.php?id={$row['id']}'>Hapus</a>
+                        <a href='softDelete.php?id={$row['id']}'>Hapus</a>
                     </td>
                 </tr>";
                 $no++; // ➕ Tambah nomor di tiap loop
