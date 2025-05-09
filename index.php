@@ -10,6 +10,7 @@
     <h4>Route List</h4>
     <ul>
         <li><a href="views/pages/admin/branch/index.php">Branch ✅</a></li>
+        <li><a href="views/pages/admin/partner/index.php">Partner ✅</a></li>
     </ul>
     
 </body>
