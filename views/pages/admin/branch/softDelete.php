@@ -10,7 +10,7 @@ $data = $koneksi->prepare("UPDATE branches SET deleted_at = NOW() WHERE id = ?")
 $data->execute([$id]);
 
 // ⬇️ Soft delete kendaraan yang punya branch ini
-$hapusKendaraan = $koneksi->prepare("UPDATE vehicles SET deleted_at = NOW() WHERE branch_id = ?");
+$hapusKendaraan = $koneksi->prepare("UPDATE vehicles SET deleted_by_branch_at = NOW() WHERE branch_id = ?");
 $hapusKendaraan->execute([$id]);
 
 // 🚀 Setelah update, alihkan kembali ke halaman index
