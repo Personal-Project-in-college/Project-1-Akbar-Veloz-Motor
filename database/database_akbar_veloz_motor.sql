@@ -51,7 +51,8 @@ CREATE TABLE vehicles (
     branch_id BIGINT NOT NULL,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
-    deleted_at TIMESTAMP NULL
+    deleted_at TIMESTAMP NULL,
+    deleted_by_branch_at TIMESTAMP NULL
 );
 
 -- TABEL 5: vehicle_documents
