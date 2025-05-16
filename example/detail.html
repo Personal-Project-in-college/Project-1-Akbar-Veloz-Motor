@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Kendaraan - Akbar Veloz Motor</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Akbar Veloz Motor</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#">Mobil</a></li>
+                    <li><a href="#">Motor</a></li>
+                    <li><a href="wishlist.html">Wishlist</a></li>
+                </ul>
+            </nav>
+            <div class="search-box">
+                <input type="text" placeholder="Cari kendaraan...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="vehicle-detail">
+            <h2>Honda Beat 2020 CBS ISS 110cc FI AT Merah • Red on Black</h2>
+            <p class="subtitle">Irit, Gesit, dan Siap Pakai!</p>
+            
+            <div class="gallery">
+                <div class="main-image">
+                    <img src="https://via.placeholder.com/600x400?text=Honda+Beat+Front" alt="Honda Beat Front View" id="mainImage">
+                </div>
+                <div class="thumbnail-container">
+                    <img src="https://via.placeholder.com/100x70?text=Image+1" alt="Thumbnail 1" class="thumbnail" onclick="changeImage(this)">
+                    <img src="https://via.placeholder.com/100x70?text=Image+2" alt="Thumbnail 2" class="thumbnail" onclick="changeImage(this)">
+                    <img src="https://via.placeholder.com/100x70?text=Image+3" alt="Thumbnail 3" class="thumbnail" onclick="changeImage(this)">
+                    <img src="https://via.placeholder.com/100x70?text=Image+4" alt="Thumbnail 4" class="thumbnail" onclick="changeImage(this)">
+                </div>
+            </div>
+            
+            <div class="detail-content">
+                <div class="description">
+                    <h3>Deskripsi</h3>
+                    <p>Honda Beat 2020 CBS ISS 110cc FI AT – Red on Black<br>
+                    Honda Beat 2020 ini adalah pilihan terbaik bagi Anda yang mencari motor matic irit, gesit, dan nyaman untuk harian. Dengan teknologi PGM-FI (Fuel Injection), motor ini sangat hemat bahan bakar dan cocok untuk mobilitas di perkotaan.</p>
+                    
+                    <h4>Keunggulan Honda Beat 2020:</h4>
+                    <ul>
+                        <li><strong>Irit Bahan Bakar</strong> – Konsumsi PGM hingga 60 km/liter</li>
+                        <li><strong>Ringan & Gesit</strong> – Cocok untuk pemakaian di dalam kota</li>
+                        <li><strong>CBS & ISS</strong> – Sistem pengereman lebih aman dan fitur idling Stop System hemat bensin</li>
+                        <li><strong>Kondisi Mesin 100% Oke</strong> – Dijamin siap pakai tanpa kendala</li>
+                        <li><strong>Body Mulus</strong> – Tidak ada baret atau penyok</li>
+                        <li><strong>STNK Panjang</strong> – Berlaku sampai tahun 2025</li>
+                    </ul>
+                </div>
+                
+                <div class="specs">
+                    <h3>Spesifikasi Teknis</h3>
+                    <table>
+                        <tr>
+                            <th>Tipe Mesin</th>
+                            <td>110cc, 4-langkah, SOHC, PGM-FI</td>
+                        </tr>
+                        <tr>
+                            <th>Daya Maksimum</th>
+                            <td>6.38 kW (8.7 PS) / 7.500 rpm</td>
+                        </tr>
+                        <tr>
+                            <th>Torsi Maksimum</th>
+                            <td>9.3 Nm (0.95 kgf.m) / 5.500 rpm</td>
+                        </tr>
+                        <tr>
+                            <th>Sistem Transmisi</th>
+                            <td>Otomatis, V-Matic</td>
+                        </tr>
+                        <tr>
+                            <th>Sistem Pengereman</th>
+                            <td>CBS (Combi Brake System)</td>
+                        </tr>
+                        <tr>
+                            <th>Kapasitas Tangki</th>
+                            <td>4.2 liter</td>
+                        </tr>
+                        <tr>
+                            <th>Berat Kosong</th>
+                            <td>93 kg</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="price-section">
+                        <h3>Harga: Rp 20.000.000</h3>
+                        <div class="action-buttons">
+                            <a href="test-drive.html" class="btn">Test Drive</a>
+                            <button class="btn-secondary" onclick="addToWishlist()">Tambah ke Wishlist</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h3>Akbar Veloz Motor</h3>
+                <p>© 2025. All rights reserved.</p>
+                <p>Politeknik Negeri Subang</p>
+            </div>
+            <div class="footer-section">
+                <h3>About</h3>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Terms & Condition</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us on</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="#">Check Certificate</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

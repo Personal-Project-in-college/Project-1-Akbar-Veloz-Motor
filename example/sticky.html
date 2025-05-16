@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sticky Button Example</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    /* Sticky Button */
+    .sticky-button {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background-color: #007bff;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      width: 100%;
+      text-align: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .sticky-button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Shadow effect when sticky */
+    .sticky-shadow {
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Dummy content to scroll */
+    .content {
+      padding: 20px;
+    }
+
+    .section {
+      height: 600px;
+      background: #f4f4f4;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="myButton" class="sticky-button">Sticky Button</button>
+
+  <div class="content">
+    <div class="section">Scroll down to test sticky button</div>
+    <div class="section">More content...</div>
+    <div class="section">And more content...</div>
+  </div>
+
+  <script>
+    // Tambahkan bayangan saat tombol sticky aktif
+    const button = document.getElementById('myButton');
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 0) {
+        button.classList.add('sticky-shadow');
+      } else {
+        button.classList.remove('sticky-shadow');
+      }
+    });
+  </script>
+
+</body>
+</html>
