@@ -642,9 +642,9 @@ footer {
 
 /* Responsif untuk layar kecil */
 @media (max-width: 768px) {
-  .banner-container {
+  /* .banner-container { */
     /* height: 400px; Sesuaikan tinggi untuk layar kecil */
-  }
+  /* } */
 
   .banner-nav button {
     width: 30px;
