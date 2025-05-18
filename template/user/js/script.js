@@ -106,3 +106,12 @@ function openCity(evt, cityName) {
   document.getElementById(cityName).style.display = "block";
   evt.currentTarget.className += " active";
 }
+
+// fungsi navbar is active
+const links = document.querySelectorAll("nav ul li a");
+
+links.forEach(link => {
+  if (link.pathname === window.location.pathname) {
+    link.classList.add("active");
+  }
+});

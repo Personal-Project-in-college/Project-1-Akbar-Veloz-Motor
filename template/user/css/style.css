@@ -120,6 +120,7 @@ nav ul li a:hover {
 
 nav ul li a.active {
   color: var(--secondary-color);
+  width: 100%;
 }
 
 nav ul li a::after {
@@ -133,7 +134,8 @@ nav ul li a::after {
   transition: width 0.3s ease;
 }
 
-nav ul li a:hover::after {
+nav ul li a:hover::after,
+nav ul li a.active::after {
   width: 100%;
 }
 
@@ -169,7 +171,6 @@ nav ul li a:hover::after {
 
 .vehicle-list h2 {
   text-align: left;
-  margin-bottom: 30px;
   font-size: 1.8rem;
   color: var(--primary-color);
 }
@@ -367,7 +368,6 @@ nav ul li a:hover::after {
   color: var(--primary-color);
 }
 
-
 /* Footer Styles */
 footer {
   background-color: var(--primary-color);
@@ -489,12 +489,13 @@ footer {
 .banner-container {
   width: 100%;
   /* max-height: 600px; Menjaga tinggi tetap */
-  max-height: 300px;
+  max-height: 600px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
-  background-color: red;
+  /* background-color: red; */
+  background-color: var(--light-color);
 }
 
 .banner-slides {
@@ -574,8 +575,8 @@ footer {
   width: 100%;
   border-radius: 100%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  max-width: 125px;
-  height: 125px;
+  max-width: 100px;
+  height: 100px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background-color: white;
@@ -584,16 +585,27 @@ footer {
   align-items: center;
   flex-direction: column;
   color: var(--primary-color);
+  fill: var(--primary-color);
+  stroke: var(--primary-color);
+  border: 3px solid var(--primary-color);
+
 }
 
 .call-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background-color: var(--primary-color);
+  color: white;
+  fill: white;
+  stroke: white;
 }
 
-.call-card .img-drive {
-  width: 80px;
+.call-card:hover {
+  color: white;
+  fill: white;
+  stroke: white;
 }
+
 
 .call-card > h4 {
   text-align: center;
@@ -619,6 +631,7 @@ footer {
   transition: 0.3s;
   font-size: 17px;
   border-bottom: 3px solid #dadada;
+  color: var(--gray-color);
   transition: all 0.3s ease;
 }
 
@@ -630,20 +643,20 @@ footer {
 
 /* Create an active/current tablink class */
 .tab button.active {
-  border-bottom: 3px solid black;
+  border-bottom: 3px solid var(--secondary-color);
   transform: translateY(-2px);
-  
+  color: var(--secondary-color);
 }
 /* Style the tab content */
 .tabcontent {
   display: none;
-  padding: 12px 12px;
+  padding: 12px 0px;
 }
 
 /* Responsif untuk layar kecil */
 @media (max-width: 768px) {
   /* .banner-container { */
-    /* height: 400px; Sesuaikan tinggi untuk layar kecil */
+  /* height: 400px; Sesuaikan tinggi untuk layar kecil */
   /* } */
 
   .banner-nav button {
