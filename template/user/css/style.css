@@ -588,7 +588,6 @@ footer {
   fill: var(--primary-color);
   stroke: var(--primary-color);
   border: 3px solid var(--primary-color);
-
 }
 
 .call-card:hover {
@@ -605,7 +604,6 @@ footer {
   fill: white;
   stroke: white;
 }
-
 
 .call-card > h4 {
   text-align: center;
@@ -639,6 +637,9 @@ footer {
 .tab button:hover {
   /* border-bottom: 3px solid black; */
   background-color: #ddd;
+  /* border-bottom: 3px solid var(--secondary-color);
+  transform: translateY(-2px);
+  color: var(--secondary-color); */
 }
 
 /* Create an active/current tablink class */
