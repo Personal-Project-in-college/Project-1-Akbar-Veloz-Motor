@@ -12,6 +12,8 @@
         <li><a href="views/pages/admin/branch/index.php">Branch ✅</a></li>
         <li><a href="views/pages/admin/partner/index.php">Partner ✅</a></li>
         <li><a href="views/pages/admin/vehicles/index.php">Vehicle ✅</a></li>
+        <li><a href="views/pages/admin/vehicle_documents/index.php">Vehicle Document ✅</a></li>
+        <li><a href="views/pages/admin/role/index.php">Role ✅</a></li>
     </ul>
     
 </body>
