@@ -4,7 +4,7 @@
     
     <!-- Dashboard -->
     <li class="nav-item">
-      <a class="nav-link" href="dashboard.php">
+      <a class="nav-link" href="index.php">
         <i class="mdi mdi-view-dashboard menu-icon"></i>
         <span class="menu-title">Dashboard</span>
       </a>
