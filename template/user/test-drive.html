@@ -1,23 +1,35 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Drive - Akbar Veloz Motor</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- CSS Choices -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+    <!-- JS Choices -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>Akbar Veloz Motor</h1>
+            <h1><span translate="no">Akbar Veloz Motor</span></h1>
             <nav>
                 <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="wishlist.html">Simpan</a></li>
-                    <li><a href="test-drive.html">Test drive</a></li>
+                  <li><a href="index.html">Home</a></li>
+                  <li><a href="wishlist.html">Simpan <span>
+                    
+                    <span id="wishlist-icon" class="wishlist-icon">
+                      <svg width="64px" height="64px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                      </span>
+                  </a>
+                  </li>
+                  <li><a href="test-drive.html">Test drive</a></li>
                 </ul>
-            </nav>
+              </nav>
             <!-- <div class="search-box">
                 <input type="text" placeholder="Cari kendaraan...">
                 <button><i class="fas fa-search"></i></button>
@@ -28,55 +40,78 @@
     <main class="container">
         <section class="test-drive-form">
             <h2>Hubungi Kami untuk Test Drive</h2>
-            <p>Isi form berikut untuk menjadwalkan test drive kendaraan pilihan Anda</p>
-            
-            <form id="testDriveForm">
-                <div class="form-group">
-                    <label for="name">Nama Lengkap</label>
-                    <input type="text" id="name" name="name" required>
+            <div>
+
+            <form id="testDriveForm" class="testDriveForm">
+            <div class="testDrive-container">
+
+                <div class="inputGroup">
+                    <input type="text" required="" autocomplete="off">
+                    <label for="name">Name</label>
                 </div>
                 
-                <div class="form-group">
-                    <label for="phone">Nomor WhatsApp Aktif</label>
-                    <input type="tel" id="phone" name="phone" required>
-                </div>
+                <div class="inputGroup">
+                    <input type="tel" id="whatsapp" name="whatsapp" required autocomplete="off">
+                    <label for="whatsapp">Nomor WhatsApp Aktif</label> 
+                  </div>
                 
-                <div class="form-group">
+                <div class="inputGroup">
+                    <textarea id="address" name="address" rows="12" required></textarea>
                     <label for="address">Alamat</label>
-                    <textarea id="address" name="address" rows="3" required></textarea>
+                </div>
+            </div>
+
+            <div class="testDrive-container">
+                <div class="inputGroup">
+                  <input type="email" required="" autocomplete="off">
+                  <label for="email">Email</label> 
                 </div>
                 
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email">
+              <div class="select-wrapper">
+              <select class="modern-select" id="vehicle" name="vehicle" required>
+                <option value="">-- Pilih Kendaraan --</option>
+                <option value="Honda Beat 2020">Honda Beat 2020</option>
+                <option value="APV">APV</option>
+                <option value="Baleno">Baleno</option>
+                <option value="Hybrid Lux">Hybrid Lux</option>
+                <option value="Honda Brio">Honda Brio</option>
+                <option value="Mitsubishi Xpander">Mitsubishi Xpander</option>
+              </select>
+            </div>
+
+                
+                <div class="select-wrapper">
+                  <select class="modern-select" id="purpose" name="purpose" required>
+                    <option value="">-- Tentukan tujuan --</option>
+                    <option value="Test Drive">Test Drive</option>
+                    <option value="Order">Order</option>
+                  </select>
+                  <div class="select-arrow">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                      <path d="M7 10l5 5 5-5z" fill="currentColor"/>
+                    </svg>
+                  </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="vehicle">Pilih Kendaraan</label>
-                    <select id="vehicle" name="vehicle" required>
-                        <option value="">-- Pilih Kendaraan --</option>
-                        <option value="Honda Beat 2020">Honda Beat 2020</option>
-                        <option value="APV">APV</option>
-                        <option value="Baleno">Baleno</option>
-                        <option value="Hybrid Lux">Hybrid Lux</option>
-                        <option value="Honda Brio">Honda Brio</option>
-                        <option value="Mitsubishi Xpander">Mitsubishi Xpander</option>
-                    </select>
+                <div class="datepicker-wrapper">
+                  <label for="date">Tentukan Jadwal</label>
+                  <div class="datepicker-container">
+                    <input class="modern-datepicker" type="date" id="date" name="date" required>
+                    <div class="datepicker-icon">
+                      <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z" fill="currentColor"/>
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="date">Tentukan Jadwal</label>
-                    <input type="date" id="date" name="date" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="message">Pesan Tambahan (opsional)</label>
-                    <textarea id="message" name="message" rows="3"></textarea>
-                </div>
-                
+              </div>
+
+        </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn">Pesan Test Drive</button>
                     <a href="index.html" class="btn-secondary">Kembali</a>
+                    <button type="submit" class="btn">
+                      Kirim
+                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M20 4L3 9.31372L10.5 13.5M20 4L14.5 21L10.5 13.5M20 4L10.5 13.5" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
                 </div>
             </form>
         </section>
@@ -85,7 +120,7 @@
     <footer>
         <div class="container footer-content">
             <div class="footer-section">
-                <h3>Akbar Veloz Motor</h3>
+                <h3><span translate="no">Akbar Veloz Motor</span></h3>
                 <p>© 2025. All rights reserved.</p>
                 <p>Politeknik Negeri Subang</p>
             </div>
@@ -114,6 +149,7 @@
         </div>
     </footer>
 
-    <script src="js/script.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/testDrive.js"></script>
 </body>
 </html>

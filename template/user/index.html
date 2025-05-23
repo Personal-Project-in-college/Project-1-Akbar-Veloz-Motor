@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" translate="no">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,17 +9,25 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+
   </head>
   <body>
     <!-- Navbar -->
     <!-- <?php include("navbar.php");?> -->
     <header>
       <div class="container">
-        <h1>Akbar Veloz Motor</h1>
+        <h1><span translate="no">Akbar Veloz Motor</span></h1>
         <nav>
           <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="wishlist.html">Simpan</a></li>
+            <li><a href="wishlist.html">Simpan <span>
+              <span id="wishlist-icon" class="wishlist-icon">
+                <svg width="64px" height="64px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                </span>
+            </a>
+              
+            </li>
             <li><a href="test-drive.html">Test drive</a></li>
           </ul>
         </nav>
@@ -65,10 +73,10 @@
         </div>
 
         <!-- call us, test drive -->
-        <div class="call-container" onclick="window.location='test-drive.html'">
+         <div class="call-container" onclick="callUs()">
           <div class="call-card">
             <svg  width="25px" height="25px" viewBox="0 0 16.00 16.00" xmlns="http://www.w3.org/2000/svg"  stroke-width="0.00016"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M11.42 9.49c-.19-.09-1.1-.54-1.27-.61s-.29-.09-.42.1-.48.6-.59.73-.21.14-.4 0a5.13 5.13 0 0 1-1.49-.92 5.25 5.25 0 0 1-1-1.29c-.11-.18 0-.28.08-.38s.18-.21.28-.32a1.39 1.39 0 0 0 .18-.31.38.38 0 0 0 0-.33c0-.09-.42-1-.58-1.37s-.3-.32-.41-.32h-.4a.72.72 0 0 0-.5.23 2.1 2.1 0 0 0-.65 1.55A3.59 3.59 0 0 0 5 8.2 8.32 8.32 0 0 0 8.19 11c.44.19.78.3 1.05.39a2.53 2.53 0 0 0 1.17.07 1.93 1.93 0 0 0 1.26-.88 1.67 1.67 0 0 0 .11-.88c-.05-.07-.17-.12-.36-.21z"></path><path d="M13.29 2.68A7.36 7.36 0 0 0 8 .5a7.44 7.44 0 0 0-6.41 11.15l-1 3.85 3.94-1a7.4 7.4 0 0 0 3.55.9H8a7.44 7.44 0 0 0 5.29-12.72zM8 14.12a6.12 6.12 0 0 1-3.15-.87l-.22-.13-2.34.61.62-2.28-.14-.23a6.18 6.18 0 0 1 9.6-7.65 6.12 6.12 0 0 1 1.81 4.37A6.19 6.19 0 0 1 8 14.12z"></path></g></svg>
-            <h5 style="margin-top: 5px">Call Us!</h5>
+            <h5 style="margin-top: 5px">Whatsapp</h5>
           </div>
 
           <div class="call-card" onclick="window.location='test-drive.html'">
@@ -101,148 +109,28 @@
 
       <section class="vehicle-list">
         <h2>Daftar Kendaraan</h2>
-        <!-- All, motor, mobil -->
         <div class="tab">
-          <button class="tablinks active" onclick="openCity(event, 'Semua')">
-            Semua
-          </button>
-          <button class="tablinks" onclick="openCity(event, 'Motor')">
-            Motor
-          </button>
-          <button class="tablinks" onclick="openCity(event, 'Mobil')">
-            Mobil
-          </button>
-
+          <button class="tablinks active" onclick="openTab(event, 'Semua')">Semua</button>
+          <button class="tablinks" onclick="openTab(event, 'Motor')">Motor</button>
+          <button class="tablinks" onclick="openTab(event, 'Mobil')">Mobil</button>
         </div>
-        
-        <!-- semua -->
+      
+        <!-- Semua -->
         <div id="Semua" class="tabcontent" style="display: block;">
-          <div class="grid-container">
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/thumbnail-beat-3-03062024-050824.png"
-                alt="APV"
-              />
-              <h3>BeAT</h3>
-              <p>Mulai dari Rp. 18,880,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/thumbnail-product-beat-street-03062024-044327.png"
-                alt="BeAT Street"
-              />
-              <h3>BeAT Street</h3>
-              <p>Mulai dari Rp. 19,751,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/product-thumbnail-400x300px-red-metallic-06122024-030208.png"
-                alt="PCX 160"
-              />
-              <h3>PCX 160</h3>
-              <p>Mulai dari Rp. 34,300,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/thumbnail-new-supra-x-5-04032022-102907.png"
-                alt="Supra X 125 FI"
-              />
-              <h3>Supra X 125 FI</h3>
-              <p>Mulai dari Rp. 20,750,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://www.hondaibrm.co.id/uploaded/7ec80b72756deac5f97b411020ae7605.webp"
-                alt="Honda Beat"
-              />
-              <h3>Honda Brio</h3>
-              <p>Mulai dari Rp. 184,000,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-
-            <div class="vehicle-card">
-              <img
-                src="https://www.hondaibrm.co.id/uploaded/b3ac95de9ac80348ee2fd99136df17d4.webp"
-                alt="Honda Beat"
-              />
-              <h3>Honda BR-V</h3>
-              <p>Mulai dari Rp. 311,900,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-          </div>
-          
+          <div class="grid-container" id="semua-container"></div>
         </div>
-
+      
         <!-- Motor -->
         <div id="Motor" class="tabcontent">
-          <div class="grid-container">
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/thumbnail-beat-3-03062024-050824.png"
-                alt="APV"
-              />
-              <h3>BeAT</h3>
-              <p>Mulai dari Rp. 18,880,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/thumbnail-product-beat-street-03062024-044327.png"
-                alt="BeAT Street"
-              />
-              <h3>BeAT Street</h3>
-              <p>Mulai dari Rp. 19,751,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/product-thumbnail-400x300px-red-metallic-06122024-030208.png"
-                alt="PCX 160"
-              />
-              <h3>PCX 160</h3>
-              <p>Mulai dari Rp. 34,300,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-            <div class="vehicle-card">
-              <img
-                src="https://ik.imagekit.io/zlt25mb52fx/ahmcdn/tr:w-550,f-auto/uploads/product/thumbnail/thumbnail-new-supra-x-5-04032022-102907.png"
-                alt="Supra X 125 FI"
-              />
-              <h3>Supra X 125 FI</h3>
-              <p>Mulai dari Rp. 20,750,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-          </div>
+          <div class="grid-container" id="motor-container"></div>
         </div>
-
+      
         <!-- Mobil -->
         <div id="Mobil" class="tabcontent">
-          <div class="grid-container">
-            <div class="vehicle-card">
-              <img
-                src="https://www.hondaibrm.co.id/uploaded/7ec80b72756deac5f97b411020ae7605.webp"
-                alt="Honda Beat"
-              />
-              <h3>Honda Brio</h3>
-              <p>Mulai dari Rp. 184,000,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-
-            <div class="vehicle-card">
-              <img
-                src="https://www.hondaibrm.co.id/uploaded/b3ac95de9ac80348ee2fd99136df17d4.webp"
-                alt="Honda Beat"
-              />
-              <h3>Honda BR-V</h3>
-              <p>Mulai dari Rp. 311,900,000</p>
-              <a href="detail.html" class="btn-secondary">Detail</a>
-            </div>
-          </div>
+          <div class="grid-container" id="mobil-container"></div>
         </div>
+      </section>
+      
 
       </section>
 
@@ -277,7 +165,7 @@
     <footer>
       <div class="container footer-content">
         <div class="footer-section">
-          <h3>Akbar Veloz Motor</h3>
+          <h3><span translate="no">Akbar Veloz Motor</span></h3>
           <p>© 2025. All rights reserved.</p>
           <p>Politeknik Negeri Subang</p>
         </div>
@@ -297,15 +185,16 @@
             <a href="#"><i class="fab fa-twitter"></i></a>
           </div>
         </div>
-        <div class="footer-section">
+        <!-- <div class="footer-section">
           <h3>Services</h3>
           <ul>
             <li><a href="#">Check Certificate</a></li>
           </ul>
-        </div>
+        </div> -->
       </div>
     </footer>
 
+    <script src="js/global.js"></script>
     <script src="js/script.js"></script>
   </body>
 </html>
