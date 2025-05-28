@@ -2,8 +2,8 @@
 include '../../../../config/koneksi.php';
 // 🔗 Hubungkan ke file koneksi database
 
-// 🪢 Ambil kendaraan yang belum ada di vehicle_documents
-$vehicles = $koneksi->query("SELECT id FROM vehicles WHERE id NOT IN (SELECT vehicle_id FROM vehicle_documents)");
+// 🪢 Ambil kendaraan yang belum ada di vehicle_documents dan vehicle tidak didelete dari branch
+$vehicles = $koneksi->query("SELECT id FROM vehicles WHERE id NOT IN (SELECT vehicle_id FROM vehicle_documents) AND (deleted_at IS NULL AND deleted_by_branch_at IS NULL)");
 
 // 🔝 Kalau form dikirim (pakai POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
