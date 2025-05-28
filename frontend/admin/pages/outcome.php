@@ -10,15 +10,10 @@
           <!-- Actions & Navigation -->
           <div class="mb-3">
             <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-              <a href="add_outcome.php" class="btn btn-primary">Tambah</a>
-
               <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
                 <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
               </div>
 
-              <a href="#" class="btn btn-white">
-                <i class="ti-pencil-alt"></i> Edit Column
-              </a>
             </div>
 
             <!-- Tabs -->
@@ -70,6 +65,7 @@
                     <th>Jenis Pengeluaran</th>
                     <th>Keterangan</th>
                     <th>Nominal</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -79,6 +75,16 @@
                     <td>Service</td>
                     <td>Perawatan Kendaraan</td>
                     <td>100000000</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                   </tr>
                   <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -86,6 +92,16 @@
                       <td>Service</td>
                       <td>Perawatan Kendaraan</td>
                       <td>100000000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -93,6 +109,16 @@
                       <td>Bahan Bakar</td>
                       <td>Pengisian BBM armada</td>
                       <td>500000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -100,6 +126,16 @@
                       <td>Gaji</td>
                       <td>Gaji bulanan staf</td>
                       <td>15000000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -107,6 +143,16 @@
                       <td>Listrik</td>
                       <td>Tagihan listrik kantor</td>
                       <td>1200000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -114,6 +160,16 @@
                       <td>ATK</td>
                       <td>Pembelian alat tulis</td>
                       <td>350000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -121,6 +177,16 @@
                       <td>Internet</td>
                       <td>Langganan bulanan WiFi</td>
                       <td>800000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -128,6 +194,16 @@
                       <td>Service</td>
                       <td>Penggantian oli dan filter</td>
                       <td>750000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -135,6 +211,16 @@
                       <td>Konsumsi</td>
                       <td>Snack rapat mingguan</td>
                       <td>200000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -142,6 +228,16 @@
                       <td>Pemasaran</td>
                       <td>Iklan di media sosial</td>
                       <td>3000000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -149,6 +245,16 @@
                       <td>Perlengkapan</td>
                       <td>Pembelian perlengkapan kantor</td>
                       <td>1000000</td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px;">
+                      <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                      style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                      <i class="mdi mdi-delete" style="color: white;"></i>
+                    </button>
+                    </td>
                     </tr>
                   </tbody>
                   </table>

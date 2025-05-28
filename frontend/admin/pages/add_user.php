@@ -39,7 +39,7 @@
             <select class="form-select" id="tempat">
               <option selected>Pilih Tempat Kerja</option>
               <option value="cabang1">Showroom Utama</option>
-              <option value="cabang2">Cabang 2</option>
+              <option value="cabang2">Cabang</option>
             </select>
           </div>
 

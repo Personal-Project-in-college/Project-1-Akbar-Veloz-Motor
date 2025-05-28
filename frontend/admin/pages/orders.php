@@ -7,18 +7,14 @@
       <div class="content-wrapper">
         <h3 class="mb-4">Orders</h3>
 
-       <!-- Actions -->
-      <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
+        <!-- Actions -->
 
         <!-- Search Box -->
         <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
           <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
         </div>
 
-        <!-- Edit Column Button -->
-        <a href="#" class="btn btn-white">
-          <i class="ti-pencil-alt"></i> Edit Column
-        </a>
+        
       </div>
 
         <!-- Tabs -->
@@ -48,6 +44,7 @@
                       <th>Kendaraan</th>
                       <th>Tipe</th>
                       <th>Request</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -64,6 +61,16 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                      <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                        style="width: 28px; height: 28px; border-radius: 4px;">
+                        <i class="mdi mdi-pencil"></i>
+                      </button>
+                      <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                        style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                        <i class="mdi mdi-delete" style="color: white;"></i>
+                      </button>
+                      </td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -77,6 +84,16 @@
                         <a href="details_orders.php?id=2" class="ms-2 text-dark" title="Detail Order">
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                      <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                        style="width: 28px; height: 28px; border-radius: 4px;">
+                        <i class="mdi mdi-pencil"></i>
+                      </button>
+                      <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                        style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                        <i class="mdi mdi-delete" style="color: white;"></i>
+                      </button>
                       </td>
                     </tr>
                     <tr>
@@ -92,7 +109,17 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
-                    </tr>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
                       <td>Dina</td>
@@ -106,6 +133,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -120,6 +159,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -134,6 +185,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -148,6 +211,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -162,6 +237,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -176,6 +263,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
@@ -190,6 +289,18 @@
                           <i class="mdi mdi-dots-vertical"></i>
                         </a>
                       </td>
+                      </td>
+                      <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
+                      </tr>
                     </tr>
                   </tbody>
 
