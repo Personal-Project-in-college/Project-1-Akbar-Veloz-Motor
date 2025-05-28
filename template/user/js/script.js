@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", updateWishlistButtons);
 // Data kendaraan (bisa diganti dari PHP)
 const vehicles = [
   {
-    image: "https://apollo.olx.co.id/v1/files/68281746cdd66-ID/image;s=780x0;q=60",
+    image: "../assets/images/card/motor-beat.jpg",
     alt: "BeAT",
     name: "BeAT",
     price: "Rp. 18,880,000",
