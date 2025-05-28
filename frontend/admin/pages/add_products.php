@@ -93,9 +93,8 @@
                 <input type="file" class="form-control">
               </div>
 
-              <!-- Submit -->
-              <div class="text-end">
-                <button type="submit" class="btn btn-primary">Submit</button>
+              <button type="submit" class="btn btn-primary mt-3">Simpan</button>
+
               </div>
             </form>
           </div>

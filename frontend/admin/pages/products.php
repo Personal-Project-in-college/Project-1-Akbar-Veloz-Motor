@@ -26,16 +26,16 @@
         <!-- Tabs -->
        <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-          <a class="nav-link text-primary <?= ($activePage == 'products.php') ? 'active' : '' ?>" href="products.php">Products</a>
+          <a class="nav-link text-primary <?= ($activePage == 'products.php') ? 'active' : '' ?>" href="products.php">Products <span class="badge bg-primary">2</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-primary <?= ($activePage == 'services.php') ? 'active' : '' ?>" href="services.php">Services</a>
+          <a class="nav-link text-primary <?= ($activePage == 'services.php') ? 'active' : '' ?>" href="services.php">Services <span class="badge bg-primary">7</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-primary <?= ($activePage == 'orders.php') ? 'active' : '' ?>" href="orders.php">Orders<span class="badge bg-primary">99+</span></a>
+          <a class="nav-link text-primary <?= ($activePage == 'orders.php') ? 'active' : '' ?>" href="orders.php">Orders <span class="badge bg-primary">99+</span></a>
         </ul>
 
-        <!-- Table -->
+       <!-- Table -->
         <div class="row">
           <div class="col-lg-12 grid-margin stretch-card">
             <div class="card">
@@ -58,91 +58,91 @@
                       <td><input type="checkbox" class="select-row"></td>
                       <td>B123KLM</td>
                       <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Available</td>
+                      <td>Honda Vario 150</td>
+                      <td>Motor</td>
+                      <td>23jt</td>
+                      <td>Unit baru, siap pakai</td>
                       <td><span class="badge bg-success">Available</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
+                      <td>D456XYZ</td>
                       <td><img src="path/to/image2.jpg" style="width: 50px; height: 50px;" alt="Image 2"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Test Drive</td>
+                      <td>Toyota Avanza 2020</td>
+                      <td>Mobil</td>
+                      <td>150jt</td>
+                      <td>Baru diservis</td>
                       <td><span class="badge bg-warning">Test Drive</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
+                      <td>E789JKL</td>
                       <td><img src="path/to/image3.jpg" style="width: 50px; height: 50px;" alt="Image 3"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Service</td>
+                      <td>Suzuki Ertiga GL</td>
+                      <td>Mobil</td>
+                      <td>135jt</td>
+                      <td>Perlu pengecekan oli</td>
                       <td><span class="badge bg-danger">Service</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
-                      <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Available</td>
+                      <td>F321BCA</td>
+                      <td><img src="path/to/image4.jpg" style="width: 50px; height: 50px;" alt="Image 4"></td>
+                      <td>Yamaha NMAX 2023</td>
+                      <td>Motor</td>
+                      <td>34jt</td>
+                      <td>Unit premium</td>
                       <td><span class="badge bg-success">Available</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
-                      <td><img src="path/to/image2.jpg" style="width: 50px; height: 50px;" alt="Image 2"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Test Drive</td>
+                      <td>G654LMN</td>
+                      <td><img src="path/to/image5.jpg" style="width: 50px; height: 50px;" alt="Image 5"></td>
+                      <td>Daihatsu Sigra</td>
+                      <td>Mobil</td>
+                      <td>120jt</td>
+                      <td>Siap jalan jauh</td>
                       <td><span class="badge bg-warning">Test Drive</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
-                      <td><img src="path/to/image3.jpg" style="width: 50px; height: 50px;" alt="Image 3"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Service</td>
+                      <td>H111QWE</td>
+                      <td><img src="path/to/image6.jpg" style="width: 50px; height: 50px;" alt="Image 6"></td>
+                      <td>Kawasaki Ninja RR</td>
+                      <td>Motor</td>
+                      <td>48jt</td>
+                      <td>Butuh servis rem</td>
                       <td><span class="badge bg-danger">Service</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
-                      <td><img src="path/to/image3.jpg" style="width: 50px; height: 50px;" alt="Image 3"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Service</td>
-                      <td><span class="badge bg-danger">Service</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
-                      <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Available</td>
+                      <td>I222RTY</td>
+                      <td><img src="path/to/image7.jpg" style="width: 50px; height: 50px;" alt="Image 7"></td>
+                      <td>Honda Beat Street</td>
+                      <td>Motor</td>
+                      <td>17jt</td>
+                      <td>Promo bulan ini</td>
                       <td><span class="badge bg-success">Available</span></td>
                     </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
-                      <td>B123KLM</td>
-                      <td><img src="path/to/image2.jpg" style="width: 50px; height: 50px;" alt="Image 2"></td>
-                      <td>Oppressor MK</td>
-                      <td>MOTOR</td>
-                      <td>100jt</td>
-                      <td>Test Drive</td>
+                      <td>J333UIO</td>
+                      <td><img src="path/to/image8.jpg" style="width: 50px; height: 50px;" alt="Image 8"></td>
+                      <td>Suzuki Carry Pickup</td>
+                      <td>Mobil</td>
+                      <td>85jt</td>
+                      <td>Kondisi prima</td>
                       <td><span class="badge bg-warning">Test Drive</span></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>K444PAS</td>
+                      <td><img src="path/to/image9.jpg" style="width: 50px; height: 50px;" alt="Image 9"></td>
+                      <td>Mitsubishi Xpander</td>
+                      <td>Mobil</td>
+                      <td>210jt</td>
+                      <td>Masih garansi</td>
+                      <td><span class="badge bg-success">Available</span></td>
                     </tr>
                   </tbody>
                 </table>
@@ -151,22 +151,22 @@
           </div>
         </div>
 
-        <!-- Pagination -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-end" id="pagination">
-            <li class="page-item disabled" id="prev">
-              <a class="page-link bg-primary text-white" href="#">Previous</a>
-            </li>
-            <li class="page-item active">
-              <a class="page-link bg-white text-primary" href="#">1</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link bg-white text-primary" href="#">2</a>
-            </li>
-            <li class="page-item" id="next">
-              <a class="page-link bg-primary text-white" href="#">Next</a>
-            </li>
-          </ul>
-        </nav>
+          <!-- Pagination -->
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end" id="pagination">
+              <li class="page-item disabled" id="prev">
+                <a class="page-link bg-primary text-white" href="#">Previous</a>
+              </li>
+              <li class="page-item active">
+                <a class="page-link bg-white text-primary" href="#">1</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link bg-white text-primary" href="#">2</a>
+              </li>
+              <li class="page-item" id="next">
+                <a class="page-link bg-primary text-white" href="#">Next</a>
+              </li>
+            </ul>
+          </nav>
 
 <?php include '../layout/footer.php'; ?>

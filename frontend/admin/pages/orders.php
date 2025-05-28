@@ -5,7 +5,7 @@
 <!-- Main Content -->
     <div class="main-panel">
       <div class="content-wrapper">
-        <h3 class="mb-4">Produk</h3>
+        <h3 class="mb-4">Orders</h3>
 
        <!-- Actions -->
       <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
@@ -21,13 +21,13 @@
         </a>
       </div>
 
-     <!-- Tabs -->
+        <!-- Tabs -->
        <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-          <a class="nav-link text-primary <?= ($activePage == 'products.php') ? 'active' : '' ?>" href="products.php">Products</a>
+          <a class="nav-link text-primary <?= ($activePage == 'products.php') ? 'active' : '' ?>" href="products.php">Products <span class="badge bg-primary">2</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-primary <?= ($activePage == 'services.php') ? 'active' : '' ?>" href="services.php">Services</a>
+          <a class="nav-link text-primary <?= ($activePage == 'services.php') ? 'active' : '' ?>" href="services.php">Services <span class="badge bg-primary">7</span></a>
         </li>
         <li class="nav-item">
           <a class="nav-link text-primary <?= ($activePage == 'orders.php') ? 'active' : '' ?>" href="orders.php">Orders <span class="badge bg-primary">99+</span></a>
@@ -52,20 +52,147 @@
                   </thead>
                   <tbody>
                     <tr>
-                    <td><input type="checkbox" class="select-row"></td>
-                    <td>Zaki</td>
-                    <td>083100099</td>
-                    <td>Cimahi</td>
-                    <td>Hillux</td>
-                    <td>Sport</td>
-                    <td>
-                      <span class="badge bg-success">Transaksi</span>
-                      <a href="details_orders.php?id=1" class="ms-2 text-dark" title="Detail Order">
-                        <i class="mdi mdi-dots-vertical"></i>
-                      </a>
-                    </td>
-                  </tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Zaki</td>
+                      <td>083100099</td>
+                      <td>Cimahi</td>
+                      <td>Hillux</td>
+                      <td>Mobil - Sport</td>
+                      <td>
+                        <span class="badge bg-success">Transaksi</span>
+                        <a href="details_orders.php?id=1" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Ani</td>
+                      <td>082112345678</td>
+                      <td>Subang</td>
+                      <td>Beat</td>
+                      <td>Motor - Matic</td>
+                      <td>
+                        <span class="badge bg-warning">Pending</span>
+                        <a href="details_orders.php?id=2" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Bayu</td>
+                      <td>081390012345</td>
+                      <td>Purwakarta</td>
+                      <td>Fortuner</td>
+                      <td>Mobil - SUV</td>
+                      <td>
+                        <span class="badge bg-success">Transaksi</span>
+                        <a href="details_orders.php?id=3" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Dina</td>
+                      <td>087722334455</td>
+                      <td>Bandung</td>
+                      <td>Vario</td>
+                      <td>Motor - Matic</td>
+                      <td>
+                        <span class="badge bg-danger">Batal</span>
+                        <a href="details_orders.php?id=4" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Rudi</td>
+                      <td>085566778899</td>
+                      <td>Karawang</td>
+                      <td>CR-V</td>
+                      <td>Mobil - SUV</td>
+                      <td>
+                        <span class="badge bg-warning">Pending</span>
+                        <a href="details_orders.php?id=5" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Sari</td>
+                      <td>081234567890</td>
+                      <td>Majalengka</td>
+                      <td>PCX 160</td>
+                      <td>Motor - Maxi</td>
+                      <td>
+                        <span class="badge bg-success">Transaksi</span>
+                        <a href="details_orders.php?id=6" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Joko</td>
+                      <td>088812345678</td>
+                      <td>Garut</td>
+                      <td>Rush</td>
+                      <td>Mobil - SUV</td>
+                      <td>
+                        <span class="badge bg-success">Transaksi</span>
+                        <a href="details_orders.php?id=7" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Lina</td>
+                      <td>089911223344</td>
+                      <td>Tasikmalaya</td>
+                      <td>Scoopy</td>
+                      <td>Motor - Retro</td>
+                      <td>
+                        <span class="badge bg-danger">Batal</span>
+                        <a href="details_orders.php?id=8" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Dedi</td>
+                      <td>081811223355</td>
+                      <td>Sumedang</td>
+                      <td>Xpander</td>
+                      <td>Mobil - MPV</td>
+                      <td>
+                        <span class="badge bg-warning">Pending</span>
+                        <a href="details_orders.php?id=9" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" class="select-row"></td>
+                      <td>Rina</td>
+                      <td>082144556677</td>
+                      <td>Lembang</td>
+                      <td>NMAX</td>
+                      <td>Motor - Maxi</td>
+                      <td>
+                        <span class="badge bg-success">Transaksi</span>
+                        <a href="details_orders.php?id=10" class="ms-2 text-dark" title="Detail Order">
+                          <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                      </td>
+                    </tr>
                   </tbody>
+
                 </table>
               </div>
             </div>

@@ -10,7 +10,7 @@
        <!-- Actions -->
       <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
         <!-- Tambahkan Produk Button -->
-        <a href="tambah_produk.php" class="btn btn-primary">Tambah</a>
+        <a href="add_partner.php" class="btn btn-primary">Tambah</a>
 
         <!-- Search Box -->
         <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
@@ -41,28 +41,90 @@
                   <thead>
                     <tr>
                       <th><input type="checkbox" id="select-all"></th>
-                      <th>Karyawan</th>
+                      <th>Nama</th>
                       <th>Foto</th>
                       <th>Nomor Ponsel</th>
                       <th>Alamat</th>
-                      <th>Role</th>
-                      <th>Tempat Kerja</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><input type="checkbox" class="select-row"></td>
-                      <td>Diaz</td>
-                      <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
-                      <td>0897355472</td>
-                      <td>Subang</td>
-                      <td>Karyawan</td>
-                      <td>Pusat</td>
-                      <td>
-                      <a href="" class="ms-2 text-dark" title="Detail Order">
-                        <i class="mdi mdi-dots-vertical"></i>
-                      </a>
-                    </tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Diaz</td>
+                    <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
+                    <td>0897355472</td>
+                    <td>Subang</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Ani</td>
+                    <td><img src="path/to/image2.jpg" style="width: 50px; height: 50px;" alt="Image 2"></td>
+                    <td>0812345678</td>
+                    <td>Bandung</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Budi</td>
+                    <td><img src="path/to/image3.jpg" style="width: 50px; height: 50px;" alt="Image 3"></td>
+                    <td>0898765432</td>
+                    <td>Jakarta</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Citra</td>
+                    <td><img src="path/to/image4.jpg" style="width: 50px; height: 50px;" alt="Image 4"></td>
+                    <td>0822334455</td>
+                    <td>Bekasi</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Dodi</td>
+                    <td><img src="path/to/image5.jpg" style="width: 50px; height: 50px;" alt="Image 5"></td>
+                    <td>0833221100</td>
+                    <td>Depok</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Eka</td>
+                    <td><img src="path/to/image6.jpg" style="width: 50px; height: 50px;" alt="Image 6"></td>
+                    <td>0811223344</td>
+                    <td>Tangerang</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Fajar</td>
+                    <td><img src="path/to/image7.jpg" style="width: 50px; height: 50px;" alt="Image 7"></td>
+                    <td>0888997766</td>
+                    <td>Yogyakarta</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Gita</td>
+                    <td><img src="path/to/image8.jpg" style="width: 50px; height: 50px;" alt="Image 8"></td>
+                    <td>0877665544</td>
+                    <td>Semarang</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Hadi</td>
+                    <td><img src="path/to/image9.jpg" style="width: 50px; height: 50px;" alt="Image 9"></td>
+                    <td>0866554433</td>
+                    <td>Surabaya</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Intan</td>
+                    <td><img src="path/to/image10.jpg" style="width: 50px; height: 50px;" alt="Image 10"></td>
+                    <td>0855443322</td>
+                    <td>Malang</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-row"></td>
+                    <td>Joko</td>
+                    <td><img src="path/to/image11.jpg" style="width: 50px; height: 50px;" alt="Image 11"></td>
+                    <td>0844332211</td>
+                    <td>Garut</td>
+                  </tr>
                   </tbody>
                 </table>
               </div>

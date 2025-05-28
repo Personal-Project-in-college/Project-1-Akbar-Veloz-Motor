@@ -18,16 +18,17 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="../src/assets/css/style.css">
   <link rel="shortcut icon" href="../src/assets/images/favicon.png">
+
 </head>
 <body>
 
- <!-- Navbar -->
-<nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-  <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-    <h4 class="font-weight-bold mb-0 text-primary">Akbar Veloz Motor</h4>
-  </div>
+    <!-- Navbar -->
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <h4 class="font-weight-bold mb-0 text-primary">Akbar Veloz Motor</h4>
+      </div>
 
-  <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+    <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
     
     <!-- Sidebar Toggle -->
     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -59,33 +60,19 @@
         </a>
       </li>
 
-      <!-- Settings -->
-      <li class="nav-item">
-        <a class="nav-link" href="#">
-          <i class="mdi mdi-brightness-7" style="font-size: 20px; vertical-align: middle;"></i>
-        </a>
-      </li>
-
       <!-- Profile -->
       <li class="nav-item nav-profile dropdown">
         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
           <img src="../src/assets/images/jamal.png" alt="profile" />
         </a>
         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-          <a class="dropdown-item">
-            <i class="ti-settings text-primary"></i> Settings
-          </a>
-          <a class="dropdown-item">
-            <i class="ti-power-off text-primary"></i> Logout
-          </a>
-        </div>
-      </li>
-
-      <!-- Optional Button -->
-      <li class="nav-item nav-settings d-none d-lg-flex">
-        <a class="nav-link" href="#">
-          <i class="icon-ellipsis"></i>
+        <a class="dropdown-item" href="settings.php">
+          <i class="ti-settings text-primary"></i> Settings
         </a>
+        <a class="dropdown-item" href="logout.php">
+          <i class="ti-power-off text-primary"></i> Logout
+        </a>
+
       </li>
 
     </ul>

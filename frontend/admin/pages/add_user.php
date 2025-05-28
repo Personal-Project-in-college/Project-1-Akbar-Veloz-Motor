@@ -18,10 +18,9 @@
           <div class="mb-3">
             <label for="role" class="form-label">Role</label>
             <select class="form-select" id="role">
-              <option selected>Silahkan pilih!</option>
+              <option selected>Pilih Role</option>
               <option value="admin">Admin</option>
               <option value="staff">Staff</option>
-              <!-- Tambahkan opsi lain sesuai kebutuhan -->
             </select>
           </div>
 
@@ -32,16 +31,15 @@
 
           <div class="mb-3">
             <label for="phone" class="form-label">Nomor Ponsel</label>
-            <input type="tel" class="form-control" id="phone" placeholder="Masukan nomor ponsel">
+            <input type="tel" class="form-control" id="phone" placeholder="Masukan Nomor Ponsel">
           </div>
 
           <div class="mb-3">
             <label for="tempat" class="form-label">Tempat Bekerja</label>
             <select class="form-select" id="tempat">
-              <option selected>Pilih tempat kerja!</option>
-              <option value="cabang1">Cabang 1</option>
+              <option selected>Pilih Tempat Kerja</option>
+              <option value="cabang1">Showroom Utama</option>
               <option value="cabang2">Cabang 2</option>
-              <!-- Tambahkan opsi lain sesuai kebutuhan -->
             </select>
           </div>
 
@@ -52,7 +50,7 @@
 
           <div class="mb-3">
             <label for="confirmPassword" class="form-label">Konfirmasi Password</label>
-            <input type="password" class="form-control" id="confirmPassword" placeholder="Masukan konfirmasi password!">
+            <input type="password" class="form-control" id="confirmPassword" placeholder="Masukan konfirmasi password">
           </div>
 
           <button type="submit" class="btn btn-primary">Simpan</button>

@@ -39,10 +39,12 @@
         </div>
       </div>
     </div>
-
+    
     <!-- Tombol Submit di bawah kanan -->
     <div class="text-end mt-3">
       <button type="submit" class="btn btn-primary">Submit</button>
     </div>
+
+    <br> 
 
 <?php include '../layout/footer.php'; ?>
