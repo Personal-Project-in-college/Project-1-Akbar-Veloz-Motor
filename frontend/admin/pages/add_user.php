@@ -45,12 +45,12 @@
 
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="Masukan password!">
+            <input type="password" class="form-control" id="password" placeholder="Masukan Password">
           </div>
 
           <div class="mb-3">
             <label for="confirmPassword" class="form-label">Konfirmasi Password</label>
-            <input type="password" class="form-control" id="confirmPassword" placeholder="Masukan konfirmasi password">
+            <input type="password" class="form-control" id="confirmPassword" placeholder="Masukan Konfirmasi Password">
           </div>
 
           <button type="submit" class="btn btn-primary">Simpan</button>

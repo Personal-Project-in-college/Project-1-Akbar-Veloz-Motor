@@ -7,7 +7,8 @@
       <div class="content-wrapper">
         <h3 class="mb-4">Orders</h3>
 
-        <!-- Actions -->
+        <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
+        <!-- <a href="add_products.php" class="btn btn-primary">Tambah</a> -->
 
         <!-- Search Box -->
         <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
@@ -15,7 +16,7 @@
         </div>
 
         
-      </div>
+        </div>
 
         <!-- Tabs -->
        <ul class="nav nav-tabs mb-3">
@@ -72,7 +73,7 @@
                       </button>
                       </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                       <td><input type="checkbox" class="select-row"></td>
                       <td>Ani</td>
                       <td>082112345678</td>
@@ -301,9 +302,8 @@
                         </button>
                       </td>
                       </tr>
-                    </tr>
+                    </tr> -->
                   </tbody>
-
                 </table>
               </div>
             </div>

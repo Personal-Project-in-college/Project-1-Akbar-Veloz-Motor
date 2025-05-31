@@ -52,7 +52,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                 <tr>
+                  <tr>
                     <td><input type="checkbox" class="select-row"></td>
                     <td>B123KLM</td>
                     <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
@@ -71,7 +71,7 @@
                       <i class="mdi mdi-delete" style="color: white;"></i>
                     </button>
                     </td>
-                  </tr>
+                  <!-- </tr>
                     <tr>
                       <td><input type="checkbox" class="select-row"></td>
                       <td>D456XYZ</td>
@@ -231,7 +231,8 @@
                         <i class="mdi mdi-delete" style="color: white;"></i>
                       </button>
                       </td>
-                    </tr>
+                      </tr>
+                    </tr> -->
                   </tbody>
                 </table>
               </div>

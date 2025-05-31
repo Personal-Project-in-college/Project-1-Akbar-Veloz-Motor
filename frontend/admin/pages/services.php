@@ -5,12 +5,12 @@
 <!-- Main Content -->
     <div class="main-panel">
       <div class="content-wrapper">
-        <h3 class="mb-4">Service</h3>
+        <h3 class="mb-4">Services</h3>
 
         <!-- Actions -->
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
         <!-- Tambahkan Produk Button -->
-        <a href="add_products.php" class="btn btn-primary">Tambah</a>
+        <a href="add_services.php" class="btn btn-primary">Tambah</a>
 
         <!-- Search Box -->
         <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
@@ -70,7 +70,7 @@
                         </button>
                       </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                       <td><input type="checkbox" class="select-row"></td>
                       <td>D456XYZ</td>
                       <td>Selesai</td>
@@ -354,7 +354,7 @@
                           <i class="mdi mdi-delete" style="color: white;"></i>
                         </button>
                       </td>
-                    </tr>
+                    </tr> -->
                    </tbody>
                 </table>
               </div>
