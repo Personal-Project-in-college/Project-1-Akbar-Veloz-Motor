@@ -17,10 +17,6 @@
           <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
         </div>
 
-        <!-- Edit Column Button -->
-        <a href="#" class="btn btn-white">
-          <i class="ti-pencil-alt"></i> Edit Column
-        </a>
       </div>
 
         <!-- Tabs -->
@@ -45,6 +41,7 @@
                       <th>Foto</th>
                       <th>Nomor Ponsel</th>
                       <th>Alamat</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -54,6 +51,16 @@
                     <td><img src="path/to/image1.jpg" style="width: 50px; height: 50px;" alt="Image 1"></td>
                     <td>0897355472</td>
                     <td>Subang</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -61,6 +68,16 @@
                     <td><img src="path/to/image2.jpg" style="width: 50px; height: 50px;" alt="Image 2"></td>
                     <td>0812345678</td>
                     <td>Bandung</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -68,6 +85,16 @@
                     <td><img src="path/to/image3.jpg" style="width: 50px; height: 50px;" alt="Image 3"></td>
                     <td>0898765432</td>
                     <td>Jakarta</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -75,6 +102,16 @@
                     <td><img src="path/to/image4.jpg" style="width: 50px; height: 50px;" alt="Image 4"></td>
                     <td>0822334455</td>
                     <td>Bekasi</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -82,6 +119,16 @@
                     <td><img src="path/to/image5.jpg" style="width: 50px; height: 50px;" alt="Image 5"></td>
                     <td>0833221100</td>
                     <td>Depok</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -89,6 +136,16 @@
                     <td><img src="path/to/image6.jpg" style="width: 50px; height: 50px;" alt="Image 6"></td>
                     <td>0811223344</td>
                     <td>Tangerang</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -96,6 +153,16 @@
                     <td><img src="path/to/image7.jpg" style="width: 50px; height: 50px;" alt="Image 7"></td>
                     <td>0888997766</td>
                     <td>Yogyakarta</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -103,6 +170,16 @@
                     <td><img src="path/to/image8.jpg" style="width: 50px; height: 50px;" alt="Image 8"></td>
                     <td>0877665544</td>
                     <td>Semarang</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -110,6 +187,16 @@
                     <td><img src="path/to/image9.jpg" style="width: 50px; height: 50px;" alt="Image 9"></td>
                     <td>0866554433</td>
                     <td>Surabaya</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -117,6 +204,16 @@
                     <td><img src="path/to/image10.jpg" style="width: 50px; height: 50px;" alt="Image 10"></td>
                     <td>0855443322</td>
                     <td>Malang</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="select-row"></td>
@@ -124,6 +221,16 @@
                     <td><img src="path/to/image11.jpg" style="width: 50px; height: 50px;" alt="Image 11"></td>
                     <td>0844332211</td>
                     <td>Garut</td>
+                    <td style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <button title="Edit" class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px;">
+                          <i class="mdi mdi-pencil"></i>
+                        </button>
+                        <button title="Delete" class="btn btn-danger btn-sm d-flex justify-content-center align-items-center"
+                          style="width: 28px; height: 28px; border-radius: 4px; color: white;">
+                          <i class="mdi mdi-delete" style="color: white;"></i>
+                        </button>
+                      </td>
                   </tr>
                   </tbody>
                 </table>

@@ -7,17 +7,17 @@
   <title>Akbar Veloz Motor</title>
 
   <!-- Vendor CSS -->
-  <link rel="stylesheet" href="../src/assets/vendors/feather/feather.css">
-  <link rel="stylesheet" href="../src/assets/vendors/ti-icons/css/themify-icons.css">
-  <link rel="stylesheet" href="../src/assets/vendors/css/vendor.bundle.base.css">
-  <link rel="stylesheet" href="../src/assets/vendors/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="../src/assets/vendors/mdi/css/materialdesignicons.min.css">
-  <link rel="stylesheet" href="../src/assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css">
-  <link rel="stylesheet" href="../src/assets/js/select.dataTables.min.css">
+  <link rel="stylesheet" href="../assets/vendors/feather/feather.css">
+  <link rel="stylesheet" href="../assets/vendors/ti-icons/css/themify-icons.css">
+  <link rel="stylesheet" href="../assets/vendors/css/vendor.bundle.base.css">
+  <link rel="stylesheet" href="../assets/vendors/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="../assets/vendors/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="../assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css">
+  <link rel="stylesheet" href="../assets/js/select.dataTables.min.css">
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="../src/assets/css/style.css">
-  <link rel="shortcut icon" href="../src/assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="shortcut icon" href="../assets/images/favicon.png">
 
 </head>
 <body>
@@ -25,8 +25,8 @@
  <!-- Navbar -->
 <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
   <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-    <a class="navbar-brand brand-logo me-5" href="index.php"><img src="../src/assets/images/logo.png" class="me-2" alt="logo" style="width:300px; height: 100%;"/></a>
-    <a class="navbar-brand brand-logo-mini" href="index.php"><img src="../src/assets/images/logo.png" alt="logo" style="width:500px; height:100%;"/></a> 
+    <a class="navbar-brand brand-logo me-5" href="index.php"><img src="../assets/images/logo.png" class="me-2" alt="logo" style="width:300px; height: 100%;"/></a>
+    <a class="navbar-brand brand-logo-mini" href="index.php"><img src="../assets/images/logo.png" alt="logo" style="width:500px; height:100%;"/></a> 
   </div>
 
     <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
@@ -77,7 +77,7 @@
       <!-- Profile -->
       <li class="nav-item nav-profile dropdown">
         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
-          <img src="../src/assets/images/jamal.png" alt="profile" />
+          <img src="../assets/images/jamal.png" alt="profile" />
         </a>
         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
         <a class="dropdown-item" href="settings.php">

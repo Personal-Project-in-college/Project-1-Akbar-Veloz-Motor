@@ -10,7 +10,7 @@
       <div class="col-lg-12 grid-margin stretch-card">
         <div class="card" style="border-radius: 15px; overflow: hidden;">
           <div class="card-body">
-            <table class="table table-striped" style="border-radius: 15px; overflow: hidden; id=" productTable">
+            <table class="table table-striped" style="border-radius: 15px; overflow: hidden;" id="productTable">
              <thead>
                 <tr>
                   <th>Profile Image</th>
@@ -24,7 +24,7 @@
               <tbody>
                 <tr>
                   <td>
-                    <img src="../src/assets/images/jamal.png" style="width: 50px; height: 50px; border-radius: 50%;"
+                    <img src="../assets/images/jamal.png" style="width: 50px; height: 50px; border-radius: 50%;"
                       alt="Profile Image">
                   </td>
                   <td>Epi Halimah</td>
@@ -45,7 +45,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <img src="../src/assets/images/zidan.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
+                    <img src="../assets/images/zidan.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
                       alt="Profile Image">
                   </td>
                   <td>Moch Zidan Sudrajat</td>
@@ -66,7 +66,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <img src="../src/assets/images/goku.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
+                    <img src="../assets/images/goku.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
                       alt="Profile Image">
                   </td>
                   <td>Zacki Syaeful B</td>
@@ -87,7 +87,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <img src="../src/assets/images/Diaz.jpeg" style="width: 50px; height: 50px; border-radius: 50%;"
+                    <img src="../assets/images/Diaz.jpeg" style="width: 50px; height: 50px; border-radius: 50%;"
                       alt="Profile Image">
                   </td>
                   <td>M. Dhiyul</td>
@@ -108,7 +108,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <img src="../src/assets/images/Farhan.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
+                    <img src="../assets/images/Farhan.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
                       alt="Profile Image">
                   </td>
                   <td>Farhan Ginting</td>
@@ -183,7 +183,7 @@
     </div>
 
     <div style="display: flex; flex-direction: row; gap:0px 20px;">
-        <!-- Bar Chart Penjualan -->
+      <!-- Bar Chart Penjualan -->
       <div class="row" style="width: 80%;">
         <div class="col-lg-6 grid-margin stretch-card" style="width: 100%;">
           <div class="card">
@@ -195,8 +195,8 @@
         </div>
       </div>
 
-          <!-- Bar Chart Penjualan -->
-      <div class="row"  style="width: 120%;">
+      <!-- Bar Chart Penjualan -->
+      <div class="row" style="width: 120%;">
         <div class="col-lg-6 grid-margin stretch-card" style="width: 100%;">
           <div class="card">
             <div class="card-body">
@@ -247,4 +247,4 @@
 <!-- End custom js for this page-->
  
 
-<?php include '../layout/footer.php'; ?>
+    <?php include '../layout/footer.php'; ?>

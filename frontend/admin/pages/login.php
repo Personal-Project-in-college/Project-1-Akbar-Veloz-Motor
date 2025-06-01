@@ -4,105 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AKBAR VELOZ MOTOR</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: white;
-            border-radius: 35px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
-            overflow: hidden;
-            width: 1017px;
-            height: 708px;
-            display: flex;
-        }
-        .image-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f0f0;
-        }
-        .form-container {
-            flex: 1;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-
-        }
-
-        .form-container > form {
-            width: 80%;
-        }
-        .form-container > form  button{
-            width: 105%;
-        }
-
-        h1 {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        h2 {
-            font-size: 32px;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 0.5rem;
-        }
-        p {
-            color: #666;
-            margin-bottom: 2rem;
-            font-size: 14px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-        button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #000;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .image-placeholder {
-            width: 80%;
-            height: 80%;
-            background-color: #ddd;
-            border-radius: 35px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            color: #666;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/login.css">
 </head>
 <body>
     <main class="container">
         <div class="image-container">
-            <img src="assets\images\login.png" alt="Akbar Veloz Motor" style="width: 100%; height: 100%; object-fit: cover; border-radius: 35px;">
+            <img src="../assets/images/login.png" alt="Akbar Veloz Motor" >
         </div>
         <div class="form-container">
             <h1>AKBAR VELOZ MOTOR</h1>

@@ -67,7 +67,6 @@
                 <div class="col-md-6 mb-3">
                   <select class="form-select">
                     <option selected>Deskripsi</option>
-                    <option>Baru</option>
                     <option>Bekas</option>
                   </select>
                 </div>
