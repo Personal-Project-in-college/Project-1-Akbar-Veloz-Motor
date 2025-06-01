@@ -1,4 +1,4 @@
-// index.html
+// index.php
 // Navbar toggle
 function toggleMenu() {
   const navList = document.getElementById("navList");
@@ -81,7 +81,7 @@ function saveToWishlist(button) {
     name: button.dataset.name || card.querySelector("h3")?.textContent,
     price: button.dataset.price || card.querySelector("p")?.textContent,
     image: button.dataset.image || card.querySelector("img")?.src,
-    detailUrl: card.querySelector("a.btn-secondary")?.href || "detail.html",
+    detailUrl: card.querySelector("a.btn-secondary")?.href || "detail.php",
   };
 
   let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
@@ -119,11 +119,11 @@ document.addEventListener("DOMContentLoaded", updateWishlistButtons);
 // Data kendaraan (bisa diganti dari PHP)
 const vehicles = [
   {
-    image: "https://apollo.olx.co.id/v1/files/68281746cdd66-ID/image;s=780x0;q=60",
+    image: "https://img.lacakharga.com/public/images/2024/06/honda-beat-fi-tahun-2012-1718341847.jpg",
     alt: "BeAT",
     name: "BeAT",
     price: "Rp. 18,880,000",
-    detailUrl: "detail.html",
+    detailUrl: "detail.php",
     type: "motor",
   },
   {
@@ -131,7 +131,7 @@ const vehicles = [
     alt: "BeAT Street",
     name: "BeAT Street",
     price: "Rp. 19,751,000",
-    detailUrl: "detail.html",
+    detailUrl: "detail.php",
     type: "motor",
   },
   {
@@ -139,7 +139,7 @@ const vehicles = [
     alt: "PCX 160",
     name: "PCX 160",
     price: "Rp. 34,300,000",
-    detailUrl: "detail.html",
+    detailUrl: "detail.php",
     type: "motor",
   },
   {
@@ -147,7 +147,7 @@ const vehicles = [
     alt: "Supra X 125 FI",
     name: "Supra X 125 FI",
     price: "Rp. 20,750,000",
-    detailUrl: "detail.html",
+    detailUrl: "detail.php",
     type: "motor",
   },
   {
@@ -155,7 +155,7 @@ const vehicles = [
     alt: "Honda Brio",
     name: "Honda Brio",
     price: "Rp. 184,000,000",
-    detailUrl: "detail.html",
+    detailUrl: "detail.php",
     type: "mobil",
   },
   {
@@ -163,7 +163,7 @@ const vehicles = [
     alt: "Honda BR-V",
     name: "Honda BR-V",
     price: "Rp. 311,900,000",
-    detailUrl: "detail.html",
+    detailUrl: "detail.php",
     type: "mobil",
   },
 ];

@@ -14,29 +14,7 @@
   </head>
   <body>
     <!-- Navbar -->
-    <!-- <?php include("navbar.php");?> -->
-    <header>
-      <div class="container">
-        <h1><span translate="no">Akbar Veloz Motor</span></h1>
-        <nav>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="wishlist.html">Simpan <span>
-              <span id="wishlist-icon" class="wishlist-icon">
-                <svg width="64px" height="64px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                </span>
-            </a>
-              
-            </li>
-            <li><a href="test-drive.html">Test drive</a></li>
-          </ul>
-        </nav>
-        <!-- <div class="search-box">
-              <input type="text" placeholder="Cari kendaraan...">
-              <button><i class="fas fa-search"></i></button>
-          </div> -->
-      </div>
-    </header>
+    <?php include("navbar.php");?>
 
     <main class="container">
       <!-- Carousel -->
@@ -79,7 +57,7 @@
             <h5 style="margin-top: 5px">Whatsapp</h5>
           </div>
 
-          <div class="call-card" onclick="window.location='test-drive.html'">
+          <div class="call-card" onclick="window.location='test-drive.php'">
             <svg
               width="30px"
               height="30px"
@@ -117,7 +95,9 @@
       
         <!-- Semua -->
         <div id="Semua" class="tabcontent" style="display: block;">
-          <div class="grid-container" id="semua-container"></div>
+          <div class="grid-container" id="semua-container">
+            
+          </div>
         </div>
       
         <!-- Motor -->
@@ -163,37 +143,7 @@
     </main>
 
     <!-- Footer -->
-    <footer>
-      <div class="container footer-content">
-        <div class="footer-section">
-          <h3><span translate="no">Akbar Veloz Motor</span></h3>
-          <p>© 2025. All rights reserved.</p>
-          <p>Politeknik Negeri Subang</p>
-        </div>
-        <div class="footer-section">
-          <h3>About</h3>
-          <ul>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Help Center</a></li>
-            <li><a href="#">Terms & Condition</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h3>Follow Us on</h3>
-          <div class="social-icons">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-          </div>
-        </div>
-        <!-- <div class="footer-section">
-          <h3>Services</h3>
-          <ul>
-            <li><a href="#">Check Certificate</a></li>
-          </ul>
-        </div> -->
-      </div>
-    </footer>
+    <?php include("footer.php");?>
 
     <script src="js/global.js"></script>
     <script src="js/script.js"></script>
