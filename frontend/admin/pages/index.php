@@ -240,10 +240,10 @@
       </div>
     </div>
 <!-- Plugin js for this page -->
-<script src="../src/assets/vendors/chart.js/chart.umd.js"></script>
+<script src="../assets/vendors/chart.js/chart.umd.js"></script>
 <!-- End plugin js for this page -->
 <!-- Custom js for this page-->
-<script src="../src/assets/js/index.js"></script>
+<script src="../assets/js/index.js"></script>
 <!-- End custom js for this page-->
  
 
