@@ -71,3 +71,34 @@
       }
     });
   });
+
+  document.querySelectorAll('.change-status').forEach(item => {
+  item.addEventListener('click', event => {
+    event.preventDefault();
+    const newStatus = item.getAttribute('data-status');
+    const statusBadge = item.closest('tr').querySelector('.badge');
+
+    if (newStatus === 'Available') {
+      statusBadge.classList.remove('bg-warning');
+      statusBadge.classList.add('bg-success');
+      statusBadge.textContent = 'Available';
+    } else if (newStatus === 'Busy') {
+      statusBadge.classList.remove('bg-success');
+      statusBadge.classList.add('bg-warning');
+      statusBadge.textContent = 'Busy';
+    }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const statusElements = document.querySelectorAll('.change-status');
+    statusElements.forEach(element => {
+      element.addEventListener('click', function(event) {
+        event.preventDefault();
+        const newStatus = this.getAttribute('data-status');
+        const statusLabel = this.closest('tr').querySelector('.status-label');
+        statusLabel.textContent = newStatus;
+        statusLabel.className = 'badge status-label ' + (newStatus === 'Available' ? 'bg-success' : 'bg-warning');
+      });
+    });
+  });

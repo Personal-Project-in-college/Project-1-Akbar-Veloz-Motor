@@ -11,6 +11,16 @@
         <div class="card" style="border-radius: 15px; overflow: hidden;">
           <div class="card-body">
             <table class="table table-striped" style="border-radius: 15px; overflow: hidden; id=" productTable">
+             <thead>
+                <tr>
+                  <th>Profile Image</th>
+                  <th>Nama</th>
+                  <th>Status</th>
+                  <th>Vehicle Handled</th>
+                  <th>Average Sales</th>
+                  <th>Options</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr>
                   <td>
@@ -18,13 +28,19 @@
                       alt="Profile Image">
                   </td>
                   <td>Epi Halimah</td>
-                  <td><span class="badge bg-success">Services</span></td>
+                  <td><span class="badge bg-success">Available</span></td>
                   <td>Oppressor MK</td>
                   <td>1</td>
                   <td>
-                    <button class="btn btn-link p-0" title="Options">
-                      <i class="mdi mdi-dots-vertical"></i>
-                    </button>
+                      <div class="dropdown">
+                          <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
+                            <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
+                          </ul>
+                        </div>
                   </td>
                 </tr>
                 <tr>
@@ -33,13 +49,19 @@
                       alt="Profile Image">
                   </td>
                   <td>Moch Zidan Sudrajat</td>
-                  <td><span class="badge bg-warning">Pending</span></td>
+                  <td><span class="badge bg-warning">Busy</span></td>
                   <td>Honda Vario</td>
                   <td>2</td>
-                  <td>
-                    <button class="btn btn-link p-0" title="Options">
-                      <i class="mdi mdi-dots-vertical"></i>
-                    </button>
+                 <td>
+                    <div class="dropdown">
+                      <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
+                        <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
+                      </ul>
+                    </div>
                   </td>
                 </tr>
                 <tr>
@@ -48,13 +70,19 @@
                       alt="Profile Image">
                   </td>
                   <td>Zacki Syaeful B</td>
-                  <td><span class="badge bg-danger">Problem</span></td>
+                  <td><span class="badge bg-warning">Busy</span></td>
                   <td>Honda Vario</td>
                   <td>2</td>
-                  <td>
-                    <button class="btn btn-link p-0" title="Options">
-                      <i class="mdi mdi-dots-vertical"></i>
-                    </button>
+                 <td>
+                    <div class="dropdown">
+                      <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
+                        <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
+                      </ul>
+                    </div>
                   </td>
                 </tr>
                 <tr>
@@ -63,13 +91,19 @@
                       alt="Profile Image">
                   </td>
                   <td>M. Dhiyul</td>
-                  <td><span class="badge bg-success">Services</span></td>
+                  <td><span class="badge bg-success">Available</span></td>
                   <td>Honda Vario</td>
                   <td>2</td>
-                  <td>
-                    <button class="btn btn-link p-0" title="Options">
-                      <i class="mdi mdi-dots-vertical"></i>
-                    </button>
+                 <td>
+                    <div class="dropdown">
+                      <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
+                        <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
+                      </ul>
+                    </div>
                   </td>
                 </tr>
                 <tr>
@@ -78,13 +112,19 @@
                       alt="Profile Image">
                   </td>
                   <td>Farhan Ginting</td>
-                  <td><span class="badge bg-warning">Pending</span></td>
+                  <td><span class="badge bg-warning">Busy</span></td>
                   <td>Honda Vario</td>
                   <td>2</td>
                   <td>
-                    <button class="btn btn-link p-0" title="Options">
-                      <i class="mdi mdi-dots-vertical"></i>
-                    </button>
+                    <div class="dropdown">
+                      <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
+                        <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
+                      </ul>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -166,15 +206,45 @@
           </div>
         </div>
       </div>
-
-
     </div>
-
+ <div class="row">
+      <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card" style="border-radius: 15px; overflow: hidden;">
+          <div class="card-body">
+            <table class="table table-striped" style="width: 100%; border-radius: 15px; overflow: hidden;" id="lastOrdersTable">
+              <thead>
+                <tr>
+                  <th>Last Orders</th>
+                  <th>Options</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="order-item">
+                  <td>Ada order tersedia, ambil sekarang!</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-link p-0 dropdown-toggle" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="orders.php">Go to Orders</a></li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Additional rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
 <!-- Plugin js for this page -->
 <script src="../src/assets/vendors/chart.js/chart.umd.js"></script>
 <!-- End plugin js for this page -->
 <!-- Custom js for this page-->
 <script src="../src/assets/js/index.js"></script>
 <!-- End custom js for this page-->
+ 
 
 <?php include '../layout/footer.php'; ?>

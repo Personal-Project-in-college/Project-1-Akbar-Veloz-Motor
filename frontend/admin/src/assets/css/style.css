@@ -25692,4 +25692,45 @@ table.dataTable tbody td.select-checkbox:after {
     display: none;
   }
 }
+.nav-item .dropdown-menu {
+  min-width: 200px;
+}
+
+.nav-item .dropdown-item {
+  display: flex;
+  align-items: center;
+}
+
+.nav-item .dropdown-item i {
+  margin-right: 10px;
+}
+
+.nav-item .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 50%;
+}
+.dropdown-menu {
+  min-width: 100px;
+}
+
+.dropdown-item {
+  cursor: pointer;
+}
+.order-item {
+  transition: all 0.3s ease;
+}
+
+.order-item:nth-child(1),
+.order-item:nth-child(2) {
+  background-color: #f0f8ff; /* Highlight color */
+}
+
+.order-item:nth-child(3) {
+  background-color: #f0f8ff; /* Same highlight color */
+  filter: blur(2px); /* Blur effect */
+}
 /*# sourceMappingURL=maps/style.css.map */

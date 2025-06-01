@@ -53,13 +53,26 @@
     <!-- Navbar Right -->
     <ul class="navbar-nav navbar-nav-right">
 
-      <!-- Notifications -->
-      <li class="nav-item">
-        <a class="nav-link" href="#">
-          <i class="mdi mdi-bell-outline" style="font-size: 20px; vertical-align: middle;"></i>
-          <span class="count"></span>
-        </a>
-      </li>
+     <!-- Notifications -->
+<li class="nav-item dropdown">
+  <a class="nav-link" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="mdi mdi-bell-outline" style="font-size: 20px; vertical-align: middle;"></i>
+    <span class="badge bg-danger count">3</span>
+  </a>
+  <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="notificationDropdown">
+    <h6 class="dropdown-header">Notifications</h6>
+    <a class="dropdown-item">
+      <i class="mdi mdi-email-outline text-primary"></i> General
+    </a>
+    <a class="dropdown-item">
+      <i class="mdi mdi-account-outline text-primary"></i> System Alert
+    </a>
+    <a class="dropdown-item">
+      <i class="mdi mdi-alert-circle-outline text-primary"></i> Transaction
+      <span class="badge bg-danger count">3</span>
+    </a>
+  </div>
+</li>
 
       <!-- Profile -->
       <li class="nav-item nav-profile dropdown">

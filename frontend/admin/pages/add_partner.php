@@ -19,6 +19,11 @@
             <label class="form-label">Foto</label>
             <input type="file" class="form-control">
           </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Foto KTP</label>
+            <input type="file" class="form-control">
+          </div>
 
           <div class="mb-3">
             <label for="no ponsel" class="form-label">No Ponsel</label>
