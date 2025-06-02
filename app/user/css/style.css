@@ -826,6 +826,19 @@ footer {
   fill: var(--white-color);
 }
 
+
+.avm-btn-secondary.saved {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: var(--white-color);
+  
+}
+
+.avm-btn-secondary.saved  svg path {
+  stroke: var(--white-color);
+  fill: var(--white-color);
+}
+
 .avm-btn-primary {
   all: unset;
   display: inline-flex;

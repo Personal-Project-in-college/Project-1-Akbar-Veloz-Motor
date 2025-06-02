@@ -12,6 +12,8 @@ trash
 dist
 dist-ssr
 *.local
+.vscode
+
 
 # Editor directories and files
 .vscode/*
