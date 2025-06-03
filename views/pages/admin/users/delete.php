@@ -17,7 +17,7 @@
 
     <?php
     // 🪢 Ambil semua data user yang sudah di-*soft delete* (deleted_at TIDAK NULL)
-    $data = $koneksi->query("SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id WHERE users.deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $data = $koneksi->query("SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id WHERE  users.deleted_by_role_at IS NOT NULL OR users.deleted_at IS NOT NULL ORDER BY deleted_at DESC");
     
     // 🔁 Inisialisasi nomor urut
     $no = 1;

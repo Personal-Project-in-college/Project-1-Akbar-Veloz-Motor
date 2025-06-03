@@ -31,8 +31,7 @@
 
         <?php
         // 🪢 Ambil data User Shoowroom dari database yang belum dihapus (deleted_at NULL) dan diurutkan data berdasarkan namanya
-        $data = $koneksi->query("SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id WHERE users.deleted_at IS NULL ORDER BY users.name ASC");
-
+        $data = $koneksi->query("SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id WHERE users.deleted_at IS NULL AND deleted_by_role_at IS NULL ORDER BY users.name ASC");
         // 🔁 Inisialisasi nomor urut
         $no = 1;
 

@@ -1,7 +1,7 @@
 <?php include '../../../../config/koneksi.php'; ?>
 <!-- 🔗 Hubungkan ke file koneksi database -->
 
-<h2>Data Partner Terhapus</h2>
+<h2>Data Kendaraan Terhapus</h2>
 <a href="index.php">Kembali ke Data Aktif</a><br><br>
 <!-- 🕹️ Tombol navigasi untuk kembali ke halaman data branch yang belum dihapus -->
 

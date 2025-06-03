@@ -32,7 +32,7 @@
         
         <?php
         // 🪢 Ambil data Dokumen Kendaraan dari database yang belum dihapus (deleted_at NULL) dan diurutkan data terlama yang dibuat
-        $data = $koneksi->query("SELECT * FROM vehicle_documents WHERE deleted_at IS NULL ORDER BY vehicle_id ASC");
+        $data = $koneksi->query("SELECT * FROM vehicle_documents WHERE deleted_at IS NULL AND deleted_by_vehicle_at IS NULL ORDER BY vehicle_id ASC");
         
         // ♾️ Loop untuk tampilkan tiap data dalam bentuk baris tabel
         foreach ($data as $row) {

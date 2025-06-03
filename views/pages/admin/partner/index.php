@@ -11,7 +11,7 @@
 <body>
     <h2>Data Partner</h2>
     <a href="create.php">Tambah Partner</a><br><br>
-    <!-- 🕹️ Tombol untuk masuk ke halaman tambah cabang -->
+    <!-- 🕹️ Tombol untuk masuk ke halaman tambah partner -->
 
     <a href="../../../../index.php">Kembali</a><br><br>
     <!-- 🕹️ Tombol untuk kembali ke halaman index -->
@@ -29,7 +29,7 @@
         </tr>
 
         <?php
-        // 🪢 Ambil data cabang dari database yang belum dihapus (deleted_at NULL) dan diurutkan data terlama yang dibuat
+        // 🪢 Ambil data partner dari database yang belum dihapus (deleted_at NULL) dan diurutkan data terlama yang dibuat
         $data = $koneksi->query("SELECT * FROM partners WHERE deleted_at IS NULL ORDER BY created_at ASC");
 
         // 🔁 Inisialisasi nomor urut
