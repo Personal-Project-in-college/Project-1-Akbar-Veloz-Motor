@@ -24,9 +24,13 @@
 
  <!-- Navbar -->
 <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-  <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-    <a class="navbar-brand brand-logo me-5" href="index.php"><img src="../assets/images/logo.png" class="me-2" alt="logo" style="width:300px; height: 100%;"/></a>
-    <a class="navbar-brand brand-logo-mini" href="index.php"><img src="../assets/images/logo.png" alt="logo" style="width:500px; height:100%;"/></a> 
+  <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+    <a class="navbar-brand brand-logo me-5" href="index.php">
+      <img src="../assets/images/logo.png" class="me-2" alt="logo" style="width:100px; height: auto;"/>
+    </a>
+    <a class="navbar-brand brand-logo-mini" href="index.php">
+      <img src="../assets/images/logo.png" alt="logo" style="width:100px; height: auto;"/>
+    </a> 
   </div>
 
     <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">

@@ -42,7 +42,7 @@
 
     <!-- Tombol Submit di bawah kanan -->
     <div class="text-end mt-3">
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button type="submit" class="btn btn-primary">Take Orders</button>
     </div>
 
 <?php include '../layout/footer.php'; ?>

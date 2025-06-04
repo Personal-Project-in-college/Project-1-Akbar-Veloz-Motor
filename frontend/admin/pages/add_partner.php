@@ -21,7 +21,7 @@
           </div>
           
           <div class="mb-3">
-            <label class="form-label">Foto KTP</label>
+            <label class="form-label">Foto KTP4</label>
             <input type="file" class="form-control">
           </div>
 
