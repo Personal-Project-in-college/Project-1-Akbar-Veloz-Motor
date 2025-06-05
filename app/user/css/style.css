@@ -975,6 +975,209 @@ footer {
   background-color: var(--secondary-color);
 }
 
+/* simulasi kredit */
+/* Credit Form Styles */
+.credit-form__container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 24px;
+  padding: 24px 0px;
+}
+
+/* Input Group Styles */
+.credit-form__input-group {
+  font-family: "Segoe UI", sans-serif;
+  position: relative;
+  margin-bottom: 1.5em;
+}
+
+.credit-form__label {
+  font-size: 0.9rem;
+  position: absolute;
+  left: 0.8em;
+  top: 0.8em;
+  padding: 0 0.4em;
+  pointer-events: none;
+  transition: all 0.2s ease-out;
+  color: #6b7280;
+  background-color: transparent;
+}
+
+.credit-form__input {
+  font-size: 1rem;
+  padding: 1em 0.8em;
+  outline: none;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  border-radius: 6px;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.credit-form__input[readonly] {
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Focus State */
+.credit-form__input:focus {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.credit-form__input:focus + .credit-form__label,
+.credit-form__input:not(:placeholder-shown) + .credit-form__label {
+  transform: translateY(-1.5em) scale(0.85);
+  color: var(--secondary-color);
+  background-color: #fff;
+  left: 0.6em;
+}
+
+/* Disabled/Readonly State */
+.credit-form__input:disabled,
+.credit-form__input[readonly] {
+  background-color: #f3f4f6;
+}
+
+/* Error State (optional) */
+.credit-form__input--error {
+  border-color: #ef4444;
+}
+
+.credit-form__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Input Group with Button */
+.credit-form__input-group--with-button .credit-form__input {
+  padding-right: 100px; /* Space for button */
+}
+
+.credit-form__action-button {
+  position: absolute;
+  right: 0.5em;
+  bottom: 0.5em;
+  padding: 0.5em 1em;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.credit-form__action-button:hover {
+  background-color: #333;
+}
+
+/* Installment Buttons */
+.credit-form__period-button {
+  padding: 0.6em 1.2em;
+  background-color: white;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.credit-form__period-button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.credit-form__period-button:active,
+.credit-form__period-button:focus {
+  background-color: #000;
+  color: white;
+  border-color: #000;
+  outline: none;
+}
+
+/* Style untuk payment summary */
+.credit-form__summary {
+  margin-top: 2em;
+  padding: 1.5em;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.credit-form__summary-text {
+  font-size: 1rem;
+  color: #495057;
+  margin-bottom: 0.8em;
+  font-weight: 500;
+}
+
+.credit-form__payment-amount {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.3em;
+}
+
+.credit-form__payment-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.credit-form__payment-period {
+  font-size: 1rem;
+  color: #718096;
+  font-weight: 400;
+}
+
+/* Efek hover untuk emphasis */
+.credit-form__summary:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.credit-form__period-button.active {
+  background-color: #000;
+  color: white;
+  border-color: #000;
+}
+
+
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .credit-form__input {
+    padding: 0.8em;
+  }
+  
+  .credit-form__button-group {
+    gap: 8px;
+  }
+  
+  .credit-form__period-button {
+    padding: 0.5em 0.8em;
+    font-size: 0.9rem;
+  }
+  .credit-form__summary {
+    padding: 1em;
+  }
+  
+  .credit-form__payment-value {
+    font-size: 1.5rem;
+  }
+  
+  .credit-form__payment-period {
+    font-size: 0.9rem;
+  }
+  
+}
+
 /* Carousel */
 /* Slideshow container */
 .slideshow-container {
@@ -1111,6 +1314,10 @@ footer {
   /* background-color: #f1f1f1; */
   display: flex;
   justify-content: end;
+}
+
+.tab-detail {
+  justify-content: start;
 }
 
 /* Style the buttons inside the tab */

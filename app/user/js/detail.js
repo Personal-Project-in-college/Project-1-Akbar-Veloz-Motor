@@ -245,3 +245,68 @@ function saveToWishlist(button) {
 
   localStorage.setItem("wishlist", JSON.stringify(wishlist));
 }
+
+// Fungsi untuk tab
+function openTab(evt, tabName) {
+  const tabcontent = document.querySelectorAll(".tabcontent");
+  const tablinks = document.querySelectorAll(".tablinks");
+
+  tabcontent.forEach((content) => (content.style.display = "none"));
+  tablinks.forEach((link) => link.classList.remove("active"));
+
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.classList.add("active");
+}
+
+// Logika
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll('.credit-form__period-button');
+  const vehiclePriceInput = document.getElementById('vehicle-price');
+  const dpInput = document.getElementById('down-payment');
+  const interestRateInput = document.getElementById('interest-rate');
+  const calculateButton = document.querySelector('.credit-form__action-button');
+  const paymentValue = document.querySelector('.credit-form__payment-value');
+
+  let selectedMonths = 0;
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      selectedMonths = parseInt(button.textContent);
+    });
+  });
+
+  calculateButton.addEventListener('click', () => {
+    const rawPrice = vehiclePriceInput.value.replace(/[^\d]/g, '');
+    const price = parseInt(rawPrice);
+    const rawDP = dpInput.value.replace(/[^\d]/g, '');
+    const dp = parseInt(rawDP);
+    const interestRate = parseFloat(interestRateInput.value); // tahunan (%)
+
+    if (!selectedMonths) {
+      alert("Pilih periode cicilan terlebih dahulu.");
+      return;
+    }
+
+    if (dp < 0.25 * price) {
+      alert("Minimal DP adalah 25% dari harga kendaraan.");
+      return;
+    }
+
+    const principal = price - dp;
+    const monthlyInterest = interestRate / 12 / 100;
+    const totalInterest = principal * monthlyInterest * selectedMonths;
+
+    // const adminFee = 500000;
+    const adminFee = 0;
+    const totalPayment = principal + totalInterest + adminFee;
+    const monthlyInstallment = totalPayment / selectedMonths;
+
+    paymentValue.textContent = formatRupiah(monthlyInstallment);
+  });
+
+  function formatRupiah(angka) {
+    return 'Rp. ' + angka.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+});
