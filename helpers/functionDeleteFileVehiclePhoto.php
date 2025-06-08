@@ -1,18 +1,28 @@
 <?php
-function deleteFileVehiclePhotos($koneksi, $vehicle_id) {
-    // Ambil semua path file yang masih tersimpan di storage
-    $stmt = $koneksi->prepare("SELECT photo_path FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
-    $stmt->execute([$vehicle_id]);
-    $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+function deleteFileVehiclePhotos($koneksi, $vehicle_id)
+{
+    // Ambil semua data foto yang sudah soft-delete
+    $getPhotosQuery = $koneksi->prepare("SELECT photo_path, deleted_at, deleted_by_vehicle_at FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
+    $getPhotosQuery->execute([$vehicle_id]);
+    $photos = $getPhotosQuery->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($photos as $photo) {
-        $filePath = '../../../../storage/' . $photo['photo_path'];
+        // Tentukan basePath berdasarkan kondisi
+        if (!is_null($photo['deleted_at']) && is_null($photo['deleted_by_vehicle_at'])) {
+            $basePath = '../../../../../storage/';
+        } else {
+            $basePath = '../../../../storage/';
+        }
+
+        $filePath = $basePath . $photo['photo_path'];
+
         if (file_exists($filePath)) {
-            unlink($filePath);
+            @unlink($filePath); // Hapus file fisik, abaikan warning
         }
     }
 
-    // Hapus record dari tabel
-    $stmt = $koneksi->prepare("DELETE FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
-    $stmt->execute([$vehicle_id]);
+    // Hapus data dari DB
+    $deleteRecordsQuery = $koneksi->prepare("DELETE FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
+    $deleteRecordsQuery->execute([$vehicle_id]);
 }
