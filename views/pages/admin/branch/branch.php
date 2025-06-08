@@ -1,12 +1,14 @@
 <?php
 
 /**
- * File: delete.php
- * Halaman ini menampilkan daftar data cabang yang telah dihapus sementara (soft-deleted).
+ * File: branch.php
+ * Halaman ini bertanggung jawab untuk menampilkan daftar data cabang (branches) yang aktif.
  * Fitur:
- * - Menampilkan data yang terhapus dalam tabel dengan pagination.
- * - Memberikan opsi untuk mengembalikan (restore) data.
- * - Memberikan opsi untuk menghapus data secara permanen (destroy).
+ * - Menampilkan data dalam tabel dengan pagination.
+ * - Tab untuk beralih antara data aktif dan data yang sudah dihapus (soft delete).
+ * - Tombol untuk menambah data baru.
+ * - Kolom pencarian (hanya tampilan).
+ * - Keamanan dengan memeriksa status login pengguna.
  */
 
 // ------------------------------
@@ -16,31 +18,39 @@
 // 1. Mengimpor file koneksi database.
 include '../../../../config/koneksi.php';
 
-// 2. Memeriksa apakah pengguna sudah login.
+// 2. Memeriksa apakah pengguna sudah login. Jika belum, akan diarahkan ke halaman login.
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
+include '../../../../helpers/functionCheckRole.php';
 
-// 3. Mengimpor fungsi untuk menampilkan notifikasi/alert.
+// 3. Mengimpor fungsi untuk menampilkan notifikasi/alert (misal: setelah berhasil menambah data).
 include '../../../../helpers/functionShowAlert.php';
 
-// 4. Mengimpor bagian layout (header, sidebar).
+// 4. Mengimpor bagian layout header (termasuk tag <head>, CSS, dan bagian atas halaman).
 include '../layout/header.php';
+
+// 5. Mengimpor bagian layout sidebar (menu navigasi samping).
 include '../layout/sidebar.php';
 
-// 5. Variabel untuk menandai halaman aktif di menu navigasi.
+// Variabel untuk menandai halaman aktif di menu navigasi.
+// Mengambil nama file saat ini (misal: "branch.php").
 $activePage = basename($_SERVER['PHP_SELF']);
 ?>
 
 <div class="main-panel">
     <div class="content-wrapper">
+
         <?php
-        // Menampilkan alert jika ada (misal: setelah berhasil restore/destroy data).
+        // Menjalankan fungsi untuk menampilkan alert jika ada.
         showAlert();
         ?>
-        <h3 class="mb-4">Data Cabang Terhapus</h3>
+
+        <h3 class="mb-4">Data Cabang</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-            <a href="create.php" class="btn btn-primary">Tambah</a>
+            <?php if (hasAnyRole(['Owner'])) : ?>
+                <a href="create.php" class="btn btn-primary">Tambah</a>
+            <?php endif ?>
 
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
                 <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
@@ -71,37 +81,40 @@ $activePage = basename($_SERVER['PHP_SELF']);
                             </thead>
                             <tbody>
                                 <?php
-                                // ----------------------------------------------------
-                                // LOGIKA PENGAMBILAN & PENAMPILAN DATA DENGAN PAGINATION
-                                // ----------------------------------------------------
+                                // ------------------------------
+                                // LOGIKA PENGAMBILAN & PENAMPILAN DATA
+                                // ------------------------------
 
                                 // A. Pengaturan Pagination
-                                $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-                                $limit = 10; // Jumlah data per halaman
-                                $offset = ($page - 1) * $limit;
+                                $page = isset($_GET['page']) ? (int) $_GET['page'] : 1; // Halaman saat ini, default ke 1 jika tidak ada.
+                                $limit = 10; // Jumlah data yang ditampilkan per halaman.
+                                $offset = ($page - 1) * $limit; // Menghitung offset untuk query database.
 
                                 // B. Menghitung Total Data untuk Pagination
-                                // Query ini menghitung jumlah total cabang yang sudah di-soft delete.
-                                $totalData = $koneksi->query("SELECT COUNT(*) FROM branches WHERE deleted_at IS NOT NULL")->fetchColumn();
-                                $totalPages = ceil($totalData / $limit);
+                                // Query ini menghitung jumlah total cabang yang aktif (belum di-soft delete).
+                                $totalData = $koneksi->query("SELECT COUNT(*) FROM branches WHERE deleted_at IS NULL")->fetchColumn();
+                                $totalPages = ceil($totalData / $limit); // Menghitung total jumlah halaman.
 
-                                // C. Mengambil Data dari Database dengan Limit
-                                // Mengambil data cabang yang sudah terhapus (deleted_at TIDAK NULL).
-                                // Diurutkan berdasarkan kapan data dihapus (yang terbaru di atas).
-                                $query = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT :limit OFFSET :offset");
+                                // C. Mengambil Data dari Database
+                                // Menggunakan prepared statement untuk keamanan dari SQL Injection.
+                                // Mengambil data cabang yang aktif, diurutkan berdasarkan tanggal dibuat, dengan limit dan offset.
+                                $query = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NULL ORDER BY created_at ASC LIMIT :limit OFFSET :offset");
                                 $query->bindValue(':limit', $limit, PDO::PARAM_INT);
                                 $query->bindValue(':offset', $offset, PDO::PARAM_INT);
                                 $query->execute();
                                 $dataBranchs = $query->fetchAll(PDO::FETCH_ASSOC);
 
                                 // D. Menampilkan Data ke Tabel
-                                $no = $offset + 1; // Nomor urut disesuaikan dengan halaman saat ini.
+                                $no = $offset + 1; // Nomor urut dimulai dari offset + 1.
 
+                                // Looping untuk setiap baris data yang diambil.
                                 foreach ($dataBranchs as $row) {
-                                    // Mengamankan output HTML dari XSS dan memotong alamat jika terlalu panjang.
+                                    // Mengamankan output HTML dari XSS. Penting untuk data yang akan ditaruh di atribut HTML seperti 'title'.
                                     $address = htmlspecialchars($row['address']);
+                                    // Memotong teks alamat jika lebih dari 30 karakter untuk tampilan di tabel.
                                     $shortAddress = substr($row['address'], 0, 30) . (strlen($row['address']) > 30 ? "..." : "");
 
+                                    // Mencetak baris tabel (<tr>) untuk setiap data.
                                     echo "<tr>
                                             <td>{$no}</td>
                                             <td>{$row['name']}</td>
@@ -109,18 +122,18 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                                 {$shortAddress}
                                             </td>
                                             <td style='display: flex; align-items: center; gap: 8px;'>
-                                                <a href='restore.php?id={$row['id']}' title='Restore' class='btn btn-success btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-restore'></i>
+                                                <a href='edit.php?slug={$row['slug']}' title='Edit' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
+                                                    <i class='mdi mdi-pencil'></i>
                                                 </a>
-                                                <a href='destroy.php?id={$row['id']}' title='Permanent Delete' class='btn btn-danger btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-delete-forever' style='color: white;'></i>
+                                                <a href='softDelete.php?id={$row['id']}' title='Delete' class='btn btn-danger btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; color: white; border-radius: 4px;'>
+                                                    <i class='mdi mdi-delete-restore'></i>
                                                 </a>
                                             </td>
                                         </tr>";
-                                    $no++;
+                                    $no++; // Increment nomor urut.
                                 }
                                 if (empty($dataBranchs)) {
-                                    echo "<tr><td colspan='8' class='text-center'>Tidak ada data branch yang terhapus.</td></tr>";
+                                    echo "<tr><td colspan='8' class='text-center'>Tidak ada data branch yang aktif.</td></tr>";
                                 }
                                 ?>
                             </tbody>
@@ -150,6 +163,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
         <script>
             // Inisialisasi semua tooltip Bootstrap yang ada di halaman.
+            // Diperlukan agar tooltip pada kolom alamat dapat berfungsi.
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
