@@ -1,3 +1,37 @@
+// Update tombol wishlist sesuai localStorage
+function updateWishlistButtons() {
+  button = document.getElementById("simpan");
+
+  // console.log(button);
+
+  const vehicle = {
+    name: document.getElementById("detail-title").textContent,
+    price: document.getElementById("harga").textContent,
+    image: document.getElementById("mainImage").src,
+    detailUrl: window.location.href,
+  };
+
+  let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+  const existingIndex = wishlist.findIndex(
+    (item) => item.name === vehicle.name
+  );
+
+  if (existingIndex !== -1) {
+    button.innerHTML = `<svg width="35px" height="35px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </svg>
+              Simpan`;
+    button.classList.add("saved");
+  }
+}
+
+// Inisialisasi tombol wishlist saat halaman dimuat
+document.addEventListener("DOMContentLoaded", updateWishlistButtons);
+
 // Zoom effect on image hover
 const zoomContainer = document.querySelector(".zoom-container");
 const zoomImage = zoomContainer.querySelector("img");
@@ -156,3 +190,58 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// WA detail kendaraan
+const waDetailKendaraan = () => {
+  const detailTitle = document.getElementById("detail-title").textContent;
+  contactNumber = 6282317264621;
+  const message = `Hallo Akbar Veloz Motor, saya ingin menanyakan terkait kendaraan: ${detailTitle}`;
+
+  const waUrl = `https://wa.me/${contactNumber}?text=${message}`;
+  window.open(waUrl, "_blank");
+};
+
+// Simpan ke wishlist
+function saveToWishlist(button) {
+  const vehicle = {
+    name: document.getElementById("detail-title").textContent,
+    price: document.getElementById("harga").textContent,
+    image: document.getElementById("mainImage").src,
+    detailUrl: window.location.href,
+  };
+
+  let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+  const existingIndex = wishlist.findIndex(
+    (item) => item.name === vehicle.name
+  );
+
+  console.log(existingIndex);
+
+  if (existingIndex === -1) {
+    wishlist.push(vehicle);
+    button.innerHTML = `<svg width="35px" height="35px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </svg>
+              Simpan`;
+    button.classList.add("saved");
+    showToast(`${vehicle.name} ditambahkan ke wishlist`);
+  } else {
+    wishlist.splice(existingIndex, 1);
+    button.innerHTML = ` <svg width="35px" height="35px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </svg>
+              Simpan`;
+    button.classList.remove("saved");
+    showToast(`${vehicle.name} dihapus dari wishlist`);
+  }
+
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+}

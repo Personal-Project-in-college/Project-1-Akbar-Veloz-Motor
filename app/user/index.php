@@ -1,3 +1,9 @@
+
+<?php
+header("Cache-Control: no-cache, must-revalidate");
+header("Expires: Sat, 1 Jul 2000 05:00:00 GMT");
+?>
+
 <!DOCTYPE html>
 <html lang="id" translate="no">
   <head>
@@ -13,7 +19,7 @@
 
   </head>
   <body>
-     <?php include("navbar.php") ;?> 
+     <?php include("./layouts/navbar.php") ;?> 
 
 
     <main class="container">
@@ -141,9 +147,12 @@
       </section>
       
     </main>
+    <!-- Chat widget -->
+
+    <?php include("./layouts/chat_widget.php");?>
 
     <!-- Footer -->
-    <?php include("footer.php");?>
+    <?php include("./layouts/footer.php");?>
 
     <script src="js/global.js"></script>
     <script src="js/script.js"></script>

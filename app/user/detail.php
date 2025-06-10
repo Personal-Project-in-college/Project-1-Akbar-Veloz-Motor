@@ -11,7 +11,7 @@
 
 <body>
   <!-- Navbar -->
-  <?php include("navbar.php"); ?>
+  <?php include("./layouts/navbar.php"); ?>
 
 
   <main class="container">
@@ -228,7 +228,7 @@
   </main>
 
   <!-- Footer -->
-  <?php include("footer.php"); ?>
+  <?php include("./layouts/footer.php"); ?>
 
 
   <script src="js/global.js"></script>

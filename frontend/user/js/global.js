@@ -47,7 +47,13 @@ navLinks.forEach((link) => {
 });
 
 // Call Us
-const whatsappInput = document.getElementById("whatsapp");
-const prefix = "+62 ";
-let isPrefixed = false;
+const callUs = () => {
+  contactNumber = 6282317264621;
+
+  const message = `Hallo Akbar Veloz Motor, saya ingin menanyakan terkait kendaraan`;
+
+  const waUrl = `https://wa.me/${contactNumber}?text=${message}`;
+  window.open(waUrl, "_blank");
+};
+
 
