@@ -52,6 +52,21 @@ if (isset($_GET['id'])) {
         );
         $deleteVehicleQuery->execute([$id]);
 
+        $vehicleFolder = '../../../../storage/vehicles/vehicle_' . $id;
+
+        if (is_dir($vehicleFolder)) {
+            function deleteFolder($folderPath)
+            {
+                foreach (scandir($folderPath) as $item) {
+                    if ($item == '.' || $item == '..') continue;
+                    $path = $folderPath . DIRECTORY_SEPARATOR . $item;
+                    is_dir($path) ? deleteFolder($path) : unlink($path);
+                }
+                rmdir($folderPath);
+            }
+            deleteFolder($vehicleFolder);
+        }
+
         $_SESSION['danger'] = "Kendaraan ID <strong>" . htmlspecialchars($vehicleIdentifier) . "</strong> dan semua data terkait berhasil dihapus selamanya.";
     } else {
         $_SESSION['danger'] = "Kendaraan tidak ditemukan atau sudah dihapus sebelumnya.";
