@@ -65,19 +65,18 @@
   </a>
   <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="notificationDropdown">
     <h6 class="dropdown-header">Notifications</h6>
-    <a class="dropdown-item">
+    <a class="dropdown-item" href="notification_general.php">
       <i class="mdi mdi-email-outline text-primary"></i> General
     </a>
-    <a class="dropdown-item">
+    <a class="dropdown-item" href="system_alert.php">
       <i class="mdi mdi-account-outline text-primary"></i> System Alert
     </a>
-    <a class="dropdown-item">
+    <a class="dropdown-item" href="notification_transaction.php">
       <i class="mdi mdi-alert-circle-outline text-primary"></i> Transaction
       <span class="badge bg-danger count">3</span>
     </a>
   </div>
 </li>
-
       <!-- Profile -->
       <li class="nav-item nav-profile dropdown">
         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
