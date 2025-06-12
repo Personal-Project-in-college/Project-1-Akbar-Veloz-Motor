@@ -8,9 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
     // Ambil status dan vehicle_id dari peminjaman
-    $stmt = $koneksi->prepare("SELECT status, vehicle_id FROM vehicle_loans WHERE id = ? AND deleted_at IS NULL");
-    $stmt->execute([$id]);
-    $loanData = $stmt->fetch(PDO::FETCH_ASSOC);
+    $getVehicleLoanQuery = $koneksi->prepare("SELECT status, vehicle_id FROM vehicle_loans WHERE id = ? AND deleted_at IS NULL");
+    $getVehicleLoanQuery->execute([$id]);
+    $loanData = $getVehicleLoanQuery->fetch(PDO::FETCH_ASSOC);
 
     if (!$loanData) {
         echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus."]);
@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     }
 
     // Lanjutkan soft delete jika status sudah returned
-    $softDelete = $koneksi->prepare("UPDATE vehicle_loans SET deleted_at = NOW() WHERE id = ?");
-    $isDeleted = $softDelete->execute([$id]);
+    $softDeleteVehicleLoanQuery = $koneksi->prepare("UPDATE vehicle_loans SET deleted_at = NOW() WHERE id = ?");
+    $isDeleted = $softDeleteVehicleLoanQuery->execute([$id]);
 
     if ($isDeleted) {
         echo json_encode([
