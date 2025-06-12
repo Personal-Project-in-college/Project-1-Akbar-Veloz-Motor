@@ -7,9 +7,9 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    $stmt = $koneksi->prepare("SELECT name FROM branches WHERE id = ? AND deleted_at IS NOT NULL");
-    $stmt->execute([$id]);
-    $branchName = $stmt->fetchColumn();
+    $getNameBranchQuery = $koneksi->prepare("SELECT name FROM branches WHERE id = ? AND deleted_at IS NOT NULL");
+    $getNameBranchQuery->execute([$id]);
+    $branchName = $getNameBranchQuery->fetchColumn();
 
     if (!$branchName) {
         echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus permanent."]);
@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
         $deleteVehiclesQuery->execute([$id]);
     }
 
-    $deleteBranch = $koneksi->prepare("DELETE FROM branches WHERE id = ? AND deleted_at IS NOT NULL");
-    $isDestroy = $deleteBranch->execute([$id]);
+    $deleteBranchQuery = $koneksi->prepare("DELETE FROM branches WHERE id = ? AND deleted_at IS NOT NULL");
+    $isDestroy = $deleteBranchQuery->execute([$id]);
 
     if ($isDestroy) {
         echo json_encode(['success' => true, 'message' => "Merek <strong>" . htmlspecialchars($branchName) . "</strong> berhasil dihapus permanent."]);

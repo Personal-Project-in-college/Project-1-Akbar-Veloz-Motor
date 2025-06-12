@@ -7,9 +7,9 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    $stmt = $koneksi->prepare("SELECT name FROM branches WHERE id = ? AND deleted_at IS NULL");
-    $stmt->execute([$id]);
-    $branchName = $stmt->fetchColumn();
+    $getBrandQuery = $koneksi->prepare("SELECT name FROM branches WHERE id = ? AND deleted_at IS NULL");
+    $getBrandQuery->execute([$id]);
+    $branchName = $getBrandQuery->fetchColumn();
 
     if (!$branchName) {
         echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus."]);

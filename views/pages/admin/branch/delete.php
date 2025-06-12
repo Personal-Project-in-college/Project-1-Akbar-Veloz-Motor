@@ -1,33 +1,10 @@
 <?php
-
-/**
- * File: delete.php
- * Halaman ini menampilkan daftar data cabang yang telah dihapus sementara (soft-deleted).
- * Fitur:
- * - Menampilkan data yang terhapus dalam tabel dengan pagination.
- * - Memberikan opsi untuk mengembalikan (restore) data.
- * - Memberikan opsi untuk menghapus data secara permanen (destroy).
- */
-
-// ------------------------------
-// INISIALISASI & KONFIGURASI
-// ------------------------------
-
-// 1. Mengimpor file koneksi database.
 include '../../../../config/koneksi.php';
-
-// 2. Memeriksa apakah pengguna sudah login.
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
-
-// 3. Mengimpor fungsi untuk menampilkan notifikasi/alert.
-include '../../../../helpers/functionShowAlert.php';
-
-// 4. Mengimpor bagian layout (header, sidebar).
 include '../layout/header.php';
 include '../layout/sidebar.php';
 
-// 5. Variabel untuk menandai halaman aktif di menu navigasi.
 $activePage = basename($_SERVER['PHP_SELF']);
 ?>
 
@@ -72,15 +49,10 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <?php
-        // Menampilkan alert jika ada (misal: setelah berhasil restore/destroy data).
-        showAlert();
-        ?>
         <h3 class="mb-4">Data Cabang Terhapus</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <a href="create.php" class="btn btn-primary">Tambah</a>
-
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
                 <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang Terhapus...">
             </div>
@@ -119,176 +91,160 @@ $activePage = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
 
-        <script>
-            const searchInput = document.getElementById('search-input');
-            const tableBody = document.getElementById('deletedBranchTableBody');
+        <?php include '../layout/footer.php'; ?>
+    </div>
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const tableBody = document.getElementById('deletedBranchTableBody');
 
-            function loadDeletedBranches(keyword = '') {
-                fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                    .then(res => res.text())
-                    .then(html => {
-                        tableBody.innerHTML = html;
-                    });
-            }
+        function loadDeletedBranches(keyword = '') {
+            fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                });
+        }
 
+        loadDeletedBranches();
+
+        searchInput.addEventListener('keyup', function() {
+            loadDeletedBranches(this.value);
+        });
+    </script>
+
+    <script>
+        function bindRestoreEvents() {
+            document.querySelectorAll('.restore-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    fetch('restore.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(id)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedBranches(); // reload tabel
+                                showAlert(data.message, 'success'); // custom alert function
+                            } else {
+                                showAlert(data.message, 'success');
+                            }
+                        });
+                });
+            });
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+            // Masukkan isi alert + tombol close
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv;
+
+            const container = document.getElementById('floating-alert-container');
+            container.appendChild(alertDiv);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
+        }
+
+        function loadDeletedBranches(keyword = '') {
+            fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindRestoreEvents(); // PENTING!
+                    bindDestroyEvents(); // PENTING!
+                });
+        }
+
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
             loadDeletedBranches();
 
             searchInput.addEventListener('keyup', function() {
                 loadDeletedBranches(this.value);
             });
-        </script>
+        });
+    </script>
 
-        <script>
-            function bindRestoreEvents() {
-                document.querySelectorAll('.restore-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.dataset.id;
+    <script>
+        function bindDestroyEvents() {
+            document.querySelectorAll('.destroy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
 
-                        fetch('restore.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded'
-                                },
-                                body: 'id=' + encodeURIComponent(id)
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    loadDeletedBranches(); // reload tabel
-                                    showAlert(data.message, 'success'); // custom alert function
-                                } else {
-                                    showAlert(data.message, 'success');
-                                }
-                            });
-                    });
-                });
-            }
-
-            function showAlert(message, type = 'success') {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
-
-                // Buat tombol close
-                const closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.className = 'close-btn';
-                closeBtn.onclick = () => alertDiv.remove();
-
-                // Masukkan isi alert + tombol close
-                alertDiv.innerHTML = `<span>${message}</span>`;
-                alertDiv.appendChild(closeBtn);
-
-                const container = document.getElementById('floating-alert-container');
-                container.appendChild(alertDiv);
-
-                // Fade out mulai di detik ke-4.5
-                setTimeout(() => {
-                    alertDiv.style.opacity = '0';
-                }, 1500);
-
-                // Remove dari DOM di detik ke-5
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 2000);
-            }
-
-            function loadDeletedBranches(keyword = '') {
-                fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                    .then(res => res.text())
-                    .then(html => {
-                        tableBody.innerHTML = html;
-                        bindRestoreEvents(); // PENTING!
-                        bindDestroyEvents(); // PENTING!
-                    });
-            }
-
-            // Event awal
-            document.addEventListener('DOMContentLoaded', () => {
-                loadDeletedBranches();
-
-                searchInput.addEventListener('keyup', function() {
-                    loadDeletedBranches(this.value);
+                    fetch('destroy.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(id)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedBranches(); // reload tabel
+                                showAlert(data.message, 'danger'); // custom alert function
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                        });
                 });
             });
-        </script>
+        }
 
-        <script>
-            function bindDestroyEvents() {
-                document.querySelectorAll('.destroy-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.dataset.id;
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-                        fetch('destroy.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded'
-                                },
-                                body: 'id=' + encodeURIComponent(id)
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    loadDeletedBranches(); // reload tabel
-                                    showAlert(data.message, 'danger'); // custom alert function
-                                } else {
-                                    showAlert(data.message, 'danger');
-                                }
-                            });
-                    });
+            // Masukkan isi alert + tombol close
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv;
+
+            const container = document.getElementById('floating-alert-container');
+            container.appendChild(alertDiv);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
+        }
+
+        function loadDeletedBranches(keyword = '') {
+            fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindDestroyEvents(); // PENTING!
+                    bindRestoreEvents(); // PENTING!
                 });
-            }
+        }
 
-            function showAlert(message, type = 'success') {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDeletedBranches();
 
-                // Buat tombol close
-                const closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.className = 'close-btn';
-                closeBtn.onclick = () => alertDiv.remove();
-
-                // Masukkan isi alert + tombol close
-                alertDiv.innerHTML = `<span>${message}</span>`;
-                alertDiv.appendChild(closeBtn);
-
-                const container = document.getElementById('floating-alert-container');
-                container.appendChild(alertDiv);
-
-                // Fade out mulai di detik ke-4.5
-                setTimeout(() => {
-                    alertDiv.style.opacity = '0';
-                }, 1500);
-
-                // Remove dari DOM di detik ke-5
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 2000);
-            }
-
-            function loadDeletedBranches(keyword = '') {
-                fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                    .then(res => res.text())
-                    .then(html => {
-                        tableBody.innerHTML = html;
-                        bindDestroyEvents(); // PENTING!
-                        bindRestoreEvents(); // PENTING!
-                    });
-            }
-
-            // Event awal
-            document.addEventListener('DOMContentLoaded', () => {
-                loadDeletedBranches();
-
-                searchInput.addEventListener('keyup', function() {
-                    loadDeletedBranches(this.value);
-                });
+            searchInput.addEventListener('keyup', function() {
+                loadDeletedBranches(this.value);
             });
-        </script>
-
-        <?php
-        // Mengimpor bagian layout footer (termasuk tag penutup, script JS, dll).
-        include '../layout/footer.php';
-        ?>
-    </div>
+        });
+    </script>
 </div>

@@ -8,14 +8,18 @@ include '../../../../helpers/functionCheckRole.php';
 
 $slug = $_GET['slug'] ?? null;
 if (!$slug) {
-    die("Error: Slug cabang tidak ditemukan di URL.");
+    $_SESSION['danger_message'] = "<strong>Error: </strong>Slug cabang tidak ditemukan di URL.";
+    header("Location: branch.php");
+    exit;
 }
 
-$query = $koneksi->prepare("SELECT * FROM branches WHERE slug = ? AND deleted_at IS NULL");
-$query->execute([$slug]);
-$branch = $query->fetch(PDO::FETCH_ASSOC);
+$getBranchQuery = $koneksi->prepare("SELECT * FROM branches WHERE slug = ? AND deleted_at IS NULL");
+$getBranchQuery->execute([$slug]);
+$branch = $getBranchQuery->fetch(PDO::FETCH_ASSOC);
 if (!$branch) {
-    die("Error: Data cabang tidak ditemukan atau sudah dihapus.");
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data cabang tidak ditemukan atau sudah dihapus.";
+    header("Location: branch.php");
+    exit;
 }
 
 $error = '';

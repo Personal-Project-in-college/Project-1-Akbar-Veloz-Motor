@@ -1,35 +1,10 @@
 <?php
-
-/**
- * File: branch.php
- * Halaman ini bertanggung jawab untuk menampilkan daftar data cabang (branches) yang aktif.
- * Fitur:
- * - Menampilkan data dalam tabel dengan pagination.
- * - Tab untuk beralih antara data aktif dan data yang sudah dihapus (soft delete).
- * - Tombol untuk menambah data baru.
- * - Kolom pencarian (hanya tampilan).
- * - Keamanan dengan memeriksa status login pengguna.
- */
-
-// ------------------------------
-// INISIALISASI & KONFIGURASI
-// ------------------------------
-
-// 1. Mengimpor file koneksi database.
 include '../../../../config/koneksi.php';
-
-// 2. Memeriksa apakah pengguna sudah login. Jika belum, akan diarahkan ke halaman login.
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 include '../../../../helpers/functionCheckRole.php';
 
-// 3. Mengimpor fungsi untuk menampilkan notifikasi/alert (misal: setelah berhasil menambah data).
-include '../../../../helpers/functionShowAlert.php';
-
-// 4. Mengimpor bagian layout header (termasuk tag <head>, CSS, dan bagian atas halaman).
 include '../layout/header.php';
-
-// 5. Mengimpor bagian layout sidebar (menu navigasi samping).
 include '../layout/sidebar.php';
 
 // Variabel untuk menandai halaman aktif di menu navigasi.
@@ -78,19 +53,12 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-
-        <?php
-        // Menjalankan fungsi untuk menampilkan alert jika ada.
-        showAlert();
-        ?>
-
         <h3 class="mb-4">Data Cabang</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <?php if (hasAnyRole(['Owner'])) : ?>
                 <a href="create.php" class="btn btn-primary">Tambah</a>
             <?php endif ?>
-
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
                 <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang...">
             </div>
@@ -128,104 +96,112 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
         </div>
+        <?php include '../layout/footer.php'; ?>
+    </div>
 
-        <script>
-            const searchInput = document.getElementById('search-input');
-            const tableBody = document.getElementById('branchTableBody');
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const tableBody = document.getElementById('branchTableBody');
 
-            function loadBranches(keyword = '') {
-                fetch(`ajaxBranchList.php?keyword=${encodeURIComponent(keyword)}`)
-                    .then(res => res.text())
-                    .then(html => {
-                        tableBody.innerHTML = html;
-                    });
-            }
+        function loadBranches(keyword = '') {
+            fetch(`ajaxBranchList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                });
+        }
 
-            // Load pertama
+        // Load pertama
+        loadBranches();
+
+        // Saat ketik di search
+        searchInput.addEventListener('keyup', function() {
+            loadBranches(this.value);
+        });
+    </script>
+
+    <script>
+        function bindDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    fetch('softDelete.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(id)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadBranches(); // reload tabel
+                                showAlert(data.message, 'danger'); // custom alert function
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                        });
+                });
+            });
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+            // Masukkan isi alert + tombol close
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv;
+
+            const container = document.getElementById('floating-alert-container');
+            container.appendChild(alertDiv);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
+        }
+
+        function loadBranches(keyword = '') {
+            fetch(`ajaxBranchList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindDeleteEvents(); // PENTING!
+                });
+        }
+
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
             loadBranches();
 
-            // Saat ketik di search
             searchInput.addEventListener('keyup', function() {
                 loadBranches(this.value);
             });
-        </script>
+        });
+    </script>
 
+    <?php if (isset($_SESSION['success_message'])): ?>
         <script>
-            function bindDeleteEvents() {
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.dataset.id;
-
-                        fetch('softDelete.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded'
-                                },
-                                body: 'id=' + encodeURIComponent(id)
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    loadBranches(); // reload tabel
-                                    showAlert(data.message, 'danger'); // custom alert function
-                                } else {
-                                    showAlert(data.message, 'danger');
-                                }
-                            });
-                    });
-                });
-            }
-
-            function showAlert(message, type = 'success') {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
-
-                // Buat tombol close
-                const closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.className = 'close-btn';
-                closeBtn.onclick = () => alertDiv.remove();
-
-                // Masukkan isi alert + tombol close
-                alertDiv.innerHTML = `<span>${message}</span>`;
-                alertDiv.appendChild(closeBtn);
-
-                const container = document.getElementById('floating-alert-container');
-                container.appendChild(alertDiv);
-
-                // Fade out mulai di detik ke-4.5
-                setTimeout(() => {
-                    alertDiv.style.opacity = '0';
-                }, 1500);
-
-                // Remove dari DOM di detik ke-5
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 2000);
-            }
-
-            function loadBranches(keyword = '') {
-                fetch(`ajaxBranchList.php?keyword=${encodeURIComponent(keyword)}`)
-                    .then(res => res.text())
-                    .then(html => {
-                        tableBody.innerHTML = html;
-                        bindDeleteEvents(); // PENTING!
-                    });
-            }
-
-            // Event awal
-            document.addEventListener('DOMContentLoaded', () => {
-                loadBranches();
-
-                searchInput.addEventListener('keyup', function() {
-                    loadBranches(this.value);
-                });
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
             });
         </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
 
-        <?php
-        // Mengimpor bagian layout footer (termasuk tag penutup, script JS, dll).
-        include '../layout/footer.php';
-        ?>
-    </div>
+    <?php if (isset($_SESSION['danger_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+            });
+        </script>
+        <?php unset($_SESSION['danger_message']); ?>
+    <?php endif; ?>
 </div>

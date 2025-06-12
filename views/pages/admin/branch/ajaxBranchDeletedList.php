@@ -4,9 +4,9 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NOT NULL AND name LIKE ? ORDER BY deleted_at DESC");
-$stmt->execute([$keyword]);
-$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$getDeleteBrandQuery = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NOT NULL AND name LIKE ? ORDER BY deleted_at DESC");
+$getDeleteBrandQuery->execute([$keyword]);
+$data = $getDeleteBrandQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;
 if ($data) {
@@ -32,5 +32,5 @@ if ($data) {
         $no++;
     }
 } else {
-    echo "<tr><td colspan='7' class='text-center text-danger'>Tidak ada data cabang terhapus.</td></tr>";
+    echo "<tr><td colspan='4' class='text-center text-danger'>Tidak ada data cabang terhapus.</td></tr>";
 }
