@@ -4,9 +4,9 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT * FROM roles WHERE deleted_at IS NULL AND name LIKE ? ORDER BY name ASC");
-$stmt->execute([$keyword]);
-$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$getRoleQuery = $koneksi->prepare("SELECT * FROM roles WHERE deleted_at IS NULL AND name LIKE ? ORDER BY name ASC");
+$getRoleQuery->execute([$keyword]);
+$data = $getRoleQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;
 if ($data) {

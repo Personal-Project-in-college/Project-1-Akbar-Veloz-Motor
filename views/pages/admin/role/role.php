@@ -192,4 +192,13 @@ $activePage = basename($_SERVER['PHP_SELF']);
         </script>
         <?php unset($_SESSION['success_message']); ?>
     <?php endif; ?>
+
+    <?php if (isset($_SESSION['danger_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+            });
+        </script>
+        <?php unset($_SESSION['danger_message']); ?>
+    <?php endif; ?>
 </div>

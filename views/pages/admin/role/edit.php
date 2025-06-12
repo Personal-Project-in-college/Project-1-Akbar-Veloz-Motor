@@ -7,13 +7,21 @@ checkLogin();
 include '../../../../helpers/functionCheckRole.php';
 
 $id = $_GET['id'] ?? null;
-if (!$id) die("Error: id jabatan tidak ditemukan di URL.");
+if (!$id) {
+    $_SESSION['danger_message'] = "<strong>Error: </strong> ID jabatan tidak ditemukan di URL.";
+    header("Location: role.php");
+    exit;
+}
 
-$query = $koneksi->prepare("SELECT * FROM roles WHERE id = ? AND deleted_at IS NULL");
-$query->execute([$id]);
-$role = $query->fetch(PDO::FETCH_ASSOC);
+$getRoleQuery = $koneksi->prepare("SELECT * FROM roles WHERE id = ? AND deleted_at IS NULL");
+$getRoleQuery->execute([$id]);
+$role = $getRoleQuery->fetch(PDO::FETCH_ASSOC);
 
-if (!$role) die("Error: Data jabatan tidak ditemukan atau sudah dihapus.");
+if (!$role) {
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data jabatan tidak ditemukan atau sudah dihapus.";
+    header("Location: role.php");
+    exit;
+}
 
 $error = '';
 
@@ -23,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validasi: Cek apakah nama atau slug sudah dipakai oleh ID lain
     $checkQuery = $koneksi->prepare("SELECT COUNT(*) FROM roles WHERE (name = ?) AND id != ?");
     $checkQuery->execute([$name, $role['id']]);
-    $count = $checkQuery->fetchColumn();
+    $exist = $checkQuery->fetchColumn();
 
-    if ($count > 0) {
+    if ($exist > 0) {
         $error = "Nama jabatan <strong>" . htmlspecialchars($name) . "</strong> sudah digunakan oleh jabatan lain.";
     } else {
         $updateQuery = $koneksi->prepare("UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?");

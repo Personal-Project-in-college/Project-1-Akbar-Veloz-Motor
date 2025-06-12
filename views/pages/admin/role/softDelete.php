@@ -8,9 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
     // Cek role masih aktif
-    $stmt = $koneksi->prepare("SELECT name FROM roles WHERE id = ? AND deleted_at IS NULL");
-    $stmt->execute([$id]);
-    $roleName = $stmt->fetchColumn();
+    $getRoleQuery = $koneksi->prepare("SELECT name FROM roles WHERE id = ? AND deleted_at IS NULL");
+    $getRoleQuery->execute([$id]);
+    $roleName = $getRoleQuery->fetchColumn();
 
     if (!$roleName) {
         echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus."]);
@@ -18,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     }
 
     // Cek apakah role ini sedang digunakan oleh user
-    $checkUser = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE role_id = ?");
-    $checkUser->execute([$id]);
-    $usedCount = $checkUser->fetchColumn();
+    $checkRoleInUserQuery = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE role_id = ?");
+    $checkRoleInUserQuery->execute([$id]);
+    $usedCount = $checkRoleInUserQuery->fetchColumn();
 
     if ($usedCount > 0) {
         echo json_encode([
@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     }
 
     // Soft delete role
-    $softDeleteRole = $koneksi->prepare("UPDATE roles SET deleted_at = NOW() WHERE id = ?");
-    $isDeleted = $softDeleteRole->execute([$id]);
+    $softDeleteRoleQuery = $koneksi->prepare("UPDATE roles SET deleted_at = NOW() WHERE id = ?");
+    $isDeleted = $softDeleteRoleQuery->execute([$id]);
 
     if ($isDeleted) {
         echo json_encode(['success' => true, 'message' => "Jabatan <strong>" . htmlspecialchars($roleName) . "</strong> berhasil dihapus sementara."]);
