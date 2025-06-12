@@ -7,7 +7,7 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    $stmt = $koneksi->prepare("SELECT name FROM users WHERE id = ? AND deleted_at IS NOT NULL AND deleted_by_role_at IS NOT NULL");
+    $stmt = $koneksi->prepare("SELECT name FROM users WHERE id = ? AND (deleted_at IS NOT NULL OR deleted_by_role_at IS NOT NULL)");
     $stmt->execute([$id]);
     $userName = $stmt->fetchColumn();
 
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
         exit;
     }
 
-    $destroyUser = $koneksi->prepare("DELETE FROM users WHERE id = ? AND deleted_at IS NOT NULL AND deleted_by_role_at IS NOT NULL");
+    $destroyUser = $koneksi->prepare("DELETE FROM users WHERE id = ? AND (deleted_at IS NOT NULL OR deleted_by_role_at IS NOT NULL)");
     $isDestroy = $destroyUser->execute([$id]);
 
     if ($isDestroy) {

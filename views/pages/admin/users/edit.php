@@ -1,79 +1,153 @@
 <?php
+session_start();
 include '../../../../config/koneksi.php';
-// 🔗 Hubungkan ke file koneksi database
+include '../../../../helpers/functionCheckLogin.php';
+checkLogin();
+include '../../../../helpers/functionCheckRole.php';
 include '../../../../helpers/functionGenerateSlug.php';
-// 🔗 Hubungin ke function Generate Slug
 include '../../../../helpers/functionHashPassword.php';
-// 🔗 Hubungin ke function Hashing Password
 
-$slug = $_GET['slug'] ?? null;
-// 🪢 Ambil slug users dari URL
-
-if (!$slug) {
-    die("Slug tidak ditemukan.");
-}
-
-// 🪢 Ambil data user berdasarkan Slug
-$data = $koneksi->prepare("SELECT * FROM users WHERE slug = ? AND deleted_at IS NULL");
-$data->execute([$slug]);
-$user = $data->fetch(PDO::FETCH_ASSOC);
-
-if (!$user) {
-    // ❗ Kalau datanya gak ditemukan
-    die("Data Vehicle tidak ditemukan.");
-}
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 🕹️ Proses form saat tombol submit diklik
-    $name = $_POST['name'];
-    $slug = generateSlug($name); //  🧬 Bikin slug dari nama cabang
-    $phone = $_POST['phone'];
-    $address = $_POST['address'];
-    $username = $_POST['username'];
-    $password = hashPassword($_POST['password']); // 🔐 Hash password
-    $role_id = $_POST['role_id'];
-    
-    // ⬇️ Update data ke database
-    $data = $koneksi->prepare("UPDATE users SET name = ?, slug = ?, phone = ?, address = ?, username = ?, password = ?, role_id = ?, updated_at = NOW() WHERE id = ?");
-    $data->execute([$name, $slug, $phone, $address, $username, $password, $role_id, $user['id']]);
-    
-    // 🚀 Balik ke halaman index
-    header('Location: index.php');
+if (!isset($_GET['id'])) {
+    $_SESSION['error_message'] = "User tidak ditemukan.";
+    header("Location: users.php");
     exit;
 }
 
-// 🔍 Ambil hanya role yang belum dihapus (soft delete = null)
-$roles = $koneksi->query("SELECT * FROM roles WHERE deleted_at IS NULL")->fetchAll();
+$id = $_GET['id'];
+$getUser = $koneksi->prepare("SELECT * FROM users WHERE id = ?");
+$getUser->execute([$id]);
+$user = $getUser->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    $_SESSION['error_message'] = "Data user tidak ditemukan.";
+    header("Location: users.php");
+    exit;
+}
+
+$error = '';
+$nameError = '';
+$phoneError = '';
+$usernameError = '';
+$passwordError = '';
+
+$roles = $koneksi->prepare("SELECT id, name FROM roles WHERE deleted_at IS NULL AND name != 'Owner' ORDER BY name ASC");
+$roles->execute();
+$roles = $roles->fetchAll(PDO::FETCH_ASSOC);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name']);
+    $slug = generateSlug($name);
+    $phone = trim($_POST['phone']);
+    $address = trim($_POST['address']);
+    $username = trim($_POST['username']);
+    $role_id = trim($_POST['role_id']);
+    $passwordInput = trim($_POST['password']);
+
+    // Validasi unik
+    $checkStmt = $koneksi->prepare("SELECT * FROM users WHERE (name = ? OR phone = ? OR username = ?) AND id != ?");
+    $checkStmt->execute([$name, $phone, $username, $id]);
+    $exist = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($exist) {
+        if ($exist['name'] === $name)   $nameError = "Nama <strong>$name</strong> sudah digunakan.";
+        if ($exist['phone'] === $phone) $phoneError = "No Telepon <strong>$phone</strong> sudah digunakan.";
+        if ($exist['username'] === $username) $usernameError = "Username <strong>$username</strong> sudah digunakan.";
+    } else {
+        if (!empty($passwordInput) && strlen($passwordInput) < 8) {
+            $passwordError = "Password minimal 8 karakter.";
+        }
+
+        if (empty($nameError) && empty($phoneError) && empty($usernameError) && empty($passwordError)) {
+            try {
+                if (!empty($passwordInput)) {
+                    $password = hashPassword($passwordInput);
+                    $updateStmt = $koneksi->prepare("UPDATE users SET name = ?, slug = ?, phone = ?, address = ?, username = ?, password = ?, role_id = ?, updated_at = NOW() WHERE id = ?");
+                    $updateStmt->execute([$name, $slug, $phone, $address, $username, $password, $role_id, $id]);
+                } else {
+                    $updateStmt = $koneksi->prepare("UPDATE users SET name = ?, slug = ?, phone = ?, address = ?, username = ?, role_id = ?, updated_at = NOW() WHERE id = ?");
+                    $updateStmt->execute([$name, $slug, $phone, $address, $username, $role_id, $id]);
+                }
+
+                $_SESSION['success_message'] = "User <strong>" . htmlspecialchars($name) . "</strong> berhasil diperbarui.";
+                header("Location: users.php");
+                exit;
+            } catch (PDOException $e) {
+                $error = "Terjadi kesalahan saat menyimpan data: " . $e->getMessage();
+            }
+        }
+    }
+}
+include '../layout/header.php';
+include '../layout/sidebar.php';
 ?>
 
-<!-- 📅 Form edit data -->
-<h2>Edit Data User</h2>
-<form method="POST">
-    Nama User:
-    <input type="text" name="name" value="<?= htmlspecialchars($user['name']) ?>" required><br>
+<?php if (hasAnyRole(['Owner'])) : ?>
+    <div class="main-panel">
+        <div class="content-wrapper">
+            <h3 class="mb-4">Edit Karyawan</h3>
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" name="name" value="<?= htmlspecialchars($_POST['name'] ?? $user['name']) ?>"
+                                class="form-control <?= $nameError ? 'is-invalid' : '' ?>" required>
+                            <?php if ($nameError): ?><p class="text-danger mt-1"><?= $nameError ?></p><?php endif; ?>
+                        </div>
 
-    <!-- 🧬 Slug ini sebenernya gak perlu ditampilin karena dibikin otomatis, jadi disembunyikan -->
-    <input type="hidden" name="slug" value="<?= generateSlug($_POST['name'] ?? '') ?>" disabled><br>
+                        <div class="mb-3">
+                            <label class="form-label">No Telepon</label>
+                            <input type="text" name="phone" value="<?= htmlspecialchars($_POST['phone'] ?? $user['phone']) ?>"
+                                class="form-control <?= $phoneError ? 'is-invalid' : '' ?>" required>
+                            <?php if ($phoneError): ?><p class="text-danger mt-1"><?= $phoneError ?></p><?php endif; ?>
+                        </div>
 
-    Telepon:
-    <input type="text" name="phone" value="<?= $user['phone'] ?>" required type="number"><br>
+                        <div class="mb-3">
+                            <label class="form-label">Alamat Saat Ini</label>
+                            <textarea name="address" class="form-control" rows="8" required><?= htmlspecialchars($_POST['address'] ?? $user['address']) ?></textarea>
+                        </div>
 
-    Alamat:
-    <textarea name="address" required><?= htmlspecialchars($user['address']) ?></textarea><br>
-    
-    Username:
-    <input name="username" value="<?= $user['username'] ?>" required></input><br>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" value="<?= htmlspecialchars($_POST['username'] ?? $user['username']) ?>"
+                                class="form-control <?= $usernameError ? 'is-invalid' : '' ?>" required>
+                            <?php if ($usernameError): ?><p class="text-danger mt-1"><?= $usernameError ?></p><?php endif; ?>
+                        </div>
 
-    Password:
-    <input name="password" type="password"></input><br>
+                        <div class="mb-3">
+                            <label class="form-label">Password (Biarkan kosong jika tidak diubah)</label>
+                            <input type="password" name="password"
+                                class="form-control <?= $passwordError ? 'is-invalid' : '' ?>">
+                            <?php if ($passwordError): ?><p class="text-danger mt-1"><?= $passwordError ?></p><?php endif; ?>
+                        </div>
 
-    Role:
-    <select name="role_id" required>
-        <?php foreach ($roles as $role): ?>
-            <option value="<?= $role['id'] ?>" <?= $user['role_id'] == $role['id'] ? 'selected' : '' ?>><?= $role['name'] ?></option>
-        <?php endforeach; ?>
-    </select><br>
+                        <div class="mb-3">
+                            <label for="role_id" class="form-label">Jabatan</label>
+                            <select name="role_id" id="role_id" class="form-control" required style="color: black;">
+                                <option value="">Pilih Jabatan</option>
+                                <?php foreach ($roles as $role): ?>
+                                    <option value="<?= $role['id'] ?>" <?= ($role['id'] == ($user['role_id'] ?? '')) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($role['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-    <button type="submit">Update</button>
-</form>
+                        <?php if ($error): ?><div class="alert alert-danger"><?= $error ?></div><?php endif; ?>
+
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <a href="users.php" class="btn btn-secondary text-white">Kembali</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+<?php if (!hasAnyRole(['Owner'])): ?>
+    <div class="main-panel">
+        <div class="content-wrapper d-flex justify-content-center align-items-center">
+            <h2 class="text-danger">Hak Akses Khusus Owner!</h2>
+            <?php include '../layout/footer.php'; ?>
+        </div>
+    </div>
+<?php endif; ?>

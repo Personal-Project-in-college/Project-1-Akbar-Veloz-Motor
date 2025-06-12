@@ -86,11 +86,6 @@ $activePage = basename($_SERVER['PHP_SELF']);
     <div class="main-panel">
         <div class="content-wrapper">
 
-            <?php
-            // Menjalankan fungsi untuk menampilkan alert jika ada.
-            showAlert();
-            ?>
-
             <h3 class="mb-4">Data Karyawan</h3>
 
             <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
@@ -190,15 +185,11 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-                // Buat tombol close
-                const closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.className = 'close-btn';
-                closeBtn.onclick = () => alertDiv.remove();
+                
 
                 // Masukkan isi alert + tombol close
                 alertDiv.innerHTML = `<span>${message}</span>`;
-                alertDiv.appendChild(closeBtn);
+                alertDiv;
 
                 const container = document.getElementById('floating-alert-container');
                 container.appendChild(alertDiv);
@@ -233,6 +224,15 @@ $activePage = basename($_SERVER['PHP_SELF']);
             });
         </script>
     </div>
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+
 <?php endif ?>
 
 <?php if (!hasAnyRole(['Owner'])) : ?>
