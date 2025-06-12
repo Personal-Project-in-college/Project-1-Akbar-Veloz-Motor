@@ -82,6 +82,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
 
+
 <div class="main-panel">
     <div class="content-wrapper">
 
@@ -89,7 +90,6 @@ $activePage = basename($_SERVER['PHP_SELF']);
         // Menjalankan fungsi untuk menampilkan alert jika ada.
         showAlert();
         ?>
-
         <h3 class="mb-4">Data Partner</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
@@ -126,7 +126,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="deletedPartnerTableBody">
+                            <tbody id="partnerTableBody">
                                 <tr>
                                     <td colspan="7" class="text-center">Memuat data...</td>
                                 </tr>
@@ -136,16 +136,15 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
         </div>
-
         <?php include '../layout/footer.php'; ?>
     </div>
 
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('deletedPartnerTableBody');
+        const tableBody = document.getElementById('partnerTableBody');
 
-        function loadDeletedPartners(keyword = '') {
-            fetch(`ajaxPartnerDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadPartners(keyword = '') {
+            fetch(`ajaxPartnerList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
@@ -166,20 +165,22 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 });
         }
 
-        loadDeletedPartners();
+        // Load pertama
+        loadPartners();
 
+        // Saat ketik di search
         searchInput.addEventListener('keyup', function() {
-            loadDeletedPartners(this.value);
+            loadPartners(this.value);
         });
     </script>
 
     <script>
-        function bindRestoreEvents() {
-            document.querySelectorAll('.restore-btn').forEach(btn => {
+        function bindDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
 
-                    fetch('restore.php', {
+                    fetch('softDelete.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -189,95 +190,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadDeletedPartners(); // reload tabel
-                                showAlert(data.message, 'success'); // custom alert function
-                            } else {
-                                showAlert(data.message, 'success');
-                            }
-                        });
-                });
-            });
-        }
-
-        function showAlert(message, type = 'success') {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
-
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
-            // Masukkan isi alert + tombol close
-            alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
-
-            const container = document.getElementById('floating-alert-container');
-            container.appendChild(alertDiv);
-
-            // Fade out mulai di detik ke-4.5
-            setTimeout(() => {
-                alertDiv.style.opacity = '0';
-            }, 1500);
-
-            // Remove dari DOM di detik ke-5
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 2000);
-        }
-
-        function loadDeletedPartners(keyword = '') {
-            fetch(`ajaxPartnerDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                .then(res => res.text())
-                .then(html => {
-                    tableBody.innerHTML = html;
-                    bindRestoreEvents(); // PENTING!
-                    bindDestroyEvents(); // PENTING!
-
-                    document.querySelectorAll('[data-ktp]').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const imagePath = this.getAttribute('data-ktp');
-                            document.getElementById('ktpImage').src = imagePath;
-                        });
-                    });
-
-                    document.querySelectorAll('[data-photo]').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const imagePath = this.getAttribute('data-photo');
-                            document.getElementById('photoImage').src = imagePath;
-                        });
-                    });
-                });
-        }
-
-        // Event awal
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedPartners();
-
-            searchInput.addEventListener('keyup', function() {
-                loadDeletedPartners(this.value);
-            });
-        });
-    </script>
-
-    <script>
-        function bindDestroyEvents() {
-            document.querySelectorAll('.destroy-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-
-                    fetch('destroy.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: 'id=' + encodeURIComponent(id)
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                loadDeletedPartners(); // reload tabel
+                                loadPartners(); // reload tabel
                                 showAlert(data.message, 'danger'); // custom alert function
                             } else {
                                 showAlert(data.message, 'danger');
@@ -315,13 +228,14 @@ $activePage = basename($_SERVER['PHP_SELF']);
             }, 2000);
         }
 
-        function loadDeletedPartners(keyword = '') {
-            fetch(`ajaxPartnerDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+
+
+        function loadPartners(keyword = '') {
+            fetch(`ajaxPartnerList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    bindDestroyEvents(); // PENTING!
-                    bindRestoreEvents(); // PENTING!
+                    bindDeleteEvents(); // PENTING!
 
                     document.querySelectorAll('[data-ktp]').forEach(button => {
                         button.addEventListener('click', function() {
@@ -341,10 +255,10 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedPartners();
+            loadPartners();
 
             searchInput.addEventListener('keyup', function() {
-                loadDeletedPartners(this.value);
+                loadPartners(this.value);
             });
         });
     </script>
