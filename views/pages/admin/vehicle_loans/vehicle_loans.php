@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * File: branch.php
+ * Halaman ini bertanggung jawab untuk menampilkan daftar data cabang (branches) yang aktif.
+ * Fitur:
+ * - Menampilkan data dalam tabel dengan pagination.
+ * - Tab untuk beralih antara data aktif dan data yang sudah dihapus (soft delete).
+ * - Tombol untuk menambah data baru.
+ * - Kolom pencarian (hanya tampilan).
+ * - Keamanan dengan memeriksa status login pengguna.
+ */
+
 // ------------------------------
 // INISIALISASI & KONFIGURASI
 // ------------------------------
@@ -131,7 +142,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="deletedVehicleLoanTableBody">
+                            <tbody id="vehicleLoanTableBody">
                                 <tr>
                                     <td colspan="8" class="text-center">Memuat data...</td>
                                 </tr>
@@ -141,14 +152,15 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
         </div>
+
         <?php include '../layout/footer.php'; ?>
     </div>
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('deletedVehicleLoanTableBody');
+        const tableBody = document.getElementById('vehicleLoanTableBody');
 
-        function loadDeletedVehicleLoans(keyword = '') {
-            fetch(`ajaxVehicleLoansDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadVehicleLoans(keyword = '') {
+            fetch(`ajaxVehicleLoansList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
@@ -162,20 +174,22 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 });
         }
 
-        loadDeletedVehicleLoans();
+        // Load pertama
+        loadVehicleLoans();
 
+        // Saat ketik di search
         searchInput.addEventListener('keyup', function() {
-            loadDeletedVehicleLoans(this.value);
+            loadVehicleLoans(this.value);
         });
     </script>
 
     <script>
-        function bindRestoreEvents() {
-            document.querySelectorAll('.restore-btn').forEach(btn => {
+        function bindDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
 
-                    fetch('restore.php', {
+                    fetch('softDelete.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -185,88 +199,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadDeletedVehicleLoans(); // reload tabel
-                                showAlert(data.message, 'success'); // custom alert function
-                            } else {
-                                showAlert(data.message, 'success');
-                            }
-                        });
-                });
-            });
-        }
-
-        function showAlert(message, type = 'success') {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
-
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
-            // Masukkan isi alert + tombol close
-            alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
-
-            const container = document.getElementById('floating-alert-container');
-            container.appendChild(alertDiv);
-
-            // Fade out mulai di detik ke-4.5
-            setTimeout(() => {
-                alertDiv.style.opacity = '0';
-            }, 1500);
-
-            // Remove dari DOM di detik ke-5
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 2000);
-        }
-
-        function loadDeletedVehicleLoans(keyword = '') {
-            fetch(`ajaxVehicleLoansDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                .then(res => res.text())
-                .then(html => {
-                    tableBody.innerHTML = html;
-                    bindRestoreEvents(); // PENTING!
-                    bindDestroyEvents(); // PENTING!
-
-                    document.querySelectorAll('[data-note]').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const noteText = this.getAttribute('data-note');
-                            document.getElementById('noteText').innerText = noteText || 'Tidak ada catatan.';
-                        });
-                    });
-                });
-        }
-
-        // Event awal
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedVehicleLoans();
-
-            searchInput.addEventListener('keyup', function() {
-                loadDeletedVehicleLoans(this.value);
-            });
-        });
-    </script>
-
-    <script>
-        function bindDestroyEvents() {
-            document.querySelectorAll('.destroy-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-
-                    fetch('destroy.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: 'id=' + encodeURIComponent(id)
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                loadDeletedVehicleLoans(); // reload tabel
+                                loadVehicleLoans(); // reload tabel
                                 showAlert(data.message, 'danger'); // custom alert function
                             } else {
                                 showAlert(data.message, 'danger');
@@ -304,13 +237,12 @@ $activePage = basename($_SERVER['PHP_SELF']);
             }, 2000);
         }
 
-        function loadDeletedVehicleLoans(keyword = '') {
-            fetch(`ajaxVehicleLoansDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadVehicleLoans(keyword = '') {
+            fetch(`ajaxVehicleLoansList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    bindDestroyEvents(); // PENTING!
-                    bindRestoreEvents(); // PENTING!
+                    bindDeleteEvents(); // PENTING!
 
                     document.querySelectorAll('[data-note]').forEach(button => {
                         button.addEventListener('click', function() {
@@ -323,10 +255,10 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedVehicleLoans();
+            loadVehicleLoans();
 
             searchInput.addEventListener('keyup', function() {
-                loadDeletedVehicleLoans(this.value);
+                loadVehicleLoans(this.value);
             });
         });
     </script>

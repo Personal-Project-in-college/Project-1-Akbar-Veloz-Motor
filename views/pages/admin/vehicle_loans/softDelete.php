@@ -1,14 +1,39 @@
 <?php
+session_start();
 include '../../../../config/koneksi.php';
-// 🔗 Sambungkan ke database
+include '../../../../helpers/functionCheckLogin.php';
+header('Content-Type: application/json');
 
-// 🪢 Ambil ID cabang dari parameter URL
-$id = $_GET['id'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+    $id = $_POST['id'];
 
-// ⬇️ Soft delete: Update kolom deleted_at, bukan hapus permanen
-$data = $koneksi->prepare("UPDATE vehicle_loans SET deleted_at = NOW() WHERE id = ?");
-$data->execute([$id]);
+    // Ambil status dan vehicle_id dari peminjaman
+    $stmt = $koneksi->prepare("SELECT status, vehicle_id FROM vehicle_loans WHERE id = ? AND deleted_at IS NULL");
+    $stmt->execute([$id]);
+    $loanData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// 🚀 Setelah update, alihkan kembali ke halaman index
-header("Location: index.php");
-exit;
+    if (!$loanData) {
+        echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus."]);
+        exit;
+    }
+
+    if ($loanData['status'] === 'borrowed') {
+        echo json_encode(['success' => false, 'message' => "Tidak bisa menghapus data peminjaman karena kendaraan belum dikembalikan."]);
+        exit;
+    }
+
+    // Lanjutkan soft delete jika status sudah returned
+    $softDelete = $koneksi->prepare("UPDATE vehicle_loans SET deleted_at = NOW() WHERE id = ?");
+    $isDeleted = $softDelete->execute([$id]);
+
+    if ($isDeleted) {
+        echo json_encode([
+            'success' => true,
+            'message' => "Peminjaman kendaraan <strong>" . htmlspecialchars($loanData['vehicle_id']) . "</strong> berhasil dihapus sementara."
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => "Terjadi kesalahan saat menghapus peminjaman kendaraan."]);
+    }
+} else {
+    echo json_encode(['success' => false, 'message' => "Permintaan tidak valid."]);
+}
