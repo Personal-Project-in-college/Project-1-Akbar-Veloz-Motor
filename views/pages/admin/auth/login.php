@@ -40,6 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['user_id']   = $user['id'];
         $_SESSION['name']      = $user['name'];
         $_SESSION['role_name'] = $user['role_name'];
+        $_SESSION['photo']     = $user['photo']; // 👉 Tambahkan ini
+
+
 
         // Arahkan ke halaman dashboard.
         header('Location: ../dashboard/index.php');

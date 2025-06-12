@@ -31,6 +31,45 @@ include '../layout/sidebar.php';
 $activePage = basename($_SERVER['PHP_SELF']);
 ?>
 
+<style>
+    .fade-out {
+        transition: opacity 0.5s ease-out;
+        opacity: 1;
+    }
+
+    .alert .close-btn {
+        float: right;
+        font-size: 1.2rem;
+        font-weight: bold;
+        line-height: 1;
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+
+    #floating-alert-container .alert {
+        animation: slideInLeft 0.3s ease-out;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
+
 <div class="main-panel">
     <div class="content-wrapper">
         <?php
@@ -43,7 +82,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
             <a href="create.php" class="btn btn-primary">Tambah</a>
 
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang Terhapus...">
             </div>
         </div>
 
@@ -60,7 +99,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <table class="table table-striped" id="productTable">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -69,60 +108,10 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php
-                                // ----------------------------------------------------
-                                // LOGIKA PENGAMBILAN & PENAMPILAN DATA DENGAN PAGINATION
-                                // ----------------------------------------------------
-
-                                // A. Pengaturan Pagination
-                                $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-                                $limit = 10; // Jumlah data per halaman
-                                $offset = ($page - 1) * $limit;
-
-                                // B. Menghitung Total Data untuk Pagination
-                                // Query ini menghitung jumlah total cabang yang sudah di-soft delete.
-                                $totalData = $koneksi->query("SELECT COUNT(*) FROM branches WHERE deleted_at IS NOT NULL")->fetchColumn();
-                                $totalPages = ceil($totalData / $limit);
-
-                                // C. Mengambil Data dari Database dengan Limit
-                                // Mengambil data cabang yang sudah terhapus (deleted_at TIDAK NULL).
-                                // Diurutkan berdasarkan kapan data dihapus (yang terbaru di atas).
-                                $query = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT :limit OFFSET :offset");
-                                $query->bindValue(':limit', $limit, PDO::PARAM_INT);
-                                $query->bindValue(':offset', $offset, PDO::PARAM_INT);
-                                $query->execute();
-                                $dataBranchs = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                // D. Menampilkan Data ke Tabel
-                                $no = $offset + 1; // Nomor urut disesuaikan dengan halaman saat ini.
-
-                                foreach ($dataBranchs as $row) {
-                                    // Mengamankan output HTML dari XSS dan memotong alamat jika terlalu panjang.
-                                    $address = htmlspecialchars($row['address']);
-                                    $shortAddress = substr($row['address'], 0, 30) . (strlen($row['address']) > 30 ? "..." : "");
-
-                                    echo "<tr>
-                                            <td>{$no}</td>
-                                            <td>{$row['name']}</td>
-                                            <td data-bs-toggle='tooltip' data-bs-placement='top' title='{$address}'>
-                                                {$shortAddress}
-                                            </td>
-                                            <td style='display: flex; align-items: center; gap: 8px;'>
-                                                <a href='restore.php?id={$row['id']}' title='Restore' class='btn btn-success btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-restore'></i>
-                                                </a>
-                                                <a href='destroy.php?id={$row['id']}' title='Permanent Delete' class='btn btn-danger btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-delete-forever' style='color: white;'></i>
-                                                </a>
-                                            </td>
-                                        </tr>";
-                                    $no++;
-                                }
-                                if (empty($dataBranchs)) {
-                                    echo "<tr><td colspan='8' class='text-center'>Tidak ada data branch yang terhapus.</td></tr>";
-                                }
-                                ?>
+                            <tbody id="deletedBranchTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center">Memuat data...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -130,29 +119,170 @@ $activePage = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
 
-        <?php if ($totalPages > 1) : ?>
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-end">
-                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                        <a class="page-link bg-primary text-white" href="?page=<?= $page - 1 ?>">Previous</a>
-                    </li>
-                    <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
-                        <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
-                            <a class="page-link <?= ($page == $i) ? 'bg-primary text-white' : 'text-primary bg-white' ?>" href="?page=<?= $i ?>"><?= $i ?></a>
-                        </li>
-                    <?php endfor; ?>
-                    <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                        <a class="page-link bg-primary text-white" href="?page=<?= $page + 1 ?>">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        <?php endif; ?>
+        <script>
+            const searchInput = document.getElementById('search-input');
+            const tableBody = document.getElementById('deletedBranchTableBody');
+
+            function loadDeletedBranches(keyword = '') {
+                fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                    .then(res => res.text())
+                    .then(html => {
+                        tableBody.innerHTML = html;
+                    });
+            }
+
+            loadDeletedBranches();
+
+            searchInput.addEventListener('keyup', function() {
+                loadDeletedBranches(this.value);
+            });
+        </script>
 
         <script>
-            // Inisialisasi semua tooltip Bootstrap yang ada di halaman.
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
+            function bindRestoreEvents() {
+                document.querySelectorAll('.restore-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+
+                        fetch('restore.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                },
+                                body: 'id=' + encodeURIComponent(id)
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    loadDeletedBranches(); // reload tabel
+                                    showAlert(data.message, 'success'); // custom alert function
+                                } else {
+                                    showAlert(data.message, 'success');
+                                }
+                            });
+                    });
+                });
+            }
+
+            function showAlert(message, type = 'success') {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+                // Buat tombol close
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '&times;';
+                closeBtn.className = 'close-btn';
+                closeBtn.onclick = () => alertDiv.remove();
+
+                // Masukkan isi alert + tombol close
+                alertDiv.innerHTML = `<span>${message}</span>`;
+                alertDiv.appendChild(closeBtn);
+
+                const container = document.getElementById('floating-alert-container');
+                container.appendChild(alertDiv);
+
+                // Fade out mulai di detik ke-4.5
+                setTimeout(() => {
+                    alertDiv.style.opacity = '0';
+                }, 1500);
+
+                // Remove dari DOM di detik ke-5
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 2000);
+            }
+
+            function loadDeletedBranches(keyword = '') {
+                fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                    .then(res => res.text())
+                    .then(html => {
+                        tableBody.innerHTML = html;
+                        bindRestoreEvents(); // PENTING!
+                        bindDestroyEvents(); // PENTING!
+                    });
+            }
+
+            // Event awal
+            document.addEventListener('DOMContentLoaded', () => {
+                loadDeletedBranches();
+
+                searchInput.addEventListener('keyup', function() {
+                    loadDeletedBranches(this.value);
+                });
+            });
+        </script>
+
+        <script>
+            function bindDestroyEvents() {
+                document.querySelectorAll('.destroy-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+
+                        fetch('destroy.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                },
+                                body: 'id=' + encodeURIComponent(id)
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    loadDeletedBranches(); // reload tabel
+                                    showAlert(data.message, 'danger'); // custom alert function
+                                } else {
+                                    showAlert(data.message, 'danger');
+                                }
+                            });
+                    });
+                });
+            }
+
+            function showAlert(message, type = 'success') {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+                // Buat tombol close
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '&times;';
+                closeBtn.className = 'close-btn';
+                closeBtn.onclick = () => alertDiv.remove();
+
+                // Masukkan isi alert + tombol close
+                alertDiv.innerHTML = `<span>${message}</span>`;
+                alertDiv.appendChild(closeBtn);
+
+                const container = document.getElementById('floating-alert-container');
+                container.appendChild(alertDiv);
+
+                // Fade out mulai di detik ke-4.5
+                setTimeout(() => {
+                    alertDiv.style.opacity = '0';
+                }, 1500);
+
+                // Remove dari DOM di detik ke-5
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 2000);
+            }
+
+            function loadDeletedBranches(keyword = '') {
+                fetch(`ajaxBranchDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                    .then(res => res.text())
+                    .then(html => {
+                        tableBody.innerHTML = html;
+                        bindDestroyEvents(); // PENTING!
+                        bindRestoreEvents(); // PENTING!
+                    });
+            }
+
+            // Event awal
+            document.addEventListener('DOMContentLoaded', () => {
+                loadDeletedBranches();
+
+                searchInput.addEventListener('keyup', function() {
+                    loadDeletedBranches(this.value);
+                });
             });
         </script>
 
