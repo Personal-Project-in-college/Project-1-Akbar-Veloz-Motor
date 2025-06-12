@@ -13,7 +13,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Mengambil nama pengguna dari session. Memberi nilai default 'Guest' untuk mencegah error.
-$name = $_SESSION['name'] ?? 'Guest';
+$name = $_SESSION['name'];
+$photo = (!empty($_SESSION['photo'])) ? $_SESSION['photo'] : 'default.jpg';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -77,11 +78,12 @@ $name = $_SESSION['name'] ?? 'Guest';
 
         <li class="nav-item nav-profile dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
-            <img src="../assets/images/jamal.png" alt="profile" />
+            <img src="../../../../storage/<?= htmlspecialchars($photo) ?>" alt="profile" />
+
           </a>
           <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-            <a class="dropdown-item" href="settings.php">
-              <i class="ti-settings text-primary"></i> Settings
+            <a class="dropdown-item" href="../profile/profile.php">
+              <i class="mdi mdi-account menu-icon"></i> Profile
             </a>
 
             <?php
