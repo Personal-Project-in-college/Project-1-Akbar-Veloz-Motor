@@ -17,9 +17,10 @@ $isVehicleActive = isSidebarMenuActive('vehicles');
 $isVehicleModelActive = isSidebarMenuActive('vehicle_model');
 $isVehicleLoanActive = isSidebarMenuActive('vehicle_loans');
 $isOrderActive = isSidebarMenuActive('orders');
+$isRoleActive = isSidebarMenuActive('role');
 $isUserActive = isSidebarMenuActive('users');
 
-$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'orders', 'users']);
+$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'orders', 'role', 'users']);
 
 
 $isTransactionsActive = isSidebarMenuActive('transactions');
@@ -62,6 +63,7 @@ $isReportActive = isSubMenuActive(['transactions']);
           <li class="nav-item"><a class="nav-link <?= $isVehicleLoanActive ? 'active' : '' ?>" href="../vehicle_loans/vehicle_loans.php">Peminjaman</a></li>
           
           <?php if (hasAnyRole(['Owner'])) : ?>
+            <li class="nav-item"><a class="nav-link <?= $isRoleActive ? 'active' : '' ?>" href="../role/role.php">Jabatan</a></li>
             <li class="nav-item"><a class="nav-link <?= $isUserActive ? 'active' : '' ?>" href="../users/users.php">Karyawan</a></li>
           <?php endif ?>
         </ul>

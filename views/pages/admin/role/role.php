@@ -2,7 +2,7 @@
 include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
-include '../../../../helpers/functionShowAlert.php';
+include '../../../../helpers/functionCheckRole.php';
 include '../layout/header.php';
 include '../layout/sidebar.php';
 
@@ -50,14 +50,14 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <?php showAlert(); ?>
-        <h3 class="mb-4">Data Jabatan Terhapus</h3>
+        <h3 class="mb-4">Data Jabatan</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-            <a href="create.php" class="btn btn-primary">Tambah</a>
-
+            <?php if (hasAnyRole(['Owner'])) : ?>
+                <a href="create.php" class="btn btn-primary">Tambah</a>
+            <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Jabatan Terhapus...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Jabatan...">
             </div>
         </div>
 
@@ -82,7 +82,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="deletedRoleTableBody">
+                            <tbody id="roleTableBody">
                                 <tr>
                                     <td colspan="3" class="text-center">Memuat data...</td>
                                 </tr>
@@ -98,30 +98,32 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('deletedRoleTableBody');
+        const tableBody = document.getElementById('roleTableBody');
 
-        function loadDeletedRoles(keyword = '') {
-            fetch(`ajaxRoleDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadRoles(keyword = '') {
+            fetch(`ajaxRoleList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
                 });
         }
 
-        loadDeletedRoles();
+        // Load pertama
+        loadRoles();
 
+        // Saat ketik di search
         searchInput.addEventListener('keyup', function() {
-            loadDeletedRoles(this.value);
+            loadRoles(this.value);
         });
     </script>
 
     <script>
-        function bindRestoreEvents() {
-            document.querySelectorAll('.restore-btn').forEach(btn => {
+        function bindDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
 
-                    fetch('restore.php', {
+                    fetch('softDelete.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -131,75 +133,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadDeletedRoles(); // reload tabel
-                                showAlert(data.message, 'success'); // custom alert function
-                            } else {
-                                showAlert(data.message, 'success');
-                            }
-                        });
-                });
-            });
-        }
-
-        function showAlert(message, type = 'success') {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
-
-            // Masukkan isi alert + tombol close
-            alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv;
-
-            const container = document.getElementById('floating-alert-container');
-            container.appendChild(alertDiv);
-
-            // Fade out mulai di detik ke-4.5
-            setTimeout(() => {
-                alertDiv.style.opacity = '0';
-            }, 1500);
-
-            // Remove dari DOM di detik ke-5
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 2000);
-        }
-
-        function loadDeletedRoles(keyword = '') {
-            fetch(`ajaxRoleDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                .then(res => res.text())
-                .then(html => {
-                    tableBody.innerHTML = html;
-                    bindRestoreEvents(); // PENTING!
-                    bindDestroyEvents(); // PENTING!
-                });
-        }
-
-        // Event awal
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedRoles();
-
-            searchInput.addEventListener('keyup', function() {
-                loadDeletedRoles(this.value);
-            });
-        });
-    </script>
-
-    <script>
-        function bindDestroyEvents() {
-            document.querySelectorAll('.destroy-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-
-                    fetch('destroy.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: 'id=' + encodeURIComponent(id)
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                loadDeletedRoles(); // reload tabel
+                                loadRoles(); // reload tabel
                                 showAlert(data.message, 'danger'); // custom alert function
                             } else {
                                 showAlert(data.message, 'danger');
@@ -231,23 +165,31 @@ $activePage = basename($_SERVER['PHP_SELF']);
             }, 2000);
         }
 
-        function loadDeletedRoles(keyword = '') {
-            fetch(`ajaxRoleDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadRoles(keyword = '') {
+            fetch(`ajaxRoleList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    bindDestroyEvents(); // PENTING!
-                    bindRestoreEvents(); // PENTING!
+                    bindDeleteEvents(); // PENTING!
                 });
         }
 
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedRoles();
+            loadRoles();
 
             searchInput.addEventListener('keyup', function() {
-                loadDeletedRoles(this.value);
+                loadRoles(this.value);
             });
         });
     </script>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
 </div>

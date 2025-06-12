@@ -9,6 +9,7 @@ checkLogin();
 
 $userId = $_SESSION['user_id'];
 
+// Ambil data user
 $stmt = $koneksi->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -20,6 +21,8 @@ if (!$user) {
 }
 
 $photo = $user['photo'];
+$errors = [];
+$formOld = [];
 
 function uploadProfilePhoto($inputName, $targetFolder, $slug)
 {
@@ -41,28 +44,63 @@ function uploadProfilePhoto($inputName, $targetFolder, $slug)
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name']);
+    $username = trim($_POST['username']);
+    $phone = trim($_POST['phone']);
+    $address = trim($_POST['address']);
+    $password = $_POST['password'];
+
+    $formOld = $_POST;
+
+    $stmt = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE name = ? AND id != ?");
+    $stmt->execute([$name, $userId]);
+    if ($stmt->fetchColumn() > 0) {
+        $errors['name'] = "Nama sudah digunakan.";
+    }
+
+    // Validasi unik username (kecuali dirinya sendiri)
+    $stmt = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE username = ? AND id != ?");
+    $stmt->execute([$username, $userId]);
+    if ($stmt->fetchColumn() > 0) {
+        $errors['username'] = "Username sudah digunakan.";
+    }
+
+    // Validasi password jika diisi
+    if (!empty($password) && strlen($password) < 8) {
+        $errors['password'] = "Password minimal 8 karakter.";
+    }
+
+    // Kalau ada error, kembalikan ke form
+    if (!empty($errors)) {
+        $_SESSION['form_errors'] = $errors;
+        $_SESSION['form_old'] = $formOld;
+        header("Location: profile.php");
+        exit;
+    }
+
+    // Proses update
     $oldSlug = $user['slug'];
+    $newSlug = generateSlug($name);
+
     $oldFolder = "../../../../storage/users/user_" . $oldSlug;
-    $newSlug = generateSlug($_POST['name']);
     $newFolder = "../../../../storage/users/user_" . $newSlug;
 
-    // Jika slug berubah dan folder lama ada, rename
+    // Rename folder jika slug berubah
     if ($oldSlug !== $newSlug && is_dir($oldFolder)) {
         rename($oldFolder, $newFolder);
     }
 
-    // Kalau folder belum ada setelah rename, baru bikin
     if (!is_dir($newFolder)) {
         mkdir($newFolder, 0777, true);
     }
 
-    // Update path photo jika hanya slug berubah, dan photo lama masih ada
-    if (!empty($user['photo']) && $oldSlug !== $newSlug) {
-        $fileName = basename($user['photo']);
+    // Update path photo jika slug berubah
+    if (!empty($photo) && $oldSlug !== $newSlug) {
+        $fileName = basename($photo);
         $photo = "users/user_" . $newSlug . "/" . $fileName;
     }
 
-    // Upload foto baru jika ada
+    // Jika upload foto baru
     if (!empty($_FILES['photo']['name'])) {
         if ($photo && file_exists("../../../../storage/" . $photo)) {
             unlink("../../../../storage/" . $photo);
@@ -70,19 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $photo = uploadProfilePhoto('photo', $newFolder, $newSlug);
     }
 
-    $name = $_POST['name'];
-    $username = $_POST['username'];
-    $phone = $_POST['phone'];
-    $address = $_POST['address'];
-    $password = $_POST['password'];
-
     $updateFields = "name = ?, slug = ?, username = ?, phone = ?, address = ?, photo = ?";
     $params = [$name, $newSlug, $username, $phone, $address, $photo];
 
     if (!empty($password)) {
         $updateFields .= ", password = ?";
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $params[] = $hashedPassword;
+        $params[] = password_hash($password, PASSWORD_DEFAULT);
     }
 
     $params[] = $userId;
@@ -95,10 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Fungsi upload seperti sebelumnya
-
+// Ambil pesan error & input lama
+$formErrors = $_SESSION['form_errors'] ?? [];
+$formOld = $_SESSION['form_old'] ?? [];
+unset($_SESSION['form_errors'], $_SESSION['form_old']);
 ?>
-
 
 <?php include '../layout/header.php'; ?>
 <?php include '../layout/sidebar.php'; ?>
@@ -116,22 +148,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label">Nama Lengkap</label>
-                        <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($user['name']) ?>" required>
+                        <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($formOld['name'] ?? $user['name']) ?>" required>
+                        <?php if (!empty($formErrors['name'])) : ?>
+                            <small class="text-danger"><?= $formErrors['name'] ?></small>
+                        <?php endif; ?>
                     </div>
+
 
                     <div class="mb-3">
                         <label class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" value="<?= htmlspecialchars($user['username']) ?>" required>
+                        <input type="text" name="username" class="form-control" value="<?= htmlspecialchars($formOld['username'] ?? $user['username']) ?>" required>
+                        <?php if (!empty($formErrors['username'])) : ?>
+                            <small class="text-danger"><?= $formErrors['username'] ?></small>
+                        <?php endif; ?>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">No Telepon</label>
-                        <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone']) ?>">
+                        <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($formOld['phone'] ?? $user['phone']) ?>">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Alamat</label>
-                        <textarea name="address" class="form-control"><?= htmlspecialchars($user['address']) ?></textarea>
+                        <textarea name="address" class="form-control"><?= htmlspecialchars($formOld['address'] ?? $user['address']) ?></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -142,10 +181,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="mb-3">
                         <label class="form-label">Password Baru (kosongkan jika tidak diubah)</label>
                         <input type="password" name="password" class="form-control">
+                        <?php if (!empty($formErrors['password'])) : ?>
+                            <small class="text-danger"><?= $formErrors['password'] ?></small>
+                        <?php endif; ?>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Simpan</button>
-                    <a href="../dashboard.php" class="btn btn-secondary mx-2">Kembali</a>
+                    <a href="../dashboard/index.php" class="btn btn-secondary mx-2">Kembali</a>
                 </form>
             </div>
         </div>

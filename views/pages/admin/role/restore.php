@@ -1,15 +1,29 @@
 <?php
+session_start();
 include '../../../../config/koneksi.php';
+include '../../../../helpers/functionCheckLogin.php';
+header('Content-Type: application/json');
 
-if (isset($_GET['id'])) {
-    // ⬇️ Restore role
-    $data = $koneksi->prepare("UPDATE roles SET deleted_at = NULL WHERE id = ?");
-    $data->execute([$_GET['id']]);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+    $id = $_POST['id'];
 
-    // ⬇️ Restore user yang deleted_at nya null
-    $restoreUser = $koneksi->prepare("UPDATE users SET deleted_by_role_at = NULL WHERE role_id = ?");
-    $restoreUser->execute([$_GET['id']]);
+    $stmt = $koneksi->prepare("SELECT name FROM roles WHERE id = ? AND deleted_at IS NOT NULL");
+    $stmt->execute([$id]);
+    $roleName = $stmt->fetchColumn();
+
+    if (!$roleName) {
+        echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dikembalikan."]);
+        exit;
+    }
+
+    $restoreRole = $koneksi->prepare("UPDATE roles SET deleted_at = NULL WHERE id = ?");
+    $isRestore = $restoreRole->execute([$id]);
+
+    if ($isRestore) {
+        echo json_encode(['success' => true, 'message' => "Jabatan <strong>" . htmlspecialchars($roleName) . "</strong> berhasil dikembalikan."]);
+    } else {
+        echo json_encode(['success' => false, 'message' => "Terjadi kesalahan saat mengembalikan jabatan."]);
+    }
+} else {
+    echo json_encode(['success' => false, 'message' => "Permintaan tidak valid."]);
 }
-
-header('Location: delete.php');
-exit;
