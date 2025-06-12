@@ -8,13 +8,21 @@ checkLogin();
 include '../../../../helpers/functionCheckRole.php';
 
 $slug = $_GET['slug'] ?? null;
-if (!$slug) die("Error: Slug merek tidak ditemukan di URL.");
+if (!$slug) {
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Slug merek tidak ditemukan di URL.";
+    header("Location: brand.php");
+    exit;
+};
 
 $query = $koneksi->prepare("SELECT * FROM brands WHERE slug = ? AND deleted_at IS NULL");
 $query->execute([$slug]);
 $brand = $query->fetch(PDO::FETCH_ASSOC);
 
-if (!$brand) die("Error: Data merek tidak ditemukan atau sudah dihapus.");
+if (!$brand) {
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data merek tidak ditemukan atau sudah dihapus.";
+    header("Location: brand.php");
+    exit;
+};
 
 $error = '';
 
