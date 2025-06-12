@@ -7,20 +7,20 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    $stmt = $koneksi->prepare("SELECT name FROM partners WHERE id = ? AND deleted_at IS NULL");
-    $stmt->execute([$id]);
-    $partnerName = $stmt->fetchColumn();
+    $getPartnerQuery = $koneksi->prepare("SELECT name FROM partners WHERE id = ? AND deleted_at IS NULL");
+    $getPartnerQuery->execute([$id]);
+    $partnerName = $getPartnerQuery->fetchColumn();
 
     if (!$partnerName) {
         echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus."]);
         exit;
     }
 
-    $softDeletePartner = $koneksi->prepare("UPDATE partners SET deleted_at = NOW() WHERE id = ?");
-    $isDeleted = $softDeletePartner->execute([$id]);
+    $softDeletePartnerQuery = $koneksi->prepare("UPDATE partners SET deleted_at = NOW() WHERE id = ?");
+    $isDeleted = $softDeletePartnerQuery->execute([$id]);
 
-    $softDeleteVehicleLoans = $koneksi->prepare("UPDATE vehicle_loans SET deleted_by_partner_at = NOW() WHERE partner_id = ?");
-    $softDeleteVehicleLoans->execute([$id]);
+    $softDeleteVehicleLoansQuery = $koneksi->prepare("UPDATE vehicle_loans SET deleted_by_partner_at = NOW() WHERE partner_id = ?");
+    $softDeleteVehicleLoansQuery->execute([$id]);
 
     if ($isDeleted) {
         echo json_encode(['success' => true, 'message' => "Partner <strong>" . htmlspecialchars($partnerName) . "</strong> berhasil dihapus sementara."]);

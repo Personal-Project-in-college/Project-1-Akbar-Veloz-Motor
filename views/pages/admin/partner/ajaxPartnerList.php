@@ -4,9 +4,9 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT * FROM partners WHERE deleted_at IS NULL AND name LIKE ? ORDER BY created_at ASC");
-$stmt->execute([$keyword]);
-$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$getPartnerQuery = $koneksi->prepare("SELECT * FROM partners WHERE deleted_at IS NULL AND name LIKE ? ORDER BY created_at ASC");
+$getPartnerQuery->execute([$keyword]);
+$data = $getPartnerQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;
 if ($data) {
@@ -29,6 +29,9 @@ if ($data) {
                     </button>
                 </td>
                 <td style='display: flex; align-items: center; gap: 8px;'>
+                    <a href='detail.php?id={$row['id']}' title='Detail' class='btn btn-secondary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
+                        <i class='mdi mdi-eye'></i>
+                    </a>
                     <a href='edit.php?id={$row['id']}' title='Edit' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
                         <i class='mdi mdi-pencil'></i>
                     </a>

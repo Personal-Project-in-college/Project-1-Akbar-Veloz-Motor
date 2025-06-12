@@ -56,16 +56,15 @@ $isReportActive = isSubMenuActive(['transactions']);
       <div class="collapse <?= $isManageActive ? 'show' : '' ?>" id="collapseManage">
         <ul class="nav flex-column sub-menu">
           <li class="nav-item"><a class="nav-link <?= $isBranchActive ? 'active' : '' ?>" href="../branch/branch.php">Cabang</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isPartnerActive ? 'active' : '' ?>" href="../partner/partner.php">Partner</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isVehicleActive ? 'active' : '' ?>" href="../vehicles/vehicles.php">Kendaraan</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isVehicleModelActive ? 'active' : '' ?>" href="../vehicle_model/vehicle_model.php">Model Kendaraan</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isBrandActive ? 'active' : '' ?>" href="../brand/brand.php">Merek</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isVehicleLoanActive ? 'active' : '' ?>" href="../vehicle_loans/vehicle_loans.php">Peminjaman</a></li>
-          
           <?php if (hasAnyRole(['Owner'])) : ?>
             <li class="nav-item"><a class="nav-link <?= $isRoleActive ? 'active' : '' ?>" href="../role/role.php">Jabatan</a></li>
             <li class="nav-item"><a class="nav-link <?= $isUserActive ? 'active' : '' ?>" href="../users/users.php">Karyawan</a></li>
           <?php endif ?>
+          <li class="nav-item"><a class="nav-link <?= $isVehicleActive ? 'active' : '' ?>" href="../vehicles/vehicles.php">Kendaraan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isVehicleModelActive ? 'active' : '' ?>" href="../vehicle_model/vehicle_model.php">Model Kendaraan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isBrandActive ? 'active' : '' ?>" href="../brand/brand.php">Merek</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isPartnerActive ? 'active' : '' ?>" href="../partner/partner.php">Partner</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isVehicleLoanActive ? 'active' : '' ?>" href="../vehicle_loans/vehicle_loans.php">Peminjaman</a></li>
         </ul>
       </div>
     </li>

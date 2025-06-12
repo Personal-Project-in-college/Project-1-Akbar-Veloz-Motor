@@ -12,7 +12,7 @@ include '../../../../helpers/functionCheckRole.php';
 $id = $_GET['id'] ?? null;
 
 if (!$id) {
-    $_SESSION['error'] = "ID partner tidak valid.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong> ID partner tidak ditemukan di URL.";
     header("Location: partner.php");
     exit;
 }
@@ -23,7 +23,7 @@ $stmt->execute([$id]);
 $partner = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$partner) {
-    $_SESSION['error'] = "Data partner tidak ditemukan.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data partner tidak ditemukan atau sudah dihapus.";
     header("Location: partner.php");
     exit;
 }
@@ -47,15 +47,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address_domicile = $_POST['address_domicile'];
 
     // Cek data unik
-    $checkStmt = $koneksi->prepare("SELECT * FROM partners WHERE (name = ? OR nik = ? OR phone = ? OR email = ?) AND id <> ?");
-    $checkStmt->execute([$name, $nik, $phone, $email, $id]);
-    $exist = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    $checkQuery = $koneksi->prepare("SELECT * FROM partners WHERE (name = ? OR nik = ? OR phone = ? OR email = ?) AND id <> ?");
+    $checkQuery->execute([$name, $nik, $phone, $email, $id]);
+    $exists = $checkQuery->fetch(PDO::FETCH_ASSOC);
 
-    if ($exist) {
-        if ($exist['name'] === $name)   $nameError = "Nama <strong>$name</strong> sudah digunakan.";
-        if ($exist['nik'] === $nik)     $nikError = "NIK <strong>$nik</strong> sudah digunakan.";
-        if ($exist['phone'] === $phone) $phoneError = "No Telepon <strong>$phone</strong> sudah digunakan.";
-        if ($exist['email'] === $email) $emailError = "Email <strong>$email</strong> sudah digunakan.";
+    if ($exists) {
+        if ($exists['name'] === $name)   $nameError = "Nama <strong>$name</strong> sudah digunakan.";
+        if ($exists['nik'] === $nik)     $nikError = "NIK <strong>$nik</strong> sudah digunakan.";
+        if ($exists['phone'] === $phone) $phoneError = "No Telepon <strong>$phone</strong> sudah digunakan.";
+        if ($exists['email'] === $email) $emailError = "Email <strong>$email</strong> sudah digunakan.";
     } else {
         try {
             // Rename folder jika slug berubah
@@ -133,10 +133,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $photo = uploadDocument('photo', $photoFolder, $slug, 'resizeImage');
             }
 
-            $stmt = $koneksi->prepare("UPDATE partners SET name = ?, slug = ?, nik = ?, phone = ?, email = ?, ktp_scan = ?, photo = ?, address_ktp = ?, address_domicile = ?, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$name, $slug, $nik, $phone, $email, $ktp_scan, $photo, $address_ktp, $address_domicile, $id]);
+            $updateQuery = $koneksi->prepare("UPDATE partners SET name = ?, slug = ?, nik = ?, phone = ?, email = ?, ktp_scan = ?, photo = ?, address_ktp = ?, address_domicile = ?, updated_at = NOW() WHERE id = ?");
+            $updateQuery->execute([$name, $slug, $nik, $phone, $email, $ktp_scan, $photo, $address_ktp, $address_domicile, $id]);
 
-            $_SESSION['success'] = "Partner <strong>" . htmlspecialchars($name) . "</strong> berhasil diperbarui.";
+            $_SESSION['success_message'] = "Partner <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
             header("Location: partner.php");
             exit;
         } catch (PDOException $e) {

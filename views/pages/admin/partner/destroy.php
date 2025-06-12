@@ -7,27 +7,27 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    $stmt = $koneksi->prepare("SELECT name FROM partners WHERE id = ? AND deleted_at IS NOT NULL");
-    $stmt->execute([$id]);
-    $partnerName = $stmt->fetchColumn();
+    $getPartnerQuery = $koneksi->prepare("SELECT name FROM partners WHERE id = ? AND deleted_at IS NOT NULL");
+    $getPartnerQuery->execute([$id]);
+    $partnerName = $getPartnerQuery->fetchColumn();
 
     if (!$partnerName) {
         echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus permanent."]);
         exit;
     }
 
-    $checkActiveLoan = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_loans WHERE partner_id = ? AND status = 'borrowed'");
-    $checkActiveLoan->execute([$id]);
-    $TotalActiveLoans = $checkActiveLoan->fetchColumn();
+    $checkActiveLoanPartnerQuery = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_loans WHERE partner_id = ? AND status = 'borrowed'");
+    $checkActiveLoanPartnerQuery->execute([$id]);
+    $countActiveLoans = $checkActiveLoanPartnerQuery->fetchColumn();
 
-    if ($TotalActiveLoans > 0) {
+    if ($countActiveLoans > 0) {
         echo json_encode(['success' => false, 'message' => "Partner <strong>" . htmlspecialchars($partnerName) . "</strong> masih memiliki peminjaman aktif dan tidak dapat dihapus."]);
         exit;
     }
 
-    $getSlugPartner = $koneksi->prepare("SELECT slug, name FROM partners WHERE id = ? AND deleted_at IS NOT NULL");
-    $getSlugPartner->execute([$id]);
-    $partnerSlug = $getSlugPartner->fetch(PDO::FETCH_ASSOC);
+    $getSlugPartnerQuery = $koneksi->prepare("SELECT slug, name FROM partners WHERE id = ? AND deleted_at IS NOT NULL");
+    $getSlugPartnerQuery->execute([$id]);
+    $partnerSlug = $getSlugPartnerQuery->fetch(PDO::FETCH_ASSOC);
 
     if ($partnerSlug) {
         $slug = $partnerSlug['slug'];
@@ -49,11 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             deleteFolder($partnerFolder);
         }
 
-        $destroyVehiclesLoans = $koneksi->prepare("DELETE FROM vehicle_loans WHERE partner_id = ? AND deleted_by_partner_at IS NOT NULL");
-        $destroyVehiclesLoans->execute([$id]);
+        $destroyVehiclesLoansQuery = $koneksi->prepare("DELETE FROM vehicle_loans WHERE partner_id = ? AND deleted_by_partner_at IS NOT NULL");
+        $destroyVehiclesLoansQuery->execute([$id]);
 
-        $destroyPartner = $koneksi->prepare("DELETE FROM partners WHERE id = ? AND deleted_at IS NOT NULL");
-        $isDestroy = $destroyPartner->execute([$id]);
+        $destroyPartnerQuery = $koneksi->prepare("DELETE FROM partners WHERE id = ? AND deleted_at IS NOT NULL");
+        $isDestroy = $destroyPartnerQuery->execute([$id]);
 
         if ($isDestroy) {
             echo json_encode(['success' => true, 'message' => "Partner <strong>" . htmlspecialchars($partnerName) . "</strong> berhasil dihapus permanent."]);
