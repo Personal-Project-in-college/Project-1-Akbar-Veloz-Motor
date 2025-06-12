@@ -15,16 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = trim($_POST['address']);
 
     // Cek apakah nama atau slug sudah ada
-    $checkBrandQuery = $koneksi->prepare("SELECT COUNT(*) FROM branches WHERE name = ? OR slug = ?");
-    $checkBrandQuery->execute([$name, $slug]);
-    $exists = $checkBrandQuery->fetchColumn();
+    $checkBranchQuery = $koneksi->prepare("SELECT COUNT(*) FROM branches WHERE name = ? OR slug = ?");
+    $checkBranchQuery->execute([$name, $slug]);
+    $exists = $checkBranchQuery->fetchColumn();
 
     if ($exists > 0) {
         $nameError = "Nama cabang <strong>" . htmlspecialchars($name) . "</strong> sudah terdaftar.";
     } else {
         try {
-            $insertBrandQuery = $koneksi->prepare("INSERT INTO branches (name, slug, address, created_at) VALUES (?, ?, ?, NOW())");
-            $insertBrandQuery->execute([$name, $slug, $address]);
+            $insertBranchQuery = $koneksi->prepare("INSERT INTO branches (name, slug, address, created_at) VALUES (?, ?, ?, NOW())");
+            $insertBranchQuery->execute([$name, $slug, $address]);
 
             $_SESSION['success_message'] = "User <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
             header("Location: branch.php");
