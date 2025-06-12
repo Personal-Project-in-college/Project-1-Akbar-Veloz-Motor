@@ -1,56 +1,34 @@
 <?php
-
-/**
- * File: destroy.php (dalam folder vehicles)
- * Skrip ini bertanggung jawab untuk menghapus data kendaraan SECARA PERMANEN (hard delete).
- * Ini juga akan menghapus semua data turunan yang terkait langsung dengan kendaraan tersebut:
- * 1. Semua record dokumen kendaraan dari database.
- * 2. Semua file foto fisik kendaraan dari server (melalui helper).
- * 3. Semua record foto kendaraan dari database (melalui helper).
- * 4. Record kendaraan itu sendiri (jika sudah di-soft-delete).
- */
-
-// 0. Inisialisasi dan Keamanan Dasar
 session_start();
 include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
-checkLogin();
-include '../../../../helpers/functionDeleteFileVehiclePhoto.php'; // Tetap menggunakan helper ini
+include '../../../../helpers/functionDeleteFileVehiclePhoto.php'; 
+header('Content-Type: application/json');
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id']; // ID Kendaraan yang akan dihapus
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+    $id = $_POST['id'];
 
-    // 1. Ambil ID Kendaraan (atau info lain) untuk pesan notifikasi.
-    // Ini juga sebagai validasi sederhana bahwa kendaraan ada.
-    $getIdQuery = $koneksi->prepare("SELECT id FROM vehicles WHERE id = ?");
-    $getIdQuery->execute([$id]);
-    $vehicleIdentifier = $getIdQuery->fetchColumn();
+    $stmt = $koneksi->prepare("SELECT id FROM vehicles WHERE id = ? AND deleted_at IS NOT NULL");
+    $stmt->execute([$id]);
+    $vehicleId = $stmt->fetchColumn();
 
-    if ($vehicleIdentifier) { // Lanjutkan hanya jika kendaraan ditemukan
+    if (!$vehicleId) {
+        echo json_encode(['success' => false, 'message' => "Data tidak ditemukan atau sudah dihapus permanent."]);
+        exit;
+    }
 
-        // 2. Hapus SEMUA record dokumen kendaraan yang terkait dengan vehicle_id ini.
-        $deleteDocumentsQuery = $koneksi->prepare("DELETE FROM vehicle_documents WHERE vehicle_id = ?");
-        $deleteDocumentsQuery->execute([$id]);
+    if ($vehicleId) {
 
-        // 3. Persiapan untuk menghapus foto kendaraan menggunakan helper:
-        //    A. Soft-delete terlebih dahulu SEMUA record foto yang terkait dengan vehicle_id ini
-        //       yang mungkin belum di-soft-delete. Ini agar helper bisa memprosesnya.
-        //       Kita asumsikan kolom 'deleted_at' adalah penanda soft-delete utama di vehicle_photos.
-        $softDeleteAllPhotosQuery = $koneksi->prepare("UPDATE vehicle_photos SET deleted_at = NOW() WHERE vehicle_id = ? AND deleted_at IS NULL");
-        $softDeleteAllPhotosQuery->execute([$id]);
+        $destroyVehicleDocuments = $koneksi->prepare("DELETE FROM vehicle_documents WHERE vehicle_id = ?");
+        $destroyVehicleDocuments->execute([$id]);
 
-        //    B. Panggil helper untuk menghapus file fisik dan record foto yang sudah di-soft-delete.
-        //       Karena langkah A, semua foto dari kendaraan ini sekarang sudah ditandai,
-        //       sehingga helper akan membersihkan semuanya.
+        $softDeleteVehiclePhotos = $koneksi->prepare("UPDATE vehicle_photos SET deleted_at = NOW() WHERE vehicle_id = ? AND deleted_at IS NULL");
+        $softDeleteVehiclePhotos->execute([$id]);
+
         deleteFileVehiclePhotos($koneksi, $id);
 
-        // 4. Hapus record kendaraan utama dari tabel 'vehicles'.
-        // Klausa WHERE memastikan hanya kendaraan yang sudah di-soft delete
-        // yang bisa dihapus permanen. Ini adalah lapisan pengaman.
-        $deleteVehicleQuery = $koneksi->prepare(
-            "DELETE FROM vehicles WHERE id = ? AND (deleted_at IS NOT NULL OR deleted_by_branch_at IS NOT NULL)"
-        );
-        $deleteVehicleQuery->execute([$id]);
+        $destroyBrand = $koneksi->prepare("DELETE FROM vehicles WHERE id = ? AND (deleted_at IS NOT NULL OR deleted_by_branch_at IS NOT NULL)");
+        $isDestroy = $destroyBrand->execute([$id]);
 
         $vehicleFolder = '../../../../storage/vehicles/vehicle_' . $id;
 
@@ -67,14 +45,13 @@ if (isset($_GET['id'])) {
             deleteFolder($vehicleFolder);
         }
 
-        $_SESSION['danger'] = "Kendaraan ID <strong>" . htmlspecialchars($vehicleIdentifier) . "</strong> dan semua data terkait berhasil dihapus selamanya.";
+    if ($isDestroy) {
+        echo json_encode(['success' => true, 'message' => "Merek <strong>" . htmlspecialchars($vehicleId) . "</strong> berhasil dihapus permanent."]);
     } else {
-        $_SESSION['danger'] = "Kendaraan tidak ditemukan atau sudah dihapus sebelumnya.";
+        echo json_encode(['success' => false, 'message' => "Terjadi kesalahan saat hapus permanent merek."]);
     }
 } else {
-    $_SESSION['danger'] = "Parameter ID kendaraan tidak valid.";
+    echo json_encode(['success' => false, 'message' => "Permintaan tidak valid."]);
 }
 
-// 5. Arahkan pengguna kembali ke halaman daftar data terhapus.
-header('Location: delete.php');
-exit;
+}

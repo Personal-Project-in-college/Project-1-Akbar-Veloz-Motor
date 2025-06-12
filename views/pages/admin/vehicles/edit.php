@@ -46,8 +46,9 @@ if ($vehicle['deleted_at'] !== null || $vehicle['deleted_by_branch_at'] !== null
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 🕹️ Ambil semua data yang dikirim dari form.
     $id = $_POST['id'];
-    $brand = $_POST['brand_model'];
+    $vehicle_model_id = $_POST['vehicle_model_id'];
     $type = $_POST['type_vehicle'];
+    $type_fuel = $_POST['type_fuel'];
     $color = $_POST['color'];
     $production = $_POST['production_year'];
     $serial = $_POST['serial_number'];
@@ -65,12 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // `deleted_by_branch_at=NULL` mengaktifkan kembali jika sebelumnya dinonaktifkan oleh cabang.
     $updateQuery = $koneksi->prepare(
         "UPDATE vehicles SET 
-        brand_model=?, type_vehicle=?, color=?, production_year=?, serial_number=?, 
+        vehicle_model_id=?, type_vehicle=?, type_fuel=?, color=?, production_year=?, serial_number=?, 
         stnk_deadline=?, kilometer=?, cc_engine=?, description=?, price=?, status=?, 
         user_id=?, branch_id=?, updated_at=NOW(), deleted_by_branch_at=NULL 
         WHERE id=?"
     );
-    $updateQuery->execute([$brand, $type, $color, $production, $serial, $stnk, $kilometer, $cc, $desc, $price, $status, $user, $branch, $id]);
+    $updateQuery->execute([$vehicle_model_id, $type, $type_fuel, $color, $production, $serial, $stnk, $kilometer, $cc, $desc, $price, $status, $user, $branch, $id]);
 
     // Siapkan pesan notifikasi sukses.
     $_SESSION['success'] = "Kendaraan <strong>" . htmlspecialchars($id) . "</strong> berhasil diupdate.";
@@ -86,10 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // 🔍 Ambil hanya data cabang yang aktif (belum di-soft delete).
 $branches = $koneksi->query("SELECT * FROM branches WHERE deleted_at IS NULL")->fetchAll();
 
+$vehicleModels = $koneksi->query("SELECT vehicle_models.id, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicle_models JOIN brands ON vehicle_models.brand_id = brands.id WHERE vehicle_models.deleted_at IS NULL")->fetchAll();
+
 // Siapkan array untuk pilihan jenis kendaraan.
 $types = [
     'motorcycle' => 'Motor',
     'car' => 'Mobil'
+];
+
+$typefuels = [
+    'gasoline' => 'Bensin',
+    'electric' => 'Listrik',
+    'hybrid' => 'Hybrid'
 ];
 
 // Siapkan array untuk pilihan status kendaraan.
@@ -119,15 +128,31 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="brand" class="form-label">Brand & Model</label>
-                        <input type="text" class="form-control" id="brand_model" name="brand_model" value="<?= htmlspecialchars($vehicle['brand_model']) ?>">
+                        <label for="vehicle_model_id" class="form-label">Model Kendaraan</label>
+                        <select class="form-select" id="vehicle_model_id" name="vehicle_model_id" style="color: black;">
+                            <?php foreach ($vehicleModels as $model): ?>
+                                <option value="<?= $model['id'] ?>" <?= $vehicle['vehicle_model_id'] == $model['id'] ? 'selected' : '' ?>>
+                                    <?= $model['brand_name'] . ' - ' . $model['model_name'] ?>
+                                </option>
+                            <?php endforeach ?>
+                        </select>
                     </div>
+
 
                     <div class="mb-3">
                         <label for="jenis_kendaraan" class="form-label">Jenis Kendaraan</label>
                         <select class="form-select" id="type_vehicle" name="type_vehicle" style="color: black;">
                             <?php foreach ($types as $key => $label) : ?>
                                 <option value="<?= $key ?>" <?= $vehicle['type_vehicle'] == $key ? 'selected' : '' ?>><?= $label ?></option>
+                            <?php endforeach ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bahan_bakar" class="form-label">Bahan Bakar</label>
+                        <select class="form-select" id="type_fuel" name="type_fuel" style="color: black;">
+                            <?php foreach ($typefuels as $valuefuel => $labelfuel): ?>
+                                <option value="<?= $valuefuel ?>" <?= ($vehicle['type_fuel'] ?? '') == $valuefuel ? 'selected' : '' ?>><?= $labelfuel ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>

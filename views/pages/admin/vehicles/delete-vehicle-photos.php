@@ -35,10 +35,19 @@ if (!$vehicle) {
 
 $branches = $koneksi->query("SELECT * FROM branches WHERE deleted_at IS NULL")->fetchAll();
 
+$vehicleModels = $koneksi->query("SELECT vehicle_models.id, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicle_models JOIN brands ON vehicle_models.brand_id = brands.id WHERE vehicle_models.deleted_at IS NULL")->fetchAll();
+
+
 // Siapkan array untuk dropdown jenis kendaraan.
 $types = [
     'motorcycle' => 'Motor',
     'car' => 'Mobil'
+];
+
+$typefuels = [
+    'gasoline' => 'Bensin',
+    'electric' => 'Listrik',
+    'hybrid' => 'Hybrid'
 ];
 
 // Siapkan array untuk dropdown status kendaraan.
@@ -122,9 +131,16 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="brand" class="form-label">Brand</label>
-                        <input type="text" class="form-control" id="brand_model" name="brand_model" value="<?= $vehicle['brand_model'] ?>" disabled>
+                        <label for="vehicle_model_id" class="form-label">Model Kendaraan</label>
+                        <select class="form-select" id="vehicle_model_id" name="vehicle_model_id" style="color: black;" disabled>
+                            <?php foreach ($vehicleModels as $model): ?>
+                                <option value="<?= $model['id'] ?>" <?= $vehicle['vehicle_model_id'] == $model['id'] ? 'selected' : '' ?>>
+                                    <?= $model['brand_name'] . ' - ' . $model['model_name'] ?>
+                                </option>
+                            <?php endforeach ?>
+                        </select>
                     </div>
+
 
 
                     <div class="mb-3">
@@ -135,6 +151,15 @@ include '../layout/sidebar.php';
                             <?php endforeach ?>
                         </select>
 
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bahan_bakar" class="form-label">Bahan Bakar</label>
+                        <select class="form-select" id="type_fuel" name="type_fuel" style="color: black;" disabled>
+                            <?php foreach ($typefuels as $valuefuel => $labelfuel): ?>
+                                <option value="<?= $valuefuel ?>" <?= ($vehicle['type_fuel'] ?? '') == $valuefuel ? 'selected' : '' ?>><?= $labelfuel ?></option>
+                            <?php endforeach ?>
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -351,10 +376,10 @@ include '../layout/sidebar.php';
                 $totalPages = ceil($totalData / $limit);
 
                 $query = $koneksi->prepare("SELECT * FROM vehicle_photos WHERE vehicle_id = :vehicle_id AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL) ORDER BY created_at ASC LIMIT :limit OFFSET :offset");
-                                    $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
-                                    $query->bindValue(':limit', $limit, PDO::PARAM_INT);
-                                    $query->bindValue(':offset', $offset, PDO::PARAM_INT);
-                                    $query->execute();
+                $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
+                $query->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $query->bindValue(':offset', $offset, PDO::PARAM_INT);
+                $query->execute();
 
                 $dataVehiclePhotos = $query->fetchAll(PDO::FETCH_ASSOC);
                 ?>

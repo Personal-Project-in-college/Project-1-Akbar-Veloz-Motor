@@ -22,7 +22,7 @@ include '../../../../../helpers/functionResizeImage.php'; // Helper untuk resize
 // - Tidak ada di tabel `vehicle_documents` (artinya belum punya record dokumen sama sekali).
 // - DAN aktif (deleted_at IS NULL dan deleted_by_branch_at IS NULL).
 // Hasilnya akan digunakan untuk mengisi dropdown pilihan kendaraan di form.
-$vehicles = $koneksi->query("SELECT id, brand_model FROM vehicles WHERE id NOT IN (SELECT vehicle_id FROM vehicle_documents) AND (deleted_at IS NULL AND deleted_by_branch_at IS NULL) ORDER BY brand_model ASC"); // Jangan lupa fetchAll() jika akan diloop di HTML, atau biarkan sebagai PDOStatement jika hanya perlu dicek.
+$vehicles = $koneksi->query("SELECT id, vehicle_model_id FROM vehicles WHERE id NOT IN (SELECT vehicle_id FROM vehicle_documents) AND (deleted_at IS NULL AND deleted_by_branch_at IS NULL) ORDER BY vehicle_model_id ASC"); // Jangan lupa fetchAll() jika akan diloop di HTML, atau biarkan sebagai PDOStatement jika hanya perlu dicek.
 
 
 // 3. Proses Form Jika di-Submit (Metode POST)

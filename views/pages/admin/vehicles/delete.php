@@ -18,6 +18,44 @@ include '../layout/sidebar.php';
 $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
 ?>
 
+<style>
+    .fade-out {
+        transition: opacity 0.5s ease-out;
+        opacity: 1;
+    }
+
+    .alert .close-btn {
+        float: right;
+        font-size: 1.2rem;
+        font-weight: bold;
+        line-height: 1;
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+
+    #floating-alert-container .alert {
+        animation: slideInLeft 0.3s ease-out;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
 
 <!-- Main Content -->
 <div class="main-panel">
@@ -53,7 +91,7 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <table class="table table-striped" id="productTable">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>Kode</th>
@@ -66,121 +104,10 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php
-                                // 2. Logika Pagination
-                                $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                                $limit = 10; // Jumlah data per halaman
-                                $offset = ($page - 1) * $limit;
-
-                                // 3. Hitung Total Data Kendaraan Terhapus untuk Pagination
-                                $totalDataQuery = $koneksi->query("SELECT COUNT(*) FROM vehicles WHERE vehicles.deleted_at IS NOT NULL OR vehicles.deleted_by_branch_at IS NOT NULL");
-                                $totalData = $totalDataQuery->fetchColumn();
-                                var_dump($totalData);
-                                $totalPages = ceil($totalData / $limit);
-
-                                // 4. Ambil Data Kendaraan Terhapus dengan Pagination
-                                // Menggunakan LEFT JOIN untuk tetap menampilkan data kendaraan meskipun info cabang mungkin tidak ada (jika cabang dihapus permanen)
-                                // Diurutkan berdasarkan kapan data dihapus (yang terbaru lebih dulu)
-                                $query = $koneksi->prepare("SELECT vehicles.*, branches.name AS branch_name FROM vehicles LEFT JOIN branches ON vehicles.branch_id = branches.id WHERE vehicles.deleted_at IS NOT NULL OR vehicles.deleted_by_branch_at IS NOT NULL ORDER BY COALESCE(vehicles.deleted_at, vehicles.deleted_by_branch_at) DESC LIMIT :limit OFFSET :offset");
-                                $query->bindValue(':limit', $limit, PDO::PARAM_INT);
-                                $query->bindValue(':offset', $offset, PDO::PARAM_INT);
-                                $query->execute();
-                                $dataVehicles = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                // 5. Looping untuk menampilkan data
-                                foreach ($dataVehicles as $row) {
-                                    // Konversi tipe kendaraan untuk tampilan
-                                    $typeVehicle = $row['type_vehicle'] === 'motorcycle' ? 'Motor' : ($row['type_vehicle'] === 'car' ? 'Mobil' : ucfirst($row['type_vehicle']));
-
-                                    // Penentuan teks dan warna status
-                                    switch ($row['status']) {
-                                        case 'available':
-                                            $statusText = 'Tersedia';
-                                            $statusColor = '#7B8255';
-                                            break;
-                                        case 'service':
-                                            $statusText = 'Service';
-                                            $statusColor = '#FA7D09';
-                                            break;
-                                        case 'test_drive':
-                                            $statusText = 'Tes Jalan';
-                                            $statusColor = '#838ABF';
-                                            break;
-                                        case 'sold':
-                                            $statusText = 'Terjual';
-                                            $statusColor = '#D29A18';
-                                            break;
-                                        default:
-                                            $statusText = ucfirst($row['status']);
-                                            $statusColor = '#6c757d';
-                                            break;
-                                    }
-
-                                    // Perhitungan sisa waktu STNK
-                                    $stnkText = 'Data Tidak Valid';
-                                    $stnkColor = '#6c757d'; // Default color
-                                    if (!empty($row['stnk_deadline'])) {
-                                        try {
-                                            $stnkDate = new DateTime($row['stnk_deadline']);
-                                            $today = new DateTime();
-                                            $isExpired = $stnkDate < $today;
-                                            $interval = $today->diff($stnkDate);
-
-                                            if ($isExpired) {
-                                                $stnkText = "Kadaluarsa!";
-                                                $stnkColor = '#ACB3B5'; // Abu-abu untuk kadaluarsa
-                                            } elseif ($interval->y >= 1) {
-                                                $stnkText = "{$interval->y} thn+";
-                                                $stnkColor = 'black'; // Hitam untuk > 1 tahun
-                                            } elseif ($interval->m >= 1) {
-                                                $stnkText = "{$interval->m} bln";
-                                                $stnkColor = '#CB7A01'; // Oranye untuk beberapa bulan
-                                            } else {
-                                                $stnkText = "{$interval->d} hr";
-                                                $stnkColor = '#FF0000'; // Merah untuk beberapa hari
-                                            }
-                                        } catch (Exception $e) {
-                                            // Biarkan default jika tanggal STNK tidak valid
-                                        }
-                                    }
-
-                                    // Format harga
-                                    $formattedPrice = "Rp " . number_format($row['price'], 0, ',', '.');
-
-                                    echo "<tr>
-                                            <td>" . htmlspecialchars($row['id']) . "</td>
-                                            <td>" . htmlspecialchars($row['brand_model']) . "</td>
-                                            <td>" . htmlspecialchars($typeVehicle) . "</td>
-                                            <td style='color: {$stnkColor}; font-weight: bold;'>" . htmlspecialchars($stnkText) . "</td>
-                                            <td>" . htmlspecialchars($formattedPrice) . "</td>
-                                            <td><span class='badge' style='background-color: {$statusColor}; color: white;'>" . htmlspecialchars($statusText) . "</span></td>
-                                            <td>" . ($row['deleted_by_branch_at'] ? 'Branch telah dihapus' : $row['branch_name']) . "</td>
-                                            <td style='display: flex; align-items: center; gap: 8px;'>
-                                                <a href='detail.php?id={$row['id']}' title='Detail' class='btn btn-secondary btn-sm d-flex justify-content-center align-items-center'
-                                                    style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-eye'></i>
-                                                </a>"
-                                                . ($row['deleted_by_branch_at'] ?
-                                                    "<a href='edit.php?id={$row['id']}' title='Edit' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' 
-                                                        style='width: 28px; height: 28px; border-radius: 4px;'>
-                                                        <i class='mdi mdi-pencil'></i>
-                                                    </a>" :
-                                                    "<a href='restore.php?id={$row['id']}' title='Restore' class='btn btn-success btn-sm d-flex justify-content-center align-items-center' 
-                                                        style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                        <i class='mdi mdi-restore'></i>
-                                                    </a>") .
-                                                "<a href='destroy.php?id={$row['id']}' title='Hapus Permanen' class='btn btn-danger btn-sm d-flex justify-content-center align-items-center' 
-                                                    style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-delete-forever'></i>
-                                                </a>
-                                            </td>
-                                        </tr>";
-                                    }
-                                    if (empty($dataVehicles)) {
-                                        echo "<tr><td colspan='8' class='text-center'>Tidak ada data foto kendaraan yang terhapus.</td></tr>";
-                                    }
-                                ?>
+                            <tbody id="deletedVehicleTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">Memuat data...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -189,24 +116,176 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
         </div>
 
 
-        <?php if ($totalPages > 1) : ?>
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-end">
-                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                        <a class="page-link bg-primary text-white" href="?page=<?= $page - 1 ?>">Previous</a>
-                    </li>
-                    <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
-                        <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
-                            <a class="page-link <?= ($page == $i) ? 'bg-primary text-white' : 'text-primary bg-white' ?>" href="?page=<?= $i ?>"><?= $i ?></a>
-                        </li>
-                    <?php endfor; ?>
-                    <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                        <a class="page-link bg-primary text-white" href="?page=<?= $page + 1 ?>">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        <?php endif; ?>
-
         <?php include '../layout/footer.php'; ?>
     </div>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const tableBody = document.getElementById('deletedVehicleTableBody');
+
+        function loadDeletedVehicles(keyword = '') {
+            fetch(`ajaxVehicleDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                });
+        }
+
+        loadDeletedVehicles();
+
+        searchInput.addEventListener('keyup', function() {
+            loadDeletedVehicles(this.value);
+        });
+    </script>
+
+    <script>
+        function bindRestoreEvents() {
+            document.querySelectorAll('.restore-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    fetch('restore.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(id)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedVehicles(); // reload tabel
+                                showAlert(data.message, 'success'); // custom alert function
+                            } else {
+                                showAlert(data.message, 'success');
+                            }
+                        });
+                });
+            });
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+            // Buat tombol close
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.className = 'close-btn';
+            closeBtn.onclick = () => alertDiv.remove();
+
+            // Masukkan isi alert + tombol close
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv.appendChild(closeBtn);
+
+            const container = document.getElementById('floating-alert-container');
+            container.appendChild(alertDiv);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
+        }
+
+        function loadDeletedVehicles(keyword = '') {
+            fetch(`ajaxVehicleDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindRestoreEvents(); // PENTING!
+                    bindDestroyEvents(); // PENTING!
+
+                });
+        }
+
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDeletedVehicles();
+
+            searchInput.addEventListener('keyup', function() {
+                loadDeletedVehicles(this.value);
+            });
+        });
+    </script>
+
+
+    <script>
+        function bindDestroyEvents() {
+            document.querySelectorAll('.destroy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    fetch('destroy.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(id)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedVehicles(); // reload tabel
+                                showAlert(data.message, 'danger'); // custom alert function
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                        });
+                });
+            });
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+            // Buat tombol close
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.className = 'close-btn';
+            closeBtn.onclick = () => alertDiv.remove();
+
+            // Masukkan isi alert + tombol close
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv.appendChild(closeBtn);
+
+            const container = document.getElementById('floating-alert-container');
+            container.appendChild(alertDiv);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
+        }
+
+        function loadDeletedVehicles(keyword = '') {
+            fetch(`ajaxVehicleDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindDestroyEvents(); // PENTING!
+                    bindRestoreEvents(); // PENTING!
+                });
+        }
+
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDeletedVehicles();
+
+            searchInput.addEventListener('keyup', function() {
+                loadDeletedVehicles(this.value);
+            });
+        });
+    </script>
+
 </div>
