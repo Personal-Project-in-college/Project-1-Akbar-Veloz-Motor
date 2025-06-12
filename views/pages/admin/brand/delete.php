@@ -145,15 +145,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
+            alertDiv;
 
             const container = document.getElementById('floating-alert-container');
             container.appendChild(alertDiv);
@@ -219,15 +213,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
+            alertDiv;
 
             const container = document.getElementById('floating-alert-container');
             container.appendChild(alertDiv);

@@ -3,7 +3,6 @@ include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 include '../../../../helpers/functionCheckRole.php';
-include '../../../../helpers/functionShowAlert.php';
 include '../layout/header.php';
 include '../layout/sidebar.php';
 
@@ -51,13 +50,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <?php showAlert(); ?>
         <h3 class="mb-4">Data Merek</h3>
-
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-            <?php if (hasAnyRole(['Owner'])) : ?>
                 <a href="create.php" class="btn btn-primary">Tambah</a>
-            <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
                 <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Merek...">
             </div>
@@ -149,15 +144,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
+            alertDiv;
 
             const container = document.getElementById('floating-alert-container');
             container.appendChild(alertDiv);
@@ -191,5 +180,14 @@ $activePage = basename($_SERVER['PHP_SELF']);
             });
         });
     </script>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
 
 </div>

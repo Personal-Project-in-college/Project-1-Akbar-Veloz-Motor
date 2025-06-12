@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateQuery = $koneksi->prepare("UPDATE brands SET name = ?, slug = ?, updated_at = NOW() WHERE id = ?");
         $updateQuery->execute([$name, $newSlug, $brand['id']]);
 
-        $_SESSION['success'] = "Merek <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
+        $_SESSION['success_message'] = "Merek <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
         header("Location: brand.php");
         exit;
     }
