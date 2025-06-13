@@ -16,18 +16,14 @@ $isPartnerActive = isSidebarMenuActive('partner');
 $isVehicleActive = isSidebarMenuActive('vehicles');
 $isVehicleModelActive = isSidebarMenuActive('vehicle_model');
 $isVehicleLoanActive = isSidebarMenuActive('vehicle_loans');
-$isOrderActive = isSidebarMenuActive('orders');
 $isRoleActive = isSidebarMenuActive('role');
 $isUserActive = isSidebarMenuActive('users');
 
-$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'orders', 'role', 'users']);
+$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
+$isOrderActive = isSidebarMenuActive('orders');
+$isTransactionsActive = isSubMenuActive(['orders']);
 
-$isTransactionsActive = isSidebarMenuActive('transactions');
-$isReportActive = isSubMenuActive(['transactions']);
-
-$isTransactionsActive = isSidebarMenuActive('transactions');
-$isReportActive = isSubMenuActive(['transactions']);
 
 ?>
 
@@ -70,13 +66,13 @@ $isReportActive = isSubMenuActive(['transactions']);
     </li>
 
     <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#collapseUsers" aria-expanded="false" aria-controls="collapseUsers">
+      <a class="nav-link <?= $isTransactionsActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseUsers" aria-expanded="<?= $isTransactionsActive ? 'true' : 'false' ?>" aria-controls="collapseUsers">
         <i class="mdi mdi-cash-register menu-icon"></i>
-        <span class="menu-title">Pesanan</span>
+        <span class="menu-title">Transaksi</span>
       </a>
       <div class="collapse" id="collapseUsers">
         <ul class="nav flex-column sub-menu">
-          <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isOrderActive ? 'active' : '' ?>" href="../orders/orders.php">Pesanan</a></li>
         </ul>
       </div>
     </li>
