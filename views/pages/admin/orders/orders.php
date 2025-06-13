@@ -54,7 +54,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <a href="create.php" class="btn btn-primary">Tambah</a>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari pesanan...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Customer ...">
             </div>
         </div>
 
@@ -75,11 +75,10 @@ $activePage = basename($_SERVER['PHP_SELF']);
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>ID Order</th>
                                     <th>Nama Customer</th>
-                                    <th>Kode Kendaraan</th>
-                                    <th>Kendaraan Model</th>
-                                    <th>Tanggal Order</th>
+                                    <th>Kendaraan</th>
+                                    <th>Tanggal Pesan</th>
+                                    <th>Tipe Pesanan</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>

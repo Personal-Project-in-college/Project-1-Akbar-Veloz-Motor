@@ -22,7 +22,7 @@ $isUserActive = isSidebarMenuActive('users');
 $isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
 $isOrderActive = isSidebarMenuActive('orders');
-$isTransactionsActive = isSubMenuActive(['orders']);
+$isTransactionsActive = isSubMenuActive(['orders', '']);
 
 
 ?>
@@ -67,10 +67,10 @@ $isTransactionsActive = isSubMenuActive(['orders']);
 
     <li class="nav-item">
       <a class="nav-link <?= $isTransactionsActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseUsers" aria-expanded="<?= $isTransactionsActive ? 'true' : 'false' ?>" aria-controls="collapseUsers">
-        <i class="mdi mdi-cash-register menu-icon"></i>
+        <i class="mdi mdi-cash-register menu-icon <?= $isTransactionsActive ? 'text-primary' : '' ?>"></i>
         <span class="menu-title">Transaksi</span>
       </a>
-      <div class="collapse" id="collapseUsers">
+      <div class="collapse  <?= $isTransactionsActive ? 'show' : '' ?>" id="collapseUsers">
         <ul class="nav flex-column sub-menu">
           <li class="nav-item"><a class="nav-link <?= $isOrderActive ? 'active' : '' ?>" href="../orders/orders.php">Pesanan</a></li>
         </ul>

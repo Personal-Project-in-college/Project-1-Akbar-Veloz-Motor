@@ -20,7 +20,7 @@ $vehiclesQuery = $koneksi->query("
 $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
 
 // Ambil data semua customer untuk dropdown
-$customersQuery = $koneksi->query("
+$customers = $koneksi->query("
     SELECT c.id, c.name
     FROM customers c
     WHERE c.deleted_at IS NULL
@@ -49,15 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customer_id = $_POST['customer_id'];
     $vehicle_id = $_POST['vehicle_id'];
     $date_order = $_POST['date_order'];
-    $status_order = $_POST['status']; // Ganti nama variabel agar tidak bentrok dengan kolom
+    $type_order = $_POST['type_order']; // Ganti nama variabel agar tidak bentrok dengan kolom
 
     // ====================================================================
     // Permintaan #1: Validasi Proses yang Sedang Berjalan
     // ====================================================================
 
     // A. Cek jika customer sudah punya test drive yang masih 'process'
-    if ($status_order === 'test_driver') {
-        // Asumsi: tabel `test_drivers` punya kolom `status` ENUM('process', 'done', 'cancelled')
+    if ($type_order === 'test_driver') {
+        // Asumsi: tabel `test_drivers` punya kolom `type_order` ENUM('process', 'done', 'cancelled')
         $checkTestDrive = $koneksi->prepare("
             SELECT COUNT(td.id)
             FROM test_drivers td
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // B. Cek jika customer sudah punya transaksi yang masih 'pending'
-    if ($status_order === 'transaction') {
+    if ($type_order === 'transaction') {
         $checkTransaction = $koneksi->prepare("
             SELECT COUNT(t.id)
             FROM transactions t
@@ -91,14 +91,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $koneksi->beginTransaction(); // Mulai transaksi database untuk keamanan data
         try {
             // 1. Insert ke tabel orders
-            $insertOrderQuery = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, date_order, status, created_at) VALUES (?, ?, ?, ?, NOW())");
-            $insertOrderQuery->execute([$customer_id, $vehicle_id, $date_order, $status_order]);
+            $insertOrderQuery = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, date_order, type_order, created_at) VALUES (?, ?, ?, ?, NOW())");
+            $insertOrderQuery->execute([$customer_id, $vehicle_id, $date_order, $type_order]);
             $order_id = $koneksi->lastInsertId();
 
             $user_id = $_SESSION['user_id']; // Ambil user id dari session
 
             // 2. Buat record di tabel turunan (test_drivers atau transactions)
-            if ($status_order === 'test_driver') {
+            if ($type_order === 'test_driver') {
                 // Asumsi: tabel `test_drivers` ada kolom `status`
                 $koneksi->prepare("INSERT INTO test_drivers (order_id, user_id, status, created_at) VALUES (?, ?, 'process', NOW())")->execute([$order_id, $user_id]);
 
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")->execute([$vehicle_id]);
             }
 
-            if ($status_order === 'transaction') {
+            if ($type_order === 'transaction') {
                 // Langsung buat record transaksi dengan status 'pending' agar validasi berfungsi
                 $koneksi->prepare("INSERT INTO transactions (order_id, user_id, status, grand_total, amount_paid, payment_type, payment_method, created_at) VALUES (?, ?, 'pending', 0, 0, 'tunai', 'cash', NOW())")
                     ->execute([$order_id, $user_id]);
@@ -179,8 +179,8 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="status" class="form-label">Status Pesanan</label>
-                        <select name="status" class="form-control" required style="color: black;" required>
+                        <label for="type_order" class="form-label">Tipe Pesanan</label>
+                        <select name="type_order" class="form-control" required style="color: black;">
                             <option value="test_driver">Test Driver</option>
                             <option value="transaction">Transaksi</option>
                         </select>
