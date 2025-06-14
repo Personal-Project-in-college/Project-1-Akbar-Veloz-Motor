@@ -7,7 +7,7 @@ checkLogin();
 include '../../../../helpers/functionCheckRole.php';
 
 if (!isset($_GET['id'])) {
-    $_SESSION['error'] = "ID peminjaman tidak ditemukan.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong>ID peminjaman kendaraan tidak ditemukan di URL.";
     header('Location: vehicle_loans.php');
     exit;
 }
@@ -15,18 +15,12 @@ if (!isset($_GET['id'])) {
 $id = $_GET['id'];
 
 // Ambil data peminjaman berdasarkan ID
-$loan = $koneksi->prepare("
-    SELECT vehicle_loans.*, partners.name AS partner_name 
-    FROM vehicle_loans 
-    LEFT JOIN partners ON vehicle_loans.partner_id = partners.id 
-    WHERE vehicle_loans.id = ?
-");
-
-$loan->execute([$id]);
-$data = $loan->fetch();
+$getVehicleLoanQuery = $koneksi->prepare("SELECT vehicle_loans.*, partners.name AS partner_name FROM vehicle_loans LEFT JOIN partners ON vehicle_loans.partner_id = partners.id WHERE vehicle_loans.id = ?");
+$getVehicleLoanQuery->execute([$id]);
+$data = $getVehicleLoanQuery->fetch();
 
 if (!$data) {
-    $_SESSION['error'] = "Data peminjaman tidak ditemukan.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data peminjaman kendaraan tidak ditemukan atau sudah dihapus.";
     header('Location: vehicle_loans.php');
     exit;
 }
@@ -67,10 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")->execute([$vehicle_id_new]);
         }
 
-        $update = $koneksi->prepare("UPDATE vehicle_loans SET vehicle_id=?, partner_id=?, loan_date=?, return_date=?, note=?, status=?, updated_at=NOW() WHERE id=?");
-        $update->execute([$vehicle_id_new, $partner_id, $loan_date, $return_date, $note, $status, $id]);
+        $updateQuery = $koneksi->prepare("UPDATE vehicle_loans SET vehicle_id=?, partner_id=?, loan_date=?, return_date=?, note=?, status=?, updated_at=NOW() WHERE id=?");
+        $updateQuery->execute([$vehicle_id_new, $partner_id, $loan_date, $return_date, $note, $status, $id]);
 
-        $_SESSION['success'] = "Data peminjaman kendaraan berhasil diubah.";
+        $_SESSION['success_message'] = "Peminjaman kendaraan <strong>" . htmlspecialchars($vehicle_id_new) . "</strong> berhasil diupdate.";
         header('Location: vehicle_loans.php');
         exit;
     }
@@ -95,7 +89,6 @@ include '../layout/sidebar.php';
                         <input type="text" name="vehicle_id" id="vehicle_id" class="form-control" value="<?= htmlspecialchars($data['vehicle_id']) ?>" readonly>
                         <input type="hidden" name="vehicle_id" value="<?= $data['vehicle_id'] ?>">
                     </div>
-
 
                     <div class="mb-3">
                         <label for="partner_name" class="form-label">Nama Partner</label>
@@ -128,7 +121,7 @@ include '../layout/sidebar.php';
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">Simpan</button>
-                    <a href="vehicle_loans.php" class="btn btn-secondary mx-2">Kembali</a>
+                    <a href="vehicle_loans.php" class="btn btn-secondary mx-2" text-white>Kembali</a>
                 </form>
             </div>
         </div>

@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
@@ -35,13 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Kalau tidak ada error, baru simpan
     if ($returnDateError === '') {
-        $data = $koneksi->prepare("INSERT INTO vehicle_loans (vehicle_id, partner_id, user_id, loan_date, return_date, note, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-        $data->execute([$vehicles_id, $partners_id, $users_id, $loan_date, $return_date, $note, $status]);
+        $insertVehicleLoanQuery = $koneksi->prepare("INSERT INTO vehicle_loans (vehicle_id, partner_id, user_id, loan_date, return_date, note, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+        $insertVehicleLoanQuery->execute([$vehicles_id, $partners_id, $users_id, $loan_date, $return_date, $note, $status]);
 
-        $updateStatus = $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
-        $updateStatus->execute([$vehicles_id]);
+        $updateVehicleStatusQuery = $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
+        $updateVehicleStatusQuery->execute([$vehicles_id]);
 
-        $_SESSION['success'] = "Peminjaman Kendaraan <strong>" . htmlspecialchars($vehicles_id) . "</strong> berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Peminjaman kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
         header('Location: vehicle_loans.php');
         exit;
     }

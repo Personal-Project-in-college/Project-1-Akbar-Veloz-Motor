@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
         
             deleteFileVehiclePhotos($koneksi, $vehicleId);
 
-            $deletePhotosQuery = $koneksi->prepare("DELETE FROM vehicle_photos WHERE vehicle_id = ?");
-            $deletePhotosQuery->execute([$vehicleId]);
+            $destroyPhotosQuery = $koneksi->prepare("DELETE FROM vehicle_photos WHERE vehicle_id = ?");
+            $destroyPhotosQuery->execute([$vehicleId]);
         
             $getDocumentIdsQuery = $koneksi->prepare("SELECT id FROM vehicle_documents WHERE vehicle_id = ?");
             $getDocumentIdsQuery->execute([$vehicleId]);
@@ -37,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             }
         }
 
-        $deleteVehiclesQuery = $koneksi->prepare("DELETE FROM vehicles WHERE branch_id = ?");
-        $deleteVehiclesQuery->execute([$id]);
+        $destroyVehiclesQuery = $koneksi->prepare("DELETE FROM vehicles WHERE branch_id = ?");
+        $destroyVehiclesQuery->execute([$id]);
     }
 
-    $deleteBranchQuery = $koneksi->prepare("DELETE FROM branches WHERE id = ? AND deleted_at IS NOT NULL");
-    $isDestroy = $deleteBranchQuery->execute([$id]);
+    $destroyBranchQuery = $koneksi->prepare("DELETE FROM branches WHERE id = ? AND deleted_at IS NOT NULL");
+    $isDestroy = $destroyBranchQuery->execute([$id]);
 
     if ($isDestroy) {
         echo json_encode(['success' => true, 'message' => "Merek <strong>" . htmlspecialchars($branchName) . "</strong> berhasil dihapus permanent."]);

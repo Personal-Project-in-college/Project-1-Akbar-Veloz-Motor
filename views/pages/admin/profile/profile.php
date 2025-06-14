@@ -10,13 +10,13 @@ checkLogin();
 $userId = $_SESSION['user_id'];
 
 // Ambil data user
-$stmt = $koneksi->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$userId]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$getUserQuery = $koneksi->prepare("SELECT * FROM users WHERE id = ?");
+$getUserQuery->execute([$userId]);
+$user = $getUserQuery->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
-    $_SESSION['error'] = "Data user tidak ditemukan.";
-    header("Location: ../dashboard.php");
+    $_SESSION['danger_message'] = "<strong>Error: </strong> User tidak ditemukan.";
+    header("Location: ../dashboard/index.php");
     exit;
 }
 
@@ -52,16 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $formOld = $_POST;
 
-    $stmt = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE name = ? AND id != ?");
-    $stmt->execute([$name, $userId]);
-    if ($stmt->fetchColumn() > 0) {
+    $checkUserNameQuery = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE name = ? AND id != ?");
+    $checkUserNameQuery->execute([$name, $userId]);
+    if ($checkUserNameQuery->fetchColumn() > 0) {
         $errors['name'] = "Nama sudah digunakan.";
     }
 
     // Validasi unik username (kecuali dirinya sendiri)
-    $stmt = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE username = ? AND id != ?");
-    $stmt->execute([$username, $userId]);
-    if ($stmt->fetchColumn() > 0) {
+    $checkUserUsernameQuery = $koneksi->prepare("SELECT COUNT(*) FROM users WHERE username = ? AND id != ?");
+    $checkUserUsernameQuery->execute([$username, $userId]);
+    if ($checkUserUsernameQuery->fetchColumn() > 0) {
         $errors['username'] = "Username sudah digunakan.";
     }
 
@@ -118,10 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $params[] = $userId;
 
-    $stmt = $koneksi->prepare("UPDATE users SET $updateFields, updated_at = NOW() WHERE id = ?");
-    $stmt->execute($params);
+    $updateQuery = $koneksi->prepare("UPDATE users SET $updateFields, updated_at = NOW() WHERE id = ?");
+    $updateQuery->execute($params);
 
-    $_SESSION['success'] = "Profil berhasil diperbarui.";
+    $_SESSION['success_message'] = "Profile <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
     header("Location: ../dashboard/index.php");
     exit;
 }

@@ -15,15 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
 
     // Validasi duplikasi
-    $checkQuery = $koneksi->prepare("SELECT COUNT(*) FROM roles WHERE name = ?");
-    $checkQuery->execute([$name]);
-    $count = $checkQuery->fetchColumn();
+    $checkRoleQuery = $koneksi->prepare("SELECT COUNT(*) FROM roles WHERE name = ?");
+    $checkRoleQuery->execute([$name]);
+    $exists = $checkRoleQuery->fetchColumn();
 
-    if ($count > 0) {
+    if ($exists > 0) {
         $error = "Nama jabatan <strong>" . htmlspecialchars($name) . "</strong> sudah terdaftar.";
     } else {
-        $insertQuery = $koneksi->prepare("INSERT INTO roles (name, created_at) VALUES (?, NOW())");
-        $insertQuery->execute([$name]);
+        $insertBrandQuery = $koneksi->prepare("INSERT INTO roles (name, created_at) VALUES (?, NOW())");
+        $insertBrandQuery->execute([$name]);
 
         $_SESSION['success_message'] = "User <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
         header("Location: role.php");

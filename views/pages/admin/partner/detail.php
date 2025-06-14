@@ -17,12 +17,12 @@ if (!$id) {
 }
 
 // Ambil data lama
-$stmt = $koneksi->prepare("SELECT * FROM partners WHERE id = ?");
-$stmt->execute([$id]);
-$partner = $stmt->fetch(PDO::FETCH_ASSOC);
+$getPartnerQuery = $koneksi->prepare("SELECT * FROM partners WHERE id = ?");
+$getPartnerQuery->execute([$id]);
+$partner = $getPartnerQuery->fetch(PDO::FETCH_ASSOC);
 
 if (!$partner) {
-    $_SESSION['error'] = "Data partner tidak ditemukan.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data partner tidak ditemukan.";
     header("Location: partner.php");
     exit;
 }
@@ -124,9 +124,6 @@ include '../layout/sidebar.php';
                             document.getElementById('fullscreenImage').src = '';
                         }
                     </script>
-
-
-
 
                     <div class="mb-3">
                         <label for="address_ktp" class="form-label">Alamat KTP</label>

@@ -16,17 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $slug = generateSlug($name);
 
     // Validasi duplikasi
-    $checkQuery = $koneksi->prepare("SELECT COUNT(*) FROM brands WHERE name = ? OR slug = ?");
-    $checkQuery->execute([$name, $slug]);
-    $count = $checkQuery->fetchColumn();
+    $checkBrandQuery = $koneksi->prepare("SELECT COUNT(*) FROM brands WHERE name = ? OR slug = ?");
+    $checkBrandQuery->execute([$name, $slug]);
+    $exists = $checkBrandQuery->fetchColumn();
 
-    if ($count > 0) {
+    if ($exists > 0) {
         $error = "Nama merek <strong>" . htmlspecialchars($name) . "</strong> sudah terdaftar.";
     } else {
-        $insertQuery = $koneksi->prepare("INSERT INTO brands (name, slug, created_at) VALUES (?, ?, NOW())");
-        $insertQuery->execute([$name, $slug]);
+        $insertBrandQuery = $koneksi->prepare("INSERT INTO brands (name, slug, created_at) VALUES (?, ?, NOW())");
+        $insertBrandQuery->execute([$name, $slug]);
 
-        $_SESSION['success'] = "Merek <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Merek <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
         header("Location: brand.php");
         exit;
     }

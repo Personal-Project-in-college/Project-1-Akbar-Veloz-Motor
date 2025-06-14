@@ -1,4 +1,5 @@
 <?php
+session_start();
 // 🔎 Melakukan Pengecekan Apakah Sudah Login atau Belum
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
@@ -7,6 +8,8 @@ checkLogin();
 include '../layout/header.php';
 include '../layout/sidebar.php';
 ?>
+
+<div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
 
 <!-- Main Content -->
 <div class="main-panel">
@@ -249,3 +252,111 @@ include '../layout/sidebar.php';
         <script src="../assets/js/index.js"></script>
 
         <?php include '../layout/footer.php'; ?>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const tableBody = document.getElementById('brandTableBody');
+
+        function loadBrands(keyword = '') {
+            fetch(`ajaxBrandList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                });
+        }
+
+        // Load pertama
+        loadBrands();
+
+        // Saat ketik di search
+        searchInput.addEventListener('keyup', function() {
+            loadBrands(this.value);
+        });
+    </script>
+
+    <script>
+        function bindDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    fetch('softDelete.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(id)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadBrands(); // reload tabel
+                                showAlert(data.message, 'danger'); // custom alert function
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                        });
+                });
+            });
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+            // Masukkan isi alert + tombol close
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv;
+
+            const container = document.getElementById('floating-alert-container');
+            container.appendChild(alertDiv);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
+        }
+
+        function loadBrands(keyword = '') {
+            fetch(`ajaxBrandList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindDeleteEvents(); // PENTING!
+                });
+        }
+
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBrands();
+
+            searchInput.addEventListener('keyup', function() {
+                loadBrands(this.value);
+            });
+        });
+    </script>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['danger_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+            });
+        </script>
+        <?php unset($_SESSION['danger_message']); ?>
+    <?php endif; ?>
+</div>

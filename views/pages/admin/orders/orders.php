@@ -2,6 +2,7 @@
 include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
+include '../../../../helpers/functionCheckRole.php';
 include '../layout/header.php';
 include '../layout/sidebar.php';
 
@@ -49,12 +50,11 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <h3 class="mb-4">Data Pesanan Terhapus</h3>
-
+        <h3 class="mb-4">Data Pesanan</h3>
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <a href="create.php" class="btn btn-primary">Tambah</a>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Nama Customer ...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Customer ...">
             </div>
         </div>
 
@@ -83,9 +83,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="deletedOrderTableBody">
+                            <tbody id="orderTableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center">Memuat data...</td>
+                                    <td colspan="10" class="text-center">Memuat data...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -96,32 +96,35 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
         <?php include '../layout/footer.php'; ?>
     </div>
+
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('deletedOrderTableBody');
+        const tableBody = document.getElementById('orderTableBody');
 
-        function loadDeletedBranches(keyword = '') {
-            fetch(`ajaxOrdersDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadOrders(keyword = '') {
+            fetch(`ajaxOrdersList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
                 });
         }
 
-        loadDeletedBranches();
+        // Load pertama
+        loadOrders();
 
+        // Saat ketik di search
         searchInput.addEventListener('keyup', function() {
-            loadDeletedBranches(this.value);
+            loadOrders(this.value);
         });
     </script>
 
     <script>
-        function bindRestoreEvents() {
-            document.querySelectorAll('.restore-btn').forEach(btn => {
+        function bindDeleteEvents() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
 
-                    fetch('restore.php', {
+                    fetch('softDelete.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -131,75 +134,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadDeletedBranches(); // reload tabel
-                                showAlert(data.message, 'success'); // custom alert function
-                            } else {
-                                showAlert(data.message, 'success');
-                            }
-                        });
-                });
-            });
-        }
-
-        function showAlert(message, type = 'success') {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
-
-            // Masukkan isi alert + tombol close
-            alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv;
-
-            const container = document.getElementById('floating-alert-container');
-            container.appendChild(alertDiv);
-
-            // Fade out mulai di detik ke-4.5
-            setTimeout(() => {
-                alertDiv.style.opacity = '0';
-            }, 1500);
-
-            // Remove dari DOM di detik ke-5
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 2000);
-        }
-
-        function loadDeletedBranches(keyword = '') {
-            fetch(`ajaxOrdersDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
-                .then(res => res.text())
-                .then(html => {
-                    tableBody.innerHTML = html;
-                    bindRestoreEvents(); // PENTING!
-                    bindDestroyEvents(); // PENTING!
-                });
-        }
-
-        // Event awal
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedBranches();
-
-            searchInput.addEventListener('keyup', function() {
-                loadDeletedBranches(this.value);
-            });
-        });
-    </script>
-
-    <script>
-        function bindDestroyEvents() {
-            document.querySelectorAll('.destroy-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-
-                    fetch('destroy.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: 'id=' + encodeURIComponent(id)
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                loadDeletedBranches(); // reload tabel
+                                loadOrders(); // reload tabel
                                 showAlert(data.message, 'danger'); // custom alert function
                             } else {
                                 showAlert(data.message, 'danger');
@@ -231,23 +166,41 @@ $activePage = basename($_SERVER['PHP_SELF']);
             }, 2000);
         }
 
-        function loadDeletedBranches(keyword = '') {
-            fetch(`ajaxOrdersDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadOrders(keyword = '') {
+            fetch(`ajaxOrdersList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    bindDestroyEvents(); // PENTING!
-                    bindRestoreEvents(); // PENTING!
+                    bindDeleteEvents(); // PENTING!
                 });
         }
 
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedBranches();
+            loadOrders();
 
             searchInput.addEventListener('keyup', function() {
-                loadDeletedBranches(this.value);
+                loadOrders(this.value);
             });
         });
     </script>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['danger_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+            });
+        </script>
+        <?php unset($_SESSION['danger_message']); ?>
+    <?php endif; ?>
+
 </div>

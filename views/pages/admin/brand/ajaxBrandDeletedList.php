@@ -4,9 +4,9 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT * FROM brands WHERE deleted_at IS NOT NULL AND name LIKE ? ORDER BY name DESC");
-$stmt->execute([$keyword]);
-$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$getDeleteBrandQuery = $koneksi->prepare("SELECT * FROM brands WHERE deleted_at IS NOT NULL AND name LIKE ? ORDER BY name DESC");
+$getDeleteBrandQuery->execute([$keyword]);
+$data = $getDeleteBrandQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;
 if ($data) {

@@ -2,7 +2,6 @@
 include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
-include '../../../../helpers/functionShowAlert.php';
 include '../layout/header.php';
 include '../layout/sidebar.php';
 
@@ -50,7 +49,6 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <?php showAlert(); ?>
         <h3 class="mb-4">Data Jabatan Terhapus</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">

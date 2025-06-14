@@ -16,18 +16,14 @@ $isPartnerActive = isSidebarMenuActive('partner');
 $isVehicleActive = isSidebarMenuActive('vehicles');
 $isVehicleModelActive = isSidebarMenuActive('vehicle_model');
 $isVehicleLoanActive = isSidebarMenuActive('vehicle_loans');
-$isOrderActive = isSidebarMenuActive('orders');
 $isRoleActive = isSidebarMenuActive('role');
 $isUserActive = isSidebarMenuActive('users');
 
-$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'orders', 'role', 'users']);
+$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
+$isOrderActive = isSidebarMenuActive('orders');
+$isTransactionsActive = isSubMenuActive(['orders', '']);
 
-$isTransactionsActive = isSidebarMenuActive('transactions');
-$isReportActive = isSubMenuActive(['transactions']);
-
-$isTransactionsActive = isSidebarMenuActive('transactions');
-$isReportActive = isSubMenuActive(['transactions']);
 
 ?>
 
@@ -56,29 +52,32 @@ $isReportActive = isSubMenuActive(['transactions']);
       <div class="collapse <?= $isManageActive ? 'show' : '' ?>" id="collapseManage">
         <ul class="nav flex-column sub-menu">
           <li class="nav-item"><a class="nav-link <?= $isBranchActive ? 'active' : '' ?>" href="../branch/branch.php">Cabang</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isPartnerActive ? 'active' : '' ?>" href="../partner/partner.php">Partner</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isVehicleActive ? 'active' : '' ?>" href="../vehicles/vehicles.php">Kendaraan</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isVehicleModelActive ? 'active' : '' ?>" href="../vehicle_model/vehicle_model.php">Model Kendaraan</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isBrandActive ? 'active' : '' ?>" href="../brand/brand.php">Merek</a></li>
-          <li class="nav-item"><a class="nav-link <?= $isVehicleLoanActive ? 'active' : '' ?>" href="../vehicle_loans/vehicle_loans.php">Peminjaman</a></li>
-          
           <?php if (hasAnyRole(['Owner'])) : ?>
             <li class="nav-item"><a class="nav-link <?= $isRoleActive ? 'active' : '' ?>" href="../role/role.php">Jabatan</a></li>
             <li class="nav-item"><a class="nav-link <?= $isUserActive ? 'active' : '' ?>" href="../users/users.php">Karyawan</a></li>
           <?php endif ?>
+          <li class="nav-item"><a class="nav-link <?= $isVehicleActive ? 'active' : '' ?>" href="../vehicles/vehicles.php">Kendaraan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isVehicleModelActive ? 'active' : '' ?>" href="../vehicle_model/vehicle_model.php">Model Kendaraan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isBrandActive ? 'active' : '' ?>" href="../brand/brand.php">Merek</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isPartnerActive ? 'active' : '' ?>" href="../partner/partner.php">Partner</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isVehicleLoanActive ? 'active' : '' ?>" href="../vehicle_loans/vehicle_loans.php">Peminjaman</a></li>
         </ul>
       </div>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#collapseUsers" aria-expanded="false" aria-controls="collapseUsers">
-        <i class="mdi mdi-cash-register menu-icon"></i>
-        <span class="menu-title">Pesanan</span>
+      <a class="nav-link <?= $isTransactionsActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseUsers" aria-expanded="<?= $isTransactionsActive ? 'true' : 'false' ?>" aria-controls="collapseUsers">
+        <i class="mdi mdi-cash-register menu-icon <?= $isTransactionsActive ? 'text-primary' : '' ?>"></i>
+        <span class="menu-title">Transaksi</span>
       </a>
-      <div class="collapse" id="collapseUsers">
+      <div class="collapse  <?= $isTransactionsActive ? 'show' : '' ?>" id="collapseUsers">
         <ul class="nav flex-column sub-menu">
+<<<<<<< HEAD
           <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
           <li class="nav-item"><a class="nav-link" href="../chat/index.php">chat</a></li>
+=======
+          <li class="nav-item"><a class="nav-link <?= $isOrderActive ? 'active' : '' ?>" href="../orders/orders.php">Pesanan</a></li>
+>>>>>>> 6f8aaf31904af114aa8d4fbc7f9c5bbd7b33ef82
         </ul>
       </div>
     </li>

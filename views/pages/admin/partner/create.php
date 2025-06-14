@@ -22,15 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address_domicile = trim($_POST['address_domicile']);
 
     // Cek data unik
-    $checkStmt = $koneksi->prepare("SELECT * FROM partners WHERE name = ? OR nik = ? OR phone = ? OR email = ?");
-    $checkStmt->execute([$name, $nik, $phone, $email]);
-    $exist = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    $checkPartnerQuery = $koneksi->prepare("SELECT * FROM partners WHERE name = ? OR nik = ? OR phone = ? OR email = ?");
+    $checkPartnerQuery->execute([$name, $nik, $phone, $email]);
+    $exists = $checkPartnerQuery->fetch(PDO::FETCH_ASSOC);
 
-    if ($exist) {
-        if ($exist['name'] === $name)   $nameError = "Nama <strong>$name</strong> sudah digunakan.";
-        if ($exist['nik'] === $nik)     $nikError = "NIK <strong>$nik</strong> sudah digunakan.";
-        if ($exist['phone'] === $phone) $phoneError = "No Telepon <strong>$phone</strong> sudah digunakan.";
-        if ($exist['email'] === $email) $emailError = "Email <strong>$email</strong> sudah digunakan.";
+    if ($exists) {
+        if ($exists['name'] === $name)   $nameError = "Nama <strong>$name</strong> sudah digunakan.";
+        if ($exists['nik'] === $nik)     $nikError = "NIK <strong>$nik</strong> sudah digunakan.";
+        if ($exists['phone'] === $phone) $phoneError = "No Telepon <strong>$phone</strong> sudah digunakan.";
+        if ($exists['email'] === $email) $emailError = "Email <strong>$email</strong> sudah digunakan.";
     } else {
         try {
             $basePath = '../../../../storage/partners/partners_' . $slug;
@@ -71,10 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $photo    = uploadDocument('photo', $photoFolder, $slug, 'resizeImage');
 
             // Simpan ke DB
-            $createPartner = $koneksi->prepare("INSERT INTO partners (name, slug, nik, phone, email, ktp_scan, photo, address_ktp, address_domicile, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-            $createPartner->execute([$name, $slug, $nik, $phone, $email, $ktp_scan, $photo, $address_ktp, $address_domicile]);
+            $insertPartnerQuery = $koneksi->prepare("INSERT INTO partners (name, slug, nik, phone, email, ktp_scan, photo, address_ktp, address_domicile, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $insertPartnerQuery->execute([$name, $slug, $nik, $phone, $email, $ktp_scan, $photo, $address_ktp, $address_domicile]);
 
-            $_SESSION['success'] = "Partner <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
+            $_SESSION['success_message'] = "Partner <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
             header("Location: partner.php");
             exit;
         } catch (PDOException $e) {

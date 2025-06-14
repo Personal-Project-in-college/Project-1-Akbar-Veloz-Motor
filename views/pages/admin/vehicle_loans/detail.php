@@ -7,7 +7,7 @@ checkLogin();
 include '../../../../helpers/functionCheckRole.php';
 
 if (!isset($_GET['id'])) {
-    $_SESSION['error'] = "ID peminjaman tidak ditemukan.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong>ID peminjaman kendaraan tidak ditemukan di URL.";
     header('Location: vehicle_loans.php');
     exit;
 }
@@ -15,18 +15,12 @@ if (!isset($_GET['id'])) {
 $id = $_GET['id'];
 
 // Ambil data peminjaman berdasarkan ID
-$loan = $koneksi->prepare("
-    SELECT vehicle_loans.*, partners.name AS partner_name 
-    FROM vehicle_loans 
-    LEFT JOIN partners ON vehicle_loans.partner_id = partners.id 
-    WHERE vehicle_loans.id = ?
-");
-
-$loan->execute([$id]);
-$data = $loan->fetch();
+$getVehicleLoanQuery = $koneksi->prepare("SELECT vehicle_loans.*, partners.name AS partner_name FROM vehicle_loans LEFT JOIN partners ON vehicle_loans.partner_id = partners.id WHERE vehicle_loans.id = ?");
+$getVehicleLoanQuery->execute([$id]);
+$data = $getVehicleLoanQuery->fetch();
 
 if (!$data) {
-    $_SESSION['error'] = "Data peminjaman tidak ditemukan.";
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data peminjaman kendaraan tidak ditemukan atau sudah dihapus.";
     header('Location: vehicle_loans.php');
     exit;
 }
