@@ -4,12 +4,28 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-// SELECT pakai kolom type_order
+// Mapping Bahasa Indonesia
+function formatOrderType($type)
+{
+    return $type === 'test_driver' ? 'Coba Kendaraan' : 'Transaksi';
+}
+
+function formatStatus($status)
+{
+    return match ($status) {
+        'proced' => 'Diproses',
+        'cancelled' => 'Dibatalkan',
+        'finished' => 'Selesai',
+        default => ucfirst($status)
+    };
+}
+
 $getOrderQuery = $koneksi->prepare("
     SELECT 
         o.id AS order_id, 
-        o.date_order, 
+        o.created_at, 
         o.type_order, 
+        o.status AS order_status,
         c.name AS customer_name, 
         c.email AS customer_email, 
         c.phone AS customer_phone, 
@@ -31,31 +47,24 @@ if ($data) {
         $vehicleInfo = "{$row['vehicle_id']} - {$row['vehicle_model_name']}";
         $orderId = $row['order_id'];
         $typeOrder = $row['type_order'];
+        $statusValue = formatStatus($row['order_status']);
+        $typeLabel = formatOrderType($typeOrder);
+        $orderDate = $row['created_at'] ? date('d M Y, H:i', strtotime($row['created_at'])) : '-';
 
-        // Ambil status dari tabel sesuai type_order
-        if ($typeOrder === 'test_driver') {
-            $statusQuery = $koneksi->prepare("SELECT status FROM test_drivers WHERE order_id = ? LIMIT 1");
-        } elseif ($typeOrder === 'transaction') {
-            $statusQuery = $koneksi->prepare("SELECT status FROM transactions WHERE order_id = ? LIMIT 1");
-        }
-
-        $statusValue = '-';
-        if (isset($statusQuery)) {
-            $statusQuery->execute([$orderId]);
-            $statusResult = $statusQuery->fetchColumn();
-            $statusValue = $statusResult ?: '-';
-        }
+        $redirectHref = $typeOrder === 'test_driver'
+            ? "../test_driver/edit.php?id={$orderId}"
+            : "../transactions/transaction.php?id={$orderId}";
 
         echo "<tr>
                 <td>{$no}</td>
                 <td>{$row['customer_name']}</td>
                 <td>{$vehicleInfo}</td>
-                <td>{$row['date_order']}</td>
-                <td>" . ucfirst($typeOrder) . "</td>
-                <td>" . ucfirst($statusValue) . "</td>
+                <td>{$orderDate}</td>
+                <td>{$typeLabel}</td>
+                <td>{$statusValue}</td>
                 <td style='display: flex; align-items: center; gap: 8px;'>
-                    <a href='edit.php?id={$orderId}' title='Edit' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
-                        <i class='mdi mdi-pencil'></i>
+                    <a href='{$redirectHref}' title='Lanjut' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
+                        <i class='mdi mdi-arrow-right-bold-circle'></i>
                     </a>
                     <button data-id='{$orderId}' class='btn btn-danger btn-sm delete-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
                         <i class='mdi mdi-delete-restore'></i>

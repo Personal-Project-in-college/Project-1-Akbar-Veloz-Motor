@@ -74,12 +74,12 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>No</th>
+                                <th>No</th>
                                     <th>Nama Customer</th>
                                     <th>Kendaraan</th>
                                     <th>Tanggal Pesan</th>
                                     <th>Tipe Pesanan</th>
-                                    <th>Status</th>
+                                    <th>Status Pesanan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>

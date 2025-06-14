@@ -4,11 +4,27 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
+function formatOrderType($type)
+{
+    return $type === 'test_driver' ? 'Coba Kendaraan' : 'Transaksi';
+}
+
+function formatStatus($status)
+{
+    return match ($status) {
+        'proced' => 'Diproses',
+        'cancelled' => 'Dibatalkan',
+        'finished' => 'Selesai',
+        default => ucfirst($status)
+    };
+}
+
 $getDeleteBrandQuery = $koneksi->prepare("
     SELECT  
         o.id AS order_id, 
-        o.date_order, 
+        o.created_at, 
         o.type_order, 
+        o.status AS order_status,
         o.deleted_at, 
         c.name AS customer_name, 
         c.email AS customer_email, 
@@ -30,39 +46,32 @@ $no = 1;
 
 if ($data) {
     foreach ($data as $row) {
-        $statusReal = '-';
-        if ($row['type_order'] === 'transaction') {
-            $stmt = $koneksi->prepare("SELECT status FROM transactions WHERE order_id = ?");
-            $stmt->execute([$row['order_id']]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $statusReal = $result['status'] ?? '-';
-        } elseif ($row['type_order'] === 'test_driver') {
-            $stmt = $koneksi->prepare("SELECT status FROM test_drivers WHERE order_id = ?");
-            $stmt->execute([$row['order_id']]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $statusReal = $result['status'] ?? '-';
-        }
-
-
         $vehicleInfo = "{$row['vehicle_id']} - {$row['vehicle_model_name']}";
-        $deletedAt = new DateTime($row['deleted_at']);
-        $interval = $currentDateTime->getTimestamp() - $deletedAt->getTimestamp();
-        $canRestore = $interval <= 3600; // 1 jam = 3600 detik
+        $typeOrder = $row['type_order'];
+        $orderDate = $row['created_at'] ? date('d M Y, H:i', strtotime($row['created_at'])) : '-';
+        $statusValue = formatStatus($row['order_status']);
+        $typeLabel = formatOrderType($typeOrder);
+
 
         echo "<tr>
                 <td>{$no}</td>
                 <td>{$row['customer_name']}</td>
                 <td>{$vehicleInfo}</td>
-                <td>{$row['date_order']}</td>
-                <td>{$row['type_order']}</td>
-                <td>{$statusReal}</td>
+                <td>{$orderDate}</td>
+                <td>{$typeLabel}</td>
+                <td>{$statusValue}</td>
                 <td style='display: flex; align-items: center; gap: 8px;'>";
 
-        if ($canRestore) {
-            echo "<button data-id='{$row['order_id']}' class='btn btn-success btn-sm restore-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
-                    <i class='mdi mdi-restore'></i>
-                  </button>";
-        }
+        
+            echo "<button 
+                data-id='{$row['order_id']}' 
+                data-deleted-at='{$row['deleted_at']}'
+                class='btn btn-success btn-sm restore-btn d-flex justify-content-center align-items-center' 
+                style='width: 28px; height: 28px; border-radius: 4px; color: white'>
+                <i class='mdi mdi-restore'></i>
+                </button>";
+        
+
 
         echo "<button data-id='{$row['order_id']}' class='btn btn-danger btn-sm destroy-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
                 <i class='mdi mdi-delete-forever'></i>
