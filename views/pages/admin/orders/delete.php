@@ -1,5 +1,6 @@
 <?php
 include '../../../../config/koneksi.php';
+include '../../../../cronjob/autoCancelOrders.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 include '../layout/header.php';
@@ -79,7 +80,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Kendaraan</th>
                                     <th>Tanggal Pesan</th>
                                     <th>Tipe Pesanan</th>
-                                    <th>Status</th>
+                                    <th>Status Pesanan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -105,6 +106,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
+                    hideExpiredRestoreButtons(); // ⬅ tambahkan ini
                 });
         }
 
@@ -170,6 +172,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                     tableBody.innerHTML = html;
                     bindRestoreEvents(); // PENTING!
                     bindDestroyEvents(); // PENTING!
+                    hideExpiredRestoreButtons(); // ⬅ tambahkan ini
                 });
         }
 
@@ -238,6 +241,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                     tableBody.innerHTML = html;
                     bindDestroyEvents(); // PENTING!
                     bindRestoreEvents(); // PENTING!
+                    hideExpiredRestoreButtons(); // ⬅ tambahkan ini
                 });
         }
 
@@ -250,4 +254,28 @@ $activePage = basename($_SERVER['PHP_SELF']);
             });
         });
     </script>
+
+    <script>
+        function hideExpiredRestoreButtons() {
+            const buttons = document.querySelectorAll('.restore-btn');
+
+            buttons.forEach(btn => {
+                const deletedAtStr = btn.dataset.deletedAt;
+                const deletedAt = new Date(deletedAtStr.replace(' ', 'T')); // biar aman
+                const now = new Date();
+                const elapsedSeconds = (now - deletedAt) / 1000;
+                const remaining = 300 - elapsedSeconds; // 5 menit = 300 detik
+
+                if (remaining <= 0) {
+                    btn.remove(); // expired langsung hapus
+                } else {
+                    // Set timeout supaya tombol hilang tepat di detik 300
+                    setTimeout(() => {
+                        btn.remove();
+                    }, remaining * 1000);
+                }
+            });
+        }
+    </script>
+
 </div>

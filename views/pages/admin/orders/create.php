@@ -48,7 +48,6 @@ $customers = $koneksi->query("
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customer_id = $_POST['customer_id'];
     $vehicle_id = $_POST['vehicle_id'];
-    $date_order = $_POST['date_order'];
     $type_order = $_POST['type_order']; // Ganti nama variabel agar tidak bentrok dengan kolom
 
     // ====================================================================
@@ -91,8 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $koneksi->beginTransaction(); // Mulai transaksi database untuk keamanan data
         try {
             // 1. Insert ke tabel orders
-            $insertOrderQuery = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, date_order, type_order, created_at) VALUES (?, ?, ?, ?, NOW())");
-            $insertOrderQuery->execute([$customer_id, $vehicle_id, $date_order, $type_order]);
+            $insertOrderQuery = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, negotiated_price, is_read, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+            $insertOrderQuery->execute([$customer_id, $vehicle_id, $type_order]);
+
             $order_id = $koneksi->lastInsertId();
 
             $user_id = $_SESSION['user_id']; // Ambil user id dari session
@@ -107,9 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($type_order === 'transaction') {
+                
+                $getPriceStmt = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
+                $getPriceStmt->execute([$vehicle_id]);
+                $vehicle_price = $getPriceStmt->fetchColumn();
+
                 // Langsung buat record transaksi dengan status 'pending' agar validasi berfungsi
-                $koneksi->prepare("INSERT INTO transactions (order_id, user_id, status, grand_total, amount_paid, payment_type, payment_method, created_at) VALUES (?, ?, 'pending', 0, 0, 'tunai', 'cash', NOW())")
-                    ->execute([$order_id, $user_id]);
+                $koneksi->prepare("INSERT INTO transactions (order_id, user_id, vehicle_price, deal_negotiation, grand_total, amount_paid, payment_type, payment_method, status, created_at) VALUES (?, ?, ?, 0, 0, 0, 'tunai', 'cash', 'pending', NOW())")->execute([$order_id, $user_id, $vehicle_price]);
 
                 // 3. Update status kendaraan
                 $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?")->execute([$vehicle_id]);
@@ -126,9 +130,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-// Ambil tanggal dan waktu saat ini untuk nilai default di form
-$now = date('Y-m-d\TH:i');
 
 // --- Bagian Tampilan (View) ---
 // diasumsikan file layout ada di path yang benar
@@ -171,11 +172,6 @@ include '../layout/sidebar.php';
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="date_order" class="form-label">Waktu Pesan</label>
-                        <input type="datetime-local" class="form-control" id="date_order" name="date_order" value="<?= htmlspecialchars($_POST['loan_date'] ?? $now) ?>" required>
                     </div>
 
                     <div class="mb-3">

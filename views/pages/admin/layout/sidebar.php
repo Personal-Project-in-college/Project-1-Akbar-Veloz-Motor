@@ -22,7 +22,9 @@ $isUserActive = isSidebarMenuActive('users');
 $isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
 $isOrderActive = isSidebarMenuActive('orders');
-$isTransactionsActive = isSubMenuActive(['orders', '']);
+$isTestDriverActive = isSidebarMenuActive('test_driver');
+$isTransactionActive = isSidebarMenuActive('transactions');
+$isTransactionsActive = isSubMenuActive(['orders', 'transactions', 'test_driver']);
 
 
 ?>
@@ -72,12 +74,9 @@ $isTransactionsActive = isSubMenuActive(['orders', '']);
       </a>
       <div class="collapse  <?= $isTransactionsActive ? 'show' : '' ?>" id="collapseUsers">
         <ul class="nav flex-column sub-menu">
-<<<<<<< HEAD
-          <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isOrderActive || $isTransactionActive || $isTestDriverActive ? 'active' : '' ?>" href="../orders/orders.php">Pesanan</a></li>
           <li class="nav-item"><a class="nav-link" href="../chat/index.php">chat</a></li>
-=======
-          <li class="nav-item"><a class="nav-link <?= $isOrderActive ? 'active' : '' ?>" href="../orders/orders.php">Pesanan</a></li>
->>>>>>> 6f8aaf31904af114aa8d4fbc7f9c5bbd7b33ef82
+
         </ul>
       </div>
     </li>
