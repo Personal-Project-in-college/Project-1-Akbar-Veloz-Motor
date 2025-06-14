@@ -15,7 +15,10 @@ if (session_status() === PHP_SESSION_NONE) {
 // Mengambil nama pengguna dari session. Memberi nilai default 'Guest' untuk mencegah error.
 $name = $_SESSION['name'];
 $photo = (!empty($_SESSION['photo'])) ? $_SESSION['photo'] : 'default.jpg';
+
 ?>
+
+
 <!DOCTYPE html>
 <html lang="id">
 

@@ -78,6 +78,7 @@ $isReportActive = isSubMenuActive(['transactions']);
       <div class="collapse" id="collapseUsers">
         <ul class="nav flex-column sub-menu">
           <li class="nav-item"><a class="nav-link" href="#">Pesanan</a></li>
+          <li class="nav-item"><a class="nav-link" href="../chat/index.php">chat</a></li>
         </ul>
       </div>
     </li>

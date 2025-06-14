@@ -3,6 +3,7 @@
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 
+
 include '../layout/header.php';
 include '../layout/sidebar.php';
 ?>
@@ -245,12 +246,6 @@ include '../layout/sidebar.php';
                 </div>
             </div>
         </div>
-        <!-- Plugin js for this page -->
-        <script src="../assets/vendors/chart.js/chart.umd.js"></script>
-        <!-- End plugin js for this page -->
-        <!-- Custom js for this page-->
         <script src="../assets/js/index.js"></script>
-        <!-- End custom js for this page-->
-
 
         <?php include '../layout/footer.php'; ?>

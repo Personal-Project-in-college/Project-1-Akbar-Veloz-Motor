@@ -1,20 +1,27 @@
 <?php
 
-// 📌 Ambil data dari file .env : Kode ini fungsinya buat ambil data konfigurasi database yang disimpan di file .env. Jadi isinya biasanya ada DB_HOST, DB_NAME, DB_USER, DB_PASS.
+// 📌 Ambil data dari file .env
 $env = parse_ini_file(__DIR__ . '/../.env');
 
+// Jika parse_ini_file gagal karena sintaks error di .env, $env akan menjadi false.
+if ($env === false) {
+    die("Error: Gagal membaca file .env. Periksa sintaks di dalam file tersebut.");
+}
+
 try {
-    // 📌 Bikin koneksi ke database pakai PDO : Di sini kita nyambungin aplikasi ke database MySQL pakai PDO (PHP Data Object). PDO ini fleksibel banget, bisa dipakai buat banyak jenis DB, dan lebih aman dari serangan SQL Injection kalau dipakai dengan prepare statement.
+    // 📌 Bikin koneksi ke database pakai PDO
+    // PERBAIKAN: Menambahkan ";port={$env['DB_PORT']}" ke dalam string koneksi.
+    // Ini sangat penting untuk MAMP yang sering menggunakan port non-default seperti 8889.
     $koneksi = new PDO(
-        "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']}",
+        "mysql:host={$env['DB_HOST']};port={$env['DB_PORT']};dbname={$env['DB_NAME']}",
         $env['DB_USER'],
         $env['DB_PASS']
     );
 
-    // 📌 Aktifin mode error biar bisa nangkep errornya dengan baik : Kalau ada error saat query, nanti error-nya dilempar (throw) dalam bentuk exception, jadi gampang dilacak pas debug. Nggak diem-diem aja error-nya
+    // 📌 Aktifin mode error PDO
     $koneksi->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 } catch (PDOException $e) {
-    // 📌 Tangkap error kalau koneksi gagal : Kalau proses koneksi di atas gagal, masuk ke bagian ini. Dia bakal tampilin pesan error yang jelas, jadi tahu apa masalahnya (contoh: salah password DB, host nggak nyambung, dsb).
+    // 📌 Tangkap error kalau koneksi gagal
     die("Koneksi gagal: " . $e->getMessage());
 }
