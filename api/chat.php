@@ -542,7 +542,7 @@ switch ($action) {
         ");
             $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $base_image_url = 'http://localhost:8888/project-galacticos-v-2.0/public/uploads/';
+            $base_image_url = '../storage/';
 
             foreach ($vehicles as &$vehicle) {
                 $vehicle['display_name'] = $vehicle['vehicle_id'] . ' - ' . $vehicle['brand_name'] . ' ' . $vehicle['model_name'];
@@ -619,8 +619,8 @@ switch ($action) {
             $full_vehicle_name = $vehicle['vehicle_plate_id'] . ' - ' . htmlspecialchars($vehicle['brand_name']) . ' ' . htmlspecialchars($vehicle['vehicle_model_name']);
 
             if ($offer_amount >= $min_acceptable_price) {
-              $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Transaksi</button>';
-    $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
+                $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Transaksi</button>';
+                $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
             } else {
                 $response_message_customer_html = '<strong>Penawaran DITOLAK</strong><p>Maaf, penawaran Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' terlalu rendah.</p><button class="negotiation-btn" data-action="tryAgain">Coba Lagi</button><button class="negotiation-btn" data-action="selectOtherVehicle">Pilih Kendaraan Lain</button>';
                 $response_message_admin_text = 'Penawaran DITOLAK untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Terlalu rendah.';
@@ -657,6 +657,16 @@ switch ($action) {
             exit();
         }
 
+        // ✅ Cek dulu apakah sudah ada order dengan vehicle_id dan status 'proced'
+        $checkVehicleIdInOrders = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE vehicle_id = ? AND status = 'proced'");
+        $checkVehicleIdInOrders->execute([$vehicle_id]);
+        $alreadyExists = $checkVehicleIdInOrders->fetchColumn();
+
+        if ($alreadyExists) {
+            echo json_encode(['success' => false, 'message' => 'Pesanan sudah dibuat sebelumnya untuk kendaraan ini.']);
+            exit;
+        }
+
         try {
             $pdo->beginTransaction();
 
@@ -687,6 +697,15 @@ switch ($action) {
         if (empty($vehicle_id) || !isset($negotiated_price) || !is_numeric($negotiated_price) || $negotiated_price < 0) {
             echo json_encode(['success' => false, 'message' => 'Data transaksi tidak lengkap atau tidak valid.']);
             exit();
+        }
+
+        $checkVehicleIdInOrders = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE vehicle_id = ? AND status = 'proced'");
+        $checkVehicleIdInOrders->execute([$vehicle_id]);
+        $alreadyExists = $checkVehicleIdInOrders->fetchColumn();
+
+        if ($alreadyExists) {
+            echo json_encode(['success' => false, 'message' => 'Pesanan sudah dibuat sebelumnya untuk kendaraan ini.']);
+            exit;
         }
 
         try {
