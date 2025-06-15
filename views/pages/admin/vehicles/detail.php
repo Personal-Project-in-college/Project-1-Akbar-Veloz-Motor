@@ -16,7 +16,19 @@ if (!$id) {
 }
 
 // 🪢 Ambil data vehicle berdasarkan Id
-$data = $koneksi->prepare("SELECT * FROM vehicles WHERE id = ?");
+$data = $koneksi->prepare("
+    SELECT 
+        vehicles.*, 
+        vehicle_models.name AS model_name, 
+        brands.name AS brand_name,
+        branches.name AS branch_name,
+        branches.address AS branch_address
+    FROM vehicles
+    JOIN vehicle_models ON vehicles.vehicle_model_id = vehicle_models.id
+    JOIN brands ON vehicle_models.brand_id = brands.id
+    JOIN branches ON vehicles.branch_id = branches.id
+    WHERE vehicles.id = ?
+");
 $data->execute([$id]);
 $vehicle = $data->fetch(PDO::FETCH_ASSOC);
 
@@ -37,6 +49,10 @@ $branches = $koneksi->query("SELECT * FROM branches WHERE deleted_at IS NULL")->
 
 $vehicleModels = $koneksi->query("SELECT vehicle_models.id, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicle_models JOIN brands ON vehicle_models.brand_id = brands.id WHERE vehicle_models.deleted_at IS NULL")->fetchAll();
 
+$stnk_deadline = new DateTime($vehicle['stnk_deadline']);
+$today = new DateTime();
+$interval = $today->diff($stnk_deadline);
+$sisaHari = $interval->days . " hari (" . ($stnk_deadline > $today ? "tersisa" : "lewat") . ")";
 
 // Siapkan array untuk dropdown jenis kendaraan.
 $types = [
@@ -52,12 +68,12 @@ $typefuels = [
 
 // Siapkan array untuk dropdown status kendaraan.
 $statuses = [
-    'available' => 'Tersedia',
+    'on_loan' => 'Dipinjam',
     'service' => 'Service',
+    'sold' => 'Terjual',
+    'available' => 'Tersedia',
     'test_drive' => 'Tes Jalan',
-    'sold' => 'Terjual'
 ];
-
 
 include '../layout/header.php';
 include '../layout/sidebar.php';
@@ -115,118 +131,99 @@ include '../layout/sidebar.php';
     <div class="content-wrapper">
         <h3 class="mb-4">Detail Kendaraan</h3>
 
-        <?php
-        // Menjalankan fungsi untuk menampilkan alert jika ada.
-        showAlert();
-        ?>
-
-        <!-- Detail Vehicle -->
-        <div class="card">
+        <!-- TABEL Brand & Model -->
+        <div class="card mb-4">
             <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="kode_kendaraan" class="form-label">Kode Kendaraan</label>
-                        <input type="text" class="form-control" id="id_show" name="id_show" value="<?= $vehicle['id'] ?>" disabled>
-                        <input type="hidden" class="form-control" id="id" name="id" value="<?= $vehicle['id'] ?>">
-                    </div>
+                <h5 class="mb-4">Informasi Merek</h5>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Merek</th>
+                        <td><?= $vehicle['brand_name'] ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Model</th>
+                        <td><?= $vehicle['model_name'] ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
-                    <div class="mb-3">
-                        <label for="vehicle_model_id" class="form-label">Model Kendaraan</label>
-                        <select class="form-select" id="vehicle_model_id" name="vehicle_model_id" style="color: black;" disabled>
-                            <?php foreach ($vehicleModels as $model): ?>
-                                <option value="<?= $model['id'] ?>" <?= $vehicle['vehicle_model_id'] == $model['id'] ? 'selected' : '' ?>>
-                                    <?= $model['brand_name'] . ' - ' . $model['model_name'] ?>
-                                </option>
-                            <?php endforeach ?>
-                        </select>
-                    </div>
+        <!-- TABEL KENDARAAN -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="mb-4">Informasi Kendaraan</h5>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Kode</th>
+                        <td><?= htmlspecialchars($vehicle['id']) ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Tipe</th>
+                        <td><?= $types[$vehicle['type_vehicle']] ?? '-' ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Warna</th>
+                        <td><?= htmlspecialchars($vehicle['color']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Tahun Produksi</th>
+                        <td><?= htmlspecialchars($vehicle['production_year']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">STNK Deadline</th>
+                        <td><?= htmlspecialchars($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Bahan Bakar</th>
+                        <td><?= $typefuels[$vehicle['type_fuel']] ?? '-' ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">CC Engine</th>
+                        <td><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Serial Number</th>
+                        <td><?= htmlspecialchars($vehicle['serial_number']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Kilometer</th>
+                        <td><?= htmlspecialchars($vehicle['kilometer']) ?> KM</td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Harga Terendah</th>
+                        <td>Rp <?= htmlspecialchars($vehicle['lowest_price']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Harga Display</th>
+                        <td>Rp <?= htmlspecialchars($vehicle['price_displayed']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Status</th>
+                        <td><?= $statuses[$vehicle['status']] ?? '-' ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Deskripsi</th>
+                        <td class="text-wrap"><?= htmlspecialchars($vehicle['description']) ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
-
-
-                    <div class="mb-3">
-                        <label for="jenis_kendaraan" class="form-label">Jenis Kendaraan</label>
-                        <select class="form-select" id="type_vehicle" name="type_vehicle" style="color: black;" disabled>
-                            <?php foreach ($types as $key => $label): ?>
-                                <option value="<?= $key ?>" <?= $vehicle['type_vehicle'] == $key ? 'selected' : '' ?>><?= $label ?></option>
-                            <?php endforeach ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="bahan_bakar" class="form-label">Bahan Bakar</label>
-                        <select class="form-select" id="type_fuel" name="type_fuel" style="color: black;" disabled>
-                            <?php foreach ($typefuels as $valuefuel => $labelfuel): ?>
-                                <option value="<?= $valuefuel ?>" <?= ($vehicle['type_fuel'] ?? '') == $valuefuel ? 'selected' : '' ?>><?= $labelfuel ?></option>
-                            <?php endforeach ?>
-                        </select>
-                    </div>
-
-
-                    <div class="mb-3">
-                        <label for="warna" class="form-label">Warna</label>
-                        <input type="text" class="form-control" id="color" name="color" value="<?= $vehicle['color'] ?>" disabled>
-                    </div>
-
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="tahun_produksi" class="form-label">Tahun Produksi</label>
-                            <input type="date" class="form-control" id="production_year" name="production_year" value="<?= $vehicle['production_year'] ?>" disabled>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="nomor_mesin" class="form-label">Nomor Mesin</label>
-                            <input type="number" class="form-control" id="serial_number" name="serial_number" value="<?= $vehicle['serial_number'] ?>" disabled>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="tenggat_SNTK" class="form-label">Tenggat STNK</label>
-                            <input type="date" class="form-control" id="stnk_deadline" name="stnk_deadline" value="<?= $vehicle['stnk_deadline'] ?>" disabled>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="kilometer" class="form-label">Kilometer</label>
-                            <input type="number" class="form-control" id="kilometer" name="kilometer" value="<?= $vehicle['kilometer'] ?>" disabled>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="cc_mesin" class="form-label">CC Mesin</label>
-                            <input type="number" class="form-control" id="cc_engine" name="cc_engine" value="<?= $vehicle['cc_engine'] ?>" disabled>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="harga" class="form-label">Harga</label>
-                            <input type="number" class="form-control" id="price" name="price" value="<?= $vehicle['price'] ?>" disabled>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status" style="color: black;" disabled>
-                                <?php foreach ($statuses as $key => $label): ?>
-                                    <option value="<?= $key ?>" <?= $vehicle['status'] == $key ? 'selected' : '' ?>><?= $label ?></option>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="cabang" class="form-label">Cabang</label>
-                            <select class="form-select" id="branch_id" name="branch_id" style="color: black;" disabled>
-                                <?php foreach ($branches as $branch): ?>
-                                    <option value="<?= $branch['id'] ?>" <?= $vehicle['branch_id'] == $branch['id'] ? 'selected' : '' ?>><?= $branch['name'] ?></option>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="Deskripsi" class="form-label">Deskripsi</label>
-                        <textarea cols="15" rows="15" type="alamat" class="form-control" id="description" name="description" placeholder="Masukan Deskripsi" disabled><?= $vehicle['description'] ?></textarea>
-                    </div>
-                </form>
+        <!-- TABEL Cabang -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="mb-4">Informasi Cabang</h5>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Nama</th>
+                        <td><?= $vehicle['branch_name'] ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Alamat</th>
+                        <td class="text-wrap"><?= $vehicle['branch_address'] ?></td>
+                    </tr>
+                </table>
             </div>
         </div>
 

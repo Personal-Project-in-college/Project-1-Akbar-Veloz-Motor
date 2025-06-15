@@ -20,7 +20,9 @@ $id = $_GET['id'] ?? null;
 
 // Jika tidak ada ID di URL, hentikan eksekusi skrip.
 if (!$id) {
-    die("Akses tidak valid. ID kendaraan tidak ditemukan.");
+    $_SESSION['danger_message'] = "<strong>Error: </strong> ID kendaraan tidak ditemukan di URL.";
+    header("Location: vehicles.php");
+    exit;
 }
 
 // 3. Pengambilan Data Kendaraan dari Database
@@ -32,7 +34,9 @@ $vehicle = $data->fetch(PDO::FETCH_ASSOC);
 // Jika data dengan ID tersebut tidak ada di database, hentikan eksekusi.
 if (!$vehicle) {
     // ❗ Kalau datanya gak ditemukan
-    die("Data Kendaraan dengan ID " . htmlspecialchars($id) . " tidak ditemukan.");
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data kendaraan tidak ditemukan atau sudah dihapus.";
+    header("Location: vehicles.php");
+    exit;
 }
 
 // Pengecekan Logika Bisnis: Mencegah edit jika data dinonaktifkan oleh cabang.
@@ -56,7 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kilometer = $_POST['kilometer'];
     $cc = $_POST['cc_engine'];
     $desc = $_POST['description'];
-    $price = $_POST['price'];
+    $lowest_price = $_POST['lowest_price'];
+    $price_displayed = $_POST['price_displayed'];
     $status = $_POST['status'];
     $user = $_SESSION['user_id']; // ID pengguna yang sedang login.
     $branch = $_POST['branch_id'];
@@ -67,15 +72,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $updateQuery = $koneksi->prepare(
         "UPDATE vehicles SET 
         vehicle_model_id=?, type_vehicle=?, type_fuel=?, color=?, production_year=?, serial_number=?, 
-        stnk_deadline=?, kilometer=?, cc_engine=?, description=?, price=?, status=?, 
-        user_id=?, branch_id=?, updated_at=NOW(), deleted_by_branch_at=NULL 
+        stnk_deadline=?, kilometer=?, cc_engine=?, description=?, lowest_price=?, price_displayed=?,
+        status=?, user_id=?, branch_id=?, updated_at=NOW(), deleted_by_branch_at=NULL 
         WHERE id=?"
     );
-    $updateQuery->execute([$vehicle_model_id, $type, $type_fuel, $color, $production, $serial, $stnk, $kilometer, $cc, $desc, $price, $status, $user, $branch, $id]);
+    $updateQuery->execute([$vehicle_model_id, $type, $type_fuel, $color, $production, $serial, $stnk, $kilometer, $cc, $desc, $lowest_price, $price_displayed, $status, $user, $branch, $id]);
 
     // Siapkan pesan notifikasi sukses.
-    $_SESSION['success'] = "Kendaraan <strong>" . htmlspecialchars($id) . "</strong> berhasil diupdate.";
-
+    $_SESSION['success_message'] = "Kendaraan <strong>" . htmlspecialchars($id) . "</strong> berhasil diupdate.";
     // 🚀 Setelah berhasil, alihkan pengguna kembali ke halaman daftar kendaraan.
     header("Location: vehicles.php");
     exit;
@@ -103,10 +107,11 @@ $typefuels = [
 
 // Siapkan array untuk pilihan status kendaraan.
 $statuses = [
-    'available' => 'Tersedia',
+    'on_loan' => 'Dipinjam',
     'service' => 'Service',
+    'sold' => 'Terjual',
+    'available' => 'Tersedia',
     'test_drive' => 'Tes Jalan',
-    'sold' => 'Terjual'
 ];
 
 // 6. Tampilkan Layout dan Form HTML
@@ -128,7 +133,7 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="vehicle_model_id" class="form-label">Model Kendaraan</label>
+                        <label for="vehicle_model_id" class="form-label">Model Kendaraan<span class="mx-1 text-danger">*</span></label>
                         <select class="form-select" id="vehicle_model_id" name="vehicle_model_id" style="color: black;">
                             <?php foreach ($vehicleModels as $model): ?>
                                 <option value="<?= $model['id'] ?>" <?= $vehicle['vehicle_model_id'] == $model['id'] ? 'selected' : '' ?>>
@@ -140,7 +145,7 @@ include '../layout/sidebar.php';
 
 
                     <div class="mb-3">
-                        <label for="jenis_kendaraan" class="form-label">Jenis Kendaraan</label>
+                        <label for="jenis_kendaraan" class="form-label">Jenis Kendaraan<span class="mx-1 text-danger">*</span></label>
                         <select class="form-select" id="type_vehicle" name="type_vehicle" style="color: black;">
                             <?php foreach ($types as $key => $label) : ?>
                                 <option value="<?= $key ?>" <?= $vehicle['type_vehicle'] == $key ? 'selected' : '' ?>><?= $label ?></option>
@@ -149,7 +154,7 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="bahan_bakar" class="form-label">Bahan Bakar</label>
+                        <label for="bahan_bakar" class="form-label">Bahan Bakar<span class="mx-1 text-danger">*</span></label>
                         <select class="form-select" id="type_fuel" name="type_fuel" style="color: black;">
                             <?php foreach ($typefuels as $valuefuel => $labelfuel): ?>
                                 <option value="<?= $valuefuel ?>" <?= ($vehicle['type_fuel'] ?? '') == $valuefuel ? 'selected' : '' ?>><?= $labelfuel ?></option>
@@ -158,43 +163,50 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="warna" class="form-label">Warna</label>
+                        <label for="warna" class="form-label">Warna<span class="mx-1 text-danger">*</span></label>
                         <input type="text" class="form-control" id="color" name="color" value="<?= htmlspecialchars($vehicle['color']) ?>">
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="tahun_produksi" class="form-label">Tahun Produksi</label>
+                        <div class="col-md-6 mb-3">
+                            <label for="tahun_produksi" class="form-label">Tahun Produksi<span class="mx-1 text-danger">*</span></label>
                             <input type="date" class="form-control" id="production_year" name="production_year" value="<?= htmlspecialchars($vehicle['production_year']) ?>">
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="nomor_mesin" class="form-label">Nomor Mesin</label>
-                            <input type="number" class="form-control" id="serial_number" name="serial_number" value="<?= htmlspecialchars($vehicle['serial_number']) ?>">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="tenggat_SNTK" class="form-label">Tenggat STNK</label>
+                        <div class="col-md-6 mb-3">
+                            <label for="tenggat_SNTK" class="form-label">Tenggat STNK<span class="mx-1 text-danger">*</span></label>
                             <input type="date" class="form-control" id="stnk_deadline" name="stnk_deadline" value="<?= htmlspecialchars($vehicle['stnk_deadline']) ?>">
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label for="kilometer" class="form-label">Kilometer</label>
+                            <label for="nomor_mesin" class="form-label">Nomor Mesin<span class="mx-1 text-danger">*</span></label>
+                            <input type="number" class="form-control" id="serial_number" name="serial_number" value="<?= htmlspecialchars($vehicle['serial_number']) ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="kilometer" class="form-label">Kilometer<span class="mx-1 text-danger">*</span></label>
                             <input type="number" class="form-control" id="kilometer" name="kilometer" value="<?= htmlspecialchars($vehicle['kilometer']) ?>">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="cc_mesin" class="form-label">CC Mesin</label>
+                            <label for="cc_mesin" class="form-label">CC Mesin<span class="mx-1 text-danger">*</span></label>
                             <input type="number" class="form-control" id="cc_engine" name="cc_engine" value="<?= htmlspecialchars($vehicle['cc_engine']) ?>">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="harga" class="form-label">Harga</label>
-                            <input type="number" class="form-control" id="price" name="price" value="<?= htmlspecialchars($vehicle['price']) ?>">
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status</label>
+                            <label for="harga" class="form-label">Harga Terendah<span class="mx-1 text-danger">*</span></label>
+                            <input type="number" class="form-control" id="lowest_price" name="lowest_price" value="<?= htmlspecialchars($vehicle['lowest_price']) ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="harga" class="form-label">Harga Display<span class="mx-1 text-danger">*</span></label>
+                            <input type="number" class="form-control" id="price_displayed" name="price_displayed" value="<?= htmlspecialchars($vehicle['price_displayed']) ?>">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status<span class="mx-1 text-danger">*</span></label>
                             <select class="form-select" id="status" name="status" style="color: black;">
                                 <?php foreach ($statuses as $key => $label) : ?>
                                     <option value="<?= $key ?>" <?= $vehicle['status'] == $key ? 'selected' : '' ?>><?= $label ?></option>
@@ -202,7 +214,7 @@ include '../layout/sidebar.php';
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="cabang" class="form-label">Cabang</label>
+                            <label for="cabang" class="form-label">Cabang<span class="mx-1 text-danger">*</span></label>
                             <select class="form-select" id="branch_id" name="branch_id" style="color: black;">
                                 <?php foreach ($branches as $branch) : ?>
                                     <option value="<?= $branch['id'] ?>" <?= $vehicle['branch_id'] == $branch['id'] ? 'selected' : '' ?>><?= htmlspecialchars($branch['name']) ?></option>
@@ -212,7 +224,7 @@ include '../layout/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="Deskripsi" class="form-label">Deskripsi</label>
+                        <label for="Deskripsi" class="form-label">Deskripsi<span class="mx-1 text-danger">*</span></label>
                         <textarea cols="15" rows="15" class="form-control" id="description" name="description" placeholder="Masukan Deskripsi"><?= htmlspecialchars($vehicle['description']) ?></textarea>
                     </div>
 

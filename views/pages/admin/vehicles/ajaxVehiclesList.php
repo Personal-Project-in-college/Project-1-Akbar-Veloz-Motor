@@ -30,6 +30,14 @@ if ($data) {
                 $statusText = 'Terjual';
                 $statusColor = '#D29A18';
                 break;
+            case 'transaction':
+                $statusText = 'Transaksi';
+                $statusColor = '#7C4585';
+                break;
+            case 'on_loan':
+                $statusText = 'Dipinjam';
+                $statusColor = '#0B1D51';
+                break;
             default: // Jika status tidak dikenali, tampilkan apa adanya.
                 $statusText = ucfirst($row['status']);
                 $statusColor = '#6c757d';
@@ -63,7 +71,7 @@ if ($data) {
             }
         }
 
-        $formattedPrice = "Rp " . number_format($row['price'], 0, ',', '.');
+        $formattedPrice = "Rp " . number_format($row['price_displayed'], 0, ',', '.');
 
         echo "<tr>
                 <td>" . htmlspecialchars($row['id']) . "</td>

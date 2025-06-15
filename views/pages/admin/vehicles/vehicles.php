@@ -12,7 +12,6 @@
 include '../../../../config/koneksi.php';              // Menghubungkan ke konfigurasi database.
 include '../../../../helpers/functionCheckLogin.php'; // Memuat fungsi untuk memeriksa status login pengguna.
 checkLogin();                                         // Menjalankan fungsi untuk memastikan pengguna sudah login sebelum mengakses halaman.
-include '../../../../helpers/functionShowAlert.php';  // Memuat fungsi untuk menampilkan notifikasi atau pesan alert.
 include '../layout/header.php';                       // Memuat bagian header dari tata letak halaman.
 include '../layout/sidebar.php';                      // Memuat bagian sidebar dari tata letak halaman.
 
@@ -62,13 +61,6 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
 <div class="main-panel">
     <div class="content-wrapper">
-
-        <?php
-        // Menjalankan fungsi showAlert() untuk menampilkan pesan notifikasi (jika ada)
-        // yang mungkin disimpan dalam session (misalnya, setelah operasi tambah/edit/hapus data berhasil).
-        showAlert();
-        ?>
-
         <h3 class="mb-4">Data Kendaraan</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
@@ -99,7 +91,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                                     <th>Brand Model</th>
                                     <th>Type Vehicle</th>
                                     <th>STNK Deadline</th>
-                                    <th>Price</th>
+                                    <th>Price Display</th>
                                     <th>Status</th>
                                     <th>Branch</th>
                                     <th>Aksi</th>
@@ -212,4 +204,21 @@ $activePage = basename($_SERVER['PHP_SELF']);
             });
         });
     </script>
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+            });
+        </script>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['danger_message'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+            });
+        </script>
+        <?php unset($_SESSION['danger_message']); ?>
+    <?php endif; ?>
 </div>

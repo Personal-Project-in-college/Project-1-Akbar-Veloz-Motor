@@ -63,7 +63,7 @@ if ($data) {
             }
         }
 
-        $formattedPrice = "Rp " . number_format($row['price'], 0, ',', '.');
+        $formattedPrice = "Rp " . number_format($row['price_displayed'], 0, ',', '.');
         echo "<tr>
                 <td>" . htmlspecialchars($row['id']) . "</td>
                 <td>" . htmlspecialchars($row['brand_name'] . ' ' . $row['model_name']) . "</td>
