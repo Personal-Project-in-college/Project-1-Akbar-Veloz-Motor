@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $insertVehicleLoanQuery = $koneksi->prepare("INSERT INTO vehicle_loans (vehicle_id, partner_id, user_id, loan_date, return_date, note, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
         $insertVehicleLoanQuery->execute([$vehicles_id, $partners_id, $users_id, $loan_date, $return_date, $note, $status]);
 
-        $updateVehicleStatusQuery = $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
+        $updateVehicleStatusQuery = $koneksi->prepare("UPDATE vehicles SET status = 'on_loan' WHERE id = ?");
         $updateVehicleStatusQuery->execute([$vehicles_id]);
 
         $_SESSION['success_message'] = "Peminjaman kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";

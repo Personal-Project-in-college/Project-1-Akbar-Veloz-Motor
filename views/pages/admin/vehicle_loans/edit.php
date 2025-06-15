@@ -54,11 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Update status kendaraan
         if ($vehicle_id_new != $data['vehicle_id']) {
             $koneksi->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?")->execute([$data['vehicle_id']]);
-            $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")->execute([$vehicle_id_new]);
+            $koneksi->prepare("UPDATE vehicles SET status = 'on_loan' WHERE id = ?")->execute([$vehicle_id_new]);
         } elseif ($status == 'returned') {
             $koneksi->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?")->execute([$vehicle_id_new]);
         } else {
-            $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")->execute([$vehicle_id_new]);
+            $koneksi->prepare("UPDATE vehicles SET status = 'on_loan' WHERE id = ?")->execute([$vehicle_id_new]);
         }
 
         $updateQuery = $koneksi->prepare("UPDATE vehicle_loans SET vehicle_id=?, partner_id=?, loan_date=?, return_date=?, note=?, status=?, updated_at=NOW() WHERE id=?");
