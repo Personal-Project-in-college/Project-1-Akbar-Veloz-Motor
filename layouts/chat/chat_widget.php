@@ -3,10 +3,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if a customer is logged in. 
-// Assuming $_SESSION['customer_id'] holds the ID of the logged-in customer.
 $is_customer_logged_in_for_chat = isset($_SESSION['customer_id']) && $_SESSION['customer_id'] > 0;
-// If not logged in, set a default session ID or handle appropriately
 $chat_session_id_from_php = $_SESSION['chat_session_id'] ?? '';
 ?>
 <link rel="stylesheet" href="./layouts/chat/css/style.css">

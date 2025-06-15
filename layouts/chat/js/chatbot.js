@@ -1,8 +1,3 @@
-// layouts/chat/js/chatbot.js
-
-// LOGIKA TAMPILAN + API
-// Logika Chatbot (Sisi Klien)
-
 console.log("chatbot aktive");
 
 async function handleBotResponse(target) {
@@ -20,7 +15,7 @@ async function handleBotResponse(target) {
       break;
     case "budget":
       startNegotiation(currentChatBodyId);
-      return; // Jangan kirim pesan bot default di sini, karena negosiasi akan mengirim pesannya sendiri
+      return;
     default:
       botMessage =
         "Maaf, saya tidak mengerti pilihan Anda. Silakan pilih dari opsi yang tersedia atau ketik pesan Anda.";
@@ -30,10 +25,8 @@ async function handleBotResponse(target) {
   await sendChatMessageToBackend(botMessage, "bot");
 }
 
-// Lampirkan listener awal untuk kartu promo statis saat DOM siap
 document.addEventListener("DOMContentLoaded", attachPromoCardListeners);
 
-// Fungsi Pengiriman Pesan (Pengguna ke Admin/Bot)
 async function sendMessage(inputElement, chatBodyElement) {
   const message = inputElement.value.trim();
   if (message === "") return;
@@ -49,7 +42,7 @@ async function sendMessage(inputElement, chatBodyElement) {
   }
 
   sendTypingStatus(false);
-  appendMessage("customer", message, chatBodyElement.id); // PERBAIKAN: senderType untuk pesan pengguna adalah 'customer'
+  appendMessage("customer", message, chatBodyElement.id);
   inputElement.value = "";
 
   const lowerCaseMessage = message.toLowerCase();
@@ -59,11 +52,9 @@ async function sendMessage(inputElement, chatBodyElement) {
     "motor dengan budget murah!": "budget",
   };
 
-  // PERBAIKAN: Kirim pesan pengguna ke backend dengan senderType 'customer'
   const sendResult = await sendChatMessageToBackend(message, "customer");
 
-  // Jika pesan bukan trigger chatbot, dan admin tidak online, kirim pesan bot offline
-  if (!chatbotTriggers[lowerCaseMessage]) { // Periksa apakah itu bukan trigger chatbot
+  if (!chatbotTriggers[lowerCaseMessage]) {
     if (sendResult.success && !adminIsOnline) {
       const offlineMessage =
         "Terima kasih atas pesan Anda! Mohon tunggu dijawab oleh admin.";
@@ -71,8 +62,7 @@ async function sendMessage(inputElement, chatBodyElement) {
       await sendChatMessageToBackend(offlineMessage, "bot");
     }
   } else {
-      // Jika itu trigger chatbot, panggil handleBotResponse
-      handleBotResponse(chatbotTriggers[lowerCaseMessage]);
+    handleBotResponse(chatbotTriggers[lowerCaseMessage]);
   }
 }
 
@@ -92,7 +82,6 @@ fullPageInput.addEventListener("keypress", (e) => {
   }
 });
 
-// Event listener untuk mengetik
 let lastInputTime = 0;
 const TYPING_THRESHOLD_MS = 50;
 const IDLE_TIMEOUT_MS = 1500;
@@ -101,7 +90,6 @@ function handleInput(event) {
   if (!chatSessionId) return;
 
   const currentTime = Date.now();
-  // PERBAIKAN: Gunakan isCustomerTyping
   if (currentTime - lastInputTime > TYPING_THRESHOLD_MS || !isCustomerTyping) {
     sendTypingStatus(true);
   }
@@ -116,58 +104,108 @@ function handleInput(event) {
 chatInput.addEventListener("input", handleInput);
 fullPageInput.addEventListener("input", handleInput);
 
-// Logika Khusus Negosiasi
 function attachNegotiationListeners(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   container.querySelectorAll(".vehicle-option").forEach((option) => {
-    // Hapus listener sebelumnya untuk mencegah duplikasi
     option.onclick = null;
     option.onclick = () => {
-      const vehicleId = option.getAttribute("data-id"); // Biarkan sebagai string jika ID CHAR
+      const vehicleId = option.getAttribute("data-id");
       console.log("Kendaraan dipilih:", vehicleId);
       selectVehicle(vehicleId, containerId);
     };
   });
 
   container.querySelectorAll(".negotiation-btn").forEach((btn) => {
-    // Hapus listener sebelumnya untuk mencegah duplikasi
     btn.onclick = null;
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const action = btn.dataset.action;
+      const vehicleId = btn.dataset.vehicleId;
+      const negotiatedPrice = btn.dataset.negotiatedPrice;
+
       console.log("Tombol negosiasi diklik:", action);
-      if (action === "newNegotiation") {
+
+      if (action === "testDrive") {
+        console.log(`Mengajukan Test Drive untuk Vehicle ID: ${vehicleId}, Harga: ${negotiatedPrice}`);
+
+        try {
+            const response = await fetch("./api/chat.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "create_test_drive_order",
+                    vehicle_id: vehicleId,
+                    negotiated_price: negotiatedPrice
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                appendMessage("bot", `Order Test Drive Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Tim kami akan segera menghubungi Anda.`, containerId);
+                await sendChatMessageToBackend(`Order Test Drive Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Tim kami akan segera menghubungi Anda.`, "bot");
+                window.location.href = "order.php?order_id=" + data.order_id + "&type=test_driver";
+            } else {
+                appendMessage("bot", `Gagal membuat order Test Drive: ${data.message}`, containerId);
+                await sendChatMessageToBackend(`Gagal membuat order Test Drive: ${data.message}`, "bot");
+            }
+        } catch (error) {
+            console.error("Kesalahan jaringan saat membuat order Test Drive:", error);
+            appendMessage("bot", "Terjadi kesalahan jaringan saat membuat order Test Drive.", containerId);
+            await sendChatMessageToBackend("Terjadi kesalahan jaringan saat membuat order Test Drive.", "bot");
+        }
+      } else if (action === "continueTransaction") {
+        console.log(`Mengajukan Transaksi untuk Vehicle ID: ${vehicleId}, Harga: ${negotiatedPrice}`);
+
+        try {
+            const response = await fetch("./api/chat.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "create_transaction_order",
+                    vehicle_id: vehicleId,
+                    negotiated_price: negotiatedPrice
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                appendMessage("bot", `Order Transaksi Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Kami akan mengarahkan Anda ke halaman order.`, containerId);
+                await sendChatMessageToBackend(`Order Transaksi Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Kami akan mengarahkan Anda ke halaman order.`, "bot");
+                window.location.href = "order.php?order_id=" + data.order_id + "&type=transaction";
+            } else {
+                appendMessage("bot", `Gagal membuat order Transaksi: ${data.message}`, containerId);
+                await sendChatMessageToBackend(`Gagal membuat order Transaksi: ${data.message}`, "bot");
+            }
+        } catch (error) {
+            console.error("Kesalahan jaringan saat membuat order Transaksi:", error);
+            appendMessage("bot", "Terjadi kesalahan jaringan saat membuat order Transaksi.", containerId);
+            await sendChatMessageToBackend("Terjadi kesalahan jaringan saat membuat order Transaksi.", "bot");
+        }
+      } else if (action === "newNegotiation") {
         resetNegotiation(containerId);
       } else if (action === "tryAgain") {
         appendMessage("bot", "Silakan masukkan penawaran baru:", containerId);
-        sendChatMessageToBackend("Silakan masukkan penawaran baru:", "bot"); // Rekam pesan ini di backend
+        sendChatMessageToBackend("Silakan masukkan penawaran baru:", "bot");
         createOfferInput(containerId);
       } else if (action === "selectOtherVehicle") {
         startNegotiation(containerId);
-      } else if (action === "order-negosiasi") {
-        window.location.href = "order.php";
       }
     };
   });
 
   const submitOfferBtn = container.querySelector("#submitOffer");
   if (submitOfferBtn) {
-    // Hapus listener sebelumnya untuk mencegah duplikasi
     submitOfferBtn.onclick = null;
     submitOfferBtn.onclick = () => submitOffer(containerId);
   }
 
   const offerInputElem = container.querySelector("#offerInput");
   if (offerInputElem) {
-    // Menghapus listener sebelumnya untuk mencegah duplikasi
     offerInputElem.onkeypress = null;
     offerInputElem.onkeypress = (e) => {
       if (e.key === "Enter") {
         submitOffer(containerId);
       }
     };
-    // Menambahkan listener untuk format rupiah secara real-time
     offerInputElem.oninput = formatRupiahInput;
   }
 }
@@ -199,11 +237,11 @@ async function startNegotiation(containerId) {
   let vehicleOptions = vehiclesChat
     .map(
       (vehicle) =>
-      `<div class="promo-card vehicle-option" data-id="${vehicle.id}">
-<h4>${vehicle.name}</h4>
+        `<div class="promo-card vehicle-option" data-id="${vehicle.vehicle_id}">
+<h4>${vehicle.vehicle_id} - ${vehicle.brand_name} ${vehicle.model_name}</h4>
 <img src="${vehicle.image}" alt="${
-        vehicle.name
-      }" style="max-width:100px; height:auto; border-radius:8px; margin-top:5px;">
+          vehicle.brand_name
+        } ${vehicle.model_name}" style="max-width:100px; height:auto; border-radius:8px; margin-top:5px;">
 <p>Harga: Rp${Number(vehicle.price).toLocaleString("id-ID")}</p>
 </div>`
     )
@@ -211,15 +249,17 @@ async function startNegotiation(containerId) {
 
   const messageHtml = `<strong>Pilih kendaraan untuk dinegosiasikan:</strong>${vehicleOptions}`;
   appendMessage("bot", messageHtml, containerId);
-  await sendChatMessageToBackend(messageHtml, "bot"); // Kirim ke backend
+  await sendChatMessageToBackend(messageHtml, "bot");
   attachNegotiationListeners(containerId);
 }
 
 function selectVehicle(vehicleId, containerId) {
-  // Pastikan vehicleId sesuai dengan tipe data di vehiclesChat (string jika CHAR(8))
-  const vehicle = vehiclesChat.find((v) => v.id === vehicleId);
+  const vehicle = vehiclesChat.find((v) => v.vehicle_id === vehicleId);
   if (!vehicle) {
-    console.error("Kendaraan tidak ditemukan dalam array vehiclesChat:", vehicleId);
+    console.error(
+      "Kendaraan tidak ditemukan dalam array vehiclesChat:",
+      vehicleId
+    );
     return;
   }
 
@@ -229,14 +269,15 @@ function selectVehicle(vehicleId, containerId) {
     negotiationState.selectedVehicle
   );
 
+{/* <p class="description-card">${vehicle.description}</p> */}
+
   const messageHtml = `
-<strong>Anda memilih ${vehicle.name}</strong>
+<strong>Anda memilih ${vehicle.brand_name} ${vehicle.model_name}</strong>
 <div class="vehicle-card-chat promo-card">
-<h4>${vehicle.name}</h4>
-<img src="${vehicle.image}" alt="${
-    vehicle.name
+<h4>${vehicle.vehicle_id} - ${vehicle.brand_name} ${vehicle.model_name}</h4>
+<img src="${vehicle.image}" alt="${vehicle.brand_name} ${
+    vehicle.model_name
   }" style="max-width:150px; height:auto; border-radius:8px; margin-top:5px;">
-<p class="description-card">${vehicle.description}</p>
 <p><strong>Harga:</strong> Rp${Number(vehicle.price).toLocaleString(
     "id-ID"
   )}</p>
@@ -245,14 +286,13 @@ function selectVehicle(vehicleId, containerId) {
 `;
 
   appendMessage("bot", messageHtml, containerId);
-  sendChatMessageToBackend(messageHtml, "bot"); // Kirim ke backend
+  sendChatMessageToBackend(messageHtml, "bot");
   createOfferInput(containerId);
 }
 
 async function submitOffer(containerId) {
   const chatBodyElement = document.getElementById(containerId);
   const offerInput = chatBodyElement.querySelector("#offerInput");
-  // Hapus format rupiah sebelum parsing ke Number
   const offerAmount = Number(offerInput.value.replace(/[^0-9]/g, ""));
 
   console.log("Nilai input penawaran:", offerInput.value);
@@ -267,7 +307,7 @@ async function submitOffer(containerId) {
     await sendChatMessageToBackend(
       "Mohon masukkan angka yang valid dan lebih besar dari nol.",
       "bot"
-    ); // Kirim pesan error ke backend
+    );
     console.warn("Penawaran tidak valid:", offerAmount);
     return;
   }
@@ -277,7 +317,7 @@ async function submitOffer(containerId) {
     await sendChatMessageToBackend(
       "Mohon pilih kendaraan terlebih dahulu.",
       "bot"
-    ); // Kirim pesan error ke backend
+    );
     console.error(
       "Tidak ada kendaraan yang dipilih saat mengajukan penawaran."
     );
@@ -288,7 +328,9 @@ async function submitOffer(containerId) {
   const vehicle = negotiationState.selectedVehicle;
   const userMessage = `Saya menawarkan Rp${offerAmount.toLocaleString(
     "id-ID"
-  )} untuk ${vehicle.name}.`;
+  )} untuk ${vehicle.vehicle_id} - ${vehicle.brand_name} ${
+    vehicle.model_name
+  }.`;
 
   const offerInputContainer = chatBodyElement.querySelector(".offer-input");
   if (offerInputContainer) {
@@ -296,31 +338,29 @@ async function submitOffer(containerId) {
     console.log("Input penawaran dihapus dari DOM.");
   }
 
-  // Tampilkan pesan penawaran pengguna di UI lokal secara instan
-  appendMessage("customer", userMessage, containerId); // PERBAIKAN: senderType 'customer'
+  appendMessage("customer", userMessage, containerId);
   if (isFullScreen) {
-    appendMessage("customer", userMessage, fullPageChatBody.id); // PERBAIKAN: senderType 'customer'
+    appendMessage("customer", userMessage, fullPageChatBody.id);
   }
 
   try {
     console.log("Mengirim penawaran ke backend...");
     console.log("Data yang dikirim ke submit_negotiation_offer:");
     console.log("session_id:", chatSessionId);
-    console.log("vehicle_id:", vehicle.id);
+    console.log("vehicle_id:", vehicle.vehicle_id);
     console.log("offer_amount:", offerAmount);
-    console.log("customer_message_text:", userMessage); // Ini akan disimpan di chat.php sebagai pesan customer
-    console.log("vehicle_name:", vehicle.name);
-
+    console.log("customer_message_text:", userMessage);
+    console.log("vehicle_name:", `${vehicle.brand_name} ${vehicle.model_name}`);
     const response = await fetch("./api/chat.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "submit_negotiation_offer",
         session_id: chatSessionId,
-        vehicle_id: vehicle.id,
+        vehicle_id: vehicle.vehicle_id,
         offer_amount: offerAmount,
-        customer_message_text: userMessage, // Pesan customer dikirim melalui ini
-        vehicle_name: vehicle.name,
+        customer_message_text: userMessage,
+        vehicle_name: `${vehicle.brand_name} ${vehicle.model_name}`,
       }),
     });
 
@@ -328,7 +368,6 @@ async function submitOffer(containerId) {
     console.log("Respons dari submit_negotiation_offer:", data);
 
     if (data.success) {
-      // Hanya append respons bot, pesan user sudah di-append di atas
       appendMessage("bot", data.customer_bot_response_html, containerId);
       if (isFullScreen) {
         appendMessage(
@@ -351,7 +390,7 @@ async function submitOffer(containerId) {
       await sendChatMessageToBackend(
         `Gagal memproses penawaran: ${data.message}`,
         "bot"
-      ); // Kirim pesan error ke backend
+      );
       console.error(
         "Server melaporkan kegagalan dalam memproses penawaran:",
         data.message
@@ -367,7 +406,7 @@ async function submitOffer(containerId) {
     await sendChatMessageToBackend(
       "Terjadi kesalahan jaringan saat mengajukan penawaran.",
       "bot"
-    ); // Kirim pesan error ke backend
+    );
   }
 }
 
@@ -378,12 +417,11 @@ function resetNegotiation(containerId) {
     currentOffer: 0,
   };
   appendMessage("bot", "Memulai negosiasi baru...", containerId);
-  sendChatMessageToBackend("Memulai negosiasi baru...", "bot"); // Rekam pesan ini di backend
+  sendChatMessageToBackend("Memulai negosiasi baru...", "bot");
   console.log("Negosiasi direset.");
   startNegotiation(containerId);
 }
 
-// Inisialisasi sesi chat dan riwayat pada pemuatan halaman
 document.addEventListener("DOMContentLoaded", async () => {
   await getOrCreateChatSession();
   await fetchVehiclesChat();

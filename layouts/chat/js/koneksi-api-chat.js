@@ -1,16 +1,10 @@
-// layouts/chat/js/koneksi-api-chat.js
-
-// LOGIKA API
-
 console.log("koneksi chat aktive");
-
 
 async function fetchVehiclesChat() {
   try {
     const response = await fetch("./api/chat.php?action=get_vehicles");
     const data = await response.json();
     if (data.success) {
-      // PERBAIKAN: Ganti 'vehicles' menjadi 'vehiclesChat' (nama variabel global yang benar)
       vehiclesChat = data.vehicles;
       console.log("Kendaraan berhasil diambil:", vehiclesChat);
     } else {
@@ -29,8 +23,6 @@ async function fetchVehiclesChat() {
   }
 }
 
-// Fungsi Inti Pengiriman Pesan ke Backend
-// Menerima senderType yang benar dari pemanggil (misalnya 'customer' atau 'bot')
 async function sendChatMessageToBackend(message, senderType) {
   try {
     const response = await fetch("./api/chat.php", {
@@ -40,7 +32,7 @@ async function sendChatMessageToBackend(message, senderType) {
         action: "send_message",
         message: message,
         session_id: chatSessionId,
-        sender_type: senderType, // Gunakan senderType yang diterima
+        sender_type: senderType,
       }),
     });
     const data = await response.json();
@@ -57,11 +49,9 @@ async function sendChatMessageToBackend(message, senderType) {
   }
 }
 
-// Logika Status Mengetik (Sisi Customer)
 async function sendTypingStatus(isTyping) {
   if (!chatSessionId) return;
 
-  // PERBAIKAN: Gunakan isCustomerTyping, bukan isUserTyping (yang mengacu pada admin)
   if (isTyping !== isCustomerTyping) {
     isCustomerTyping = isTyping;
     try {
@@ -72,7 +62,7 @@ async function sendTypingStatus(isTyping) {
           action: "update_typing_status",
           session_id: chatSessionId,
           is_typing: isTyping,
-          who: "customer", // PERBAIKAN: Pengirim status mengetik adalah 'customer'
+          who: "customer",
         }),
       });
       console.log("Status mengetik customer dikirim:", isTyping);
@@ -82,9 +72,7 @@ async function sendTypingStatus(isTyping) {
   }
 }
 
-// Manajemen Sesi Chat
 async function getOrCreateChatSession() {
-  // Pastikan chatSessionId yang didapat dari PHP sudah benar
   if (chatSessionId && chatSessionId !== '<?php echo $_SESSION["chat_session_id"] ?? ""; ?>' && chatSessionId !== '') {
     console.log("Sesi chat yang ada (variabel JS):", chatSessionId);
     try {
@@ -98,7 +86,7 @@ async function getOrCreateChatSession() {
       });
       const data = await response.json();
       if (!data.success) {
-        chatSessionId = null; // Set null agar sesi baru dibuat
+        chatSessionId = null;
         console.warn(
           "Sesi chat yang ada tidak valid atau ditutup, membuat yang baru."
         );
@@ -107,7 +95,7 @@ async function getOrCreateChatSession() {
       }
     } catch (error) {
       console.error("Kesalahan memeriksa sesi yang ada:", error);
-      chatSessionId = null; // Set null agar sesi baru dibuat
+      chatSessionId = null;
     }
   }
 
@@ -136,7 +124,6 @@ async function getOrCreateChatSession() {
   }
 }
 
-// Memuat Riwayat Chat
 async function loadChatHistory() {
   if (!chatSessionId) return;
 
@@ -178,26 +165,18 @@ async function loadChatHistory() {
       chatBody.innerHTML = initialBotMessagesHTML;
       fullPageChatBody.innerHTML = initialBotMessagesHTML;
 
-      attachPromoCardListeners(); // Lampirkan listener untuk elemen statis awal (promosi)
+      attachPromoCardListeners();
 
       data.messages.forEach((msg) => {
-        // Logika untuk mencegah duplikasi pesan awal statis
-        // PERBAIKAN: Gunakan pendekatan yang lebih robust untuk menghindari duplikasi
-        // daripada hanya includes(), karena HTML bisa bervariasi spasi/newline.
-        // Cek apakah pesan sudah ditambahkan sebagai bagian dari initialBotMessagesHTML
-        // Pesan-pesan ini harus memiliki content yang sama persis dengan yang sudah statis.
         const staticMessages = [
             "Halo! Butuh bantuan?",
             "Ngobrol dengan kami sekarang!",
             "Berbicara dengan chatbot agent"
         ];
-        // Cek apakah message_text sesuai dengan salah satu staticMessages
         const isStaticBotMessage = staticMessages.includes(msg.message_text.trim());
 
-        // Untuk promo-card, cek apakah pesan berasal dari bot DAN mengandung struktur promo-card
         const isPromoCardBotResponse = msg.sender_type === "bot" && msg.message_text.includes("promo-card");
 
-        // Pesan negosiasi dan pesan yang dikirim dinamis harus selalu ditambahkan ulang
         const isNegotiationResponse =
           msg.message_text.includes("Penawaran DITERIMA!") ||
           msg.message_text.includes("Penawaran DITOLAK") ||
@@ -205,16 +184,11 @@ async function loadChatHistory() {
           msg.message_text.includes("Silakan masukkan penawaran baru:") ||
           msg.message_text.includes("Memulai negosiasi baru...");
 
-        // Tambahkan pesan jika:
-        // 1. Bukan pesan bot statis
-        // 2. Bukan pesan promo-card bot yang sudah ada secara statis
-        // 3. Adalah pesan negosiasi (harus selalu ditambahkan)
-        // 4. Adalah pesan dari 'customer' (sebelumnya 'user') atau 'user' (sebelumnya 'admin')
         if (
-            (!isStaticBotMessage && !isPromoCardBotResponse) || // Ini menangani pesan bot yang bukan statis awal
-            isNegotiationResponse || // Selalu tambahkan pesan negosiasi
-            msg.sender_type === "customer" || // Selalu tambahkan pesan dari customer
-            msg.sender_type === "user" // Selalu tambahkan pesan dari user (admin)
+            (!isStaticBotMessage && !isPromoCardBotResponse) ||
+            isNegotiationResponse ||
+            msg.sender_type === "customer" ||
+            msg.sender_type === "user"
         ) {
           appendMessage(msg.sender_type, msg.message_text, chatBody.id);
           if (isFullScreen) {
@@ -224,7 +198,6 @@ async function loadChatHistory() {
               fullPageChatBody.id
             );
           }
-          // Attach listeners for newly appended messages
           attachNegotiationListeners(chatBody.id);
           if (isFullScreen) attachNegotiationListeners(fullPageChatBody.id);
         }
@@ -238,7 +211,6 @@ async function loadChatHistory() {
   }
 }
 
-// Polling Status Admin
 async function updateAdminStatus() {
   try {
     const response = await fetch(
@@ -246,14 +218,14 @@ async function updateAdminStatus() {
     );
     const data = await response.json();
     if (data.success) {
-      adminIsOnline = data.users_available; // PERBAIKAN: Sesuaikan dengan nama properti di respons API
+      adminIsOnline = data.users_available;
       if (adminIsOnline) {
         adminStatusElement.textContent = "Online";
         adminStatusElement.classList.remove("offline");
-        adminStatusElement.classList.add("online"); // Tambahkan kelas 'online'
+        adminStatusElement.classList.add("online");
       } else {
         adminStatusElement.textContent = "Offline";
-        adminStatusElement.classList.remove("online"); // Hapus kelas 'online'
+        adminStatusElement.classList.remove("online");
         adminStatusElement.classList.add("offline");
       }
     } else {
@@ -268,13 +240,12 @@ async function updateAdminStatus() {
   }
 }
 
-// Polling Status Mengetik Lawan (Admin)
 async function getOpponentTypingStatus() {
   if (!chatSessionId || !chatPanel.classList.contains("active")) return;
 
   try {
     const response = await fetch(
-      `./api/chat.php?action=get_typing_status&session_id=${chatSessionId}&who=customer` // PERBAIKAN: Parameter 'who' adalah customer
+      `./api/chat.php?action=get_typing_status&session_id=${chatSessionId}&who=customer`
     );
     const data = await response.json();
     if (data.success) {
@@ -282,13 +253,13 @@ async function getOpponentTypingStatus() {
         adminStatusElement.textContent = "Mengetik...";
         adminStatusElement.classList.add("typing");
         adminStatusElement.classList.remove("offline", "online");
-        addTypingIndicatorBubble(chatBody.id, "user"); // Indikator mengetik untuk "admin" (user)
+        addTypingIndicatorBubble(chatBody.id, "user");
         if (isFullScreen)
-          addTypingIndicatorBubble(fullPageChatBody.id, "user"); // Indikator mengetik untuk "admin" (user)
+          addTypingIndicatorBubble(fullPageChatBody.id, "user");
       } else {
         removeTypingIndicatorBubble(chatBody.id);
         if (isFullScreen) removeTypingIndicatorBubble(fullPageChatBody.id);
-        updateAdminStatus(); // Periksa kembali status umum (online/offline)
+        updateAdminStatus();
         adminStatusElement.classList.remove("typing");
       }
     } else {
@@ -302,7 +273,6 @@ async function getOpponentTypingStatus() {
   }
 }
 
-// Polling pesan baru, status admin, dan status mengetik lawan
 setInterval(async () => {
   if (chatPanel.classList.contains("active") && chatSessionId) {
     try {
@@ -322,7 +292,7 @@ setInterval(async () => {
           }
         });
         if (data.new_messages.length > 0) {
-          attachPromoCardListeners(); // Lampirkan ulang listener untuk pesan baru
+          attachPromoCardListeners();
           console.log(
             "Pesan baru diterima dan ditambahkan:",
             data.new_messages.length

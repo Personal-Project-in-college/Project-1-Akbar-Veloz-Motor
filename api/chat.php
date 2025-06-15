@@ -16,7 +16,8 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 $action = $_GET['action'] ?? ($input['action'] ?? '');
 
-function checkCustomerAuth($pdo) {
+function checkCustomerAuth($pdo)
+{
     if (!isset($_SESSION['customer_id']) || empty($_SESSION['customer_id'])) {
         echo json_encode(['success' => false, 'message' => 'Pengguna tidak terautentikasi.', 'auth_failed' => true]);
         return false;
@@ -32,7 +33,6 @@ switch ($action) {
 
         $customer_id = $_SESSION['customer_id'];
         $session_id = $_SESSION['chat_session_id'] ?? null;
-
         $recent_session_threshold = date('Y-m-d H:i:s', strtotime('-24 hour'));
 
         if ($session_id) {
@@ -131,7 +131,9 @@ switch ($action) {
         $is_read_by_customer = 0;
 
         if ($sender_type === 'customer') {
-            if (!checkCustomerAuth($pdo)) { exit(); }
+            if (!checkCustomerAuth($pdo)) {
+                exit();
+            }
             $sender_id = $_SESSION['customer_id'];
             $is_read_by_user = 0;
             $is_read_by_customer = 1;
@@ -139,7 +141,7 @@ switch ($action) {
             $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'pending', last_customer_activity = NOW() WHERE session_id = ? AND status != 'closed'");
             $stmt_update_session->execute([$session_id]);
         } elseif ($sender_type === 'user') {
-            $sender_id = $_SESSION['user_id'] ?? 0; // Menggunakan 0 atau ID default jika tidak ada user_id di sesi
+            $sender_id = $_SESSION['user_id'] ?? 0;
             $is_read_by_user = 1;
             $is_read_by_customer = 0;
 
@@ -147,6 +149,7 @@ switch ($action) {
                 $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'open', user_id = ?, closed_at = NULL WHERE session_id = ? AND (status = 'pending' OR user_id IS NULL)");
                 $stmt_update_session->execute([$sender_id, $session_id]);
             } catch (\PDOException $e) {
+                // Ignore error if updating session fails for admin
             }
         } elseif ($sender_type === 'bot') {
             if (isset($_SESSION['customer_id'])) {
@@ -168,11 +171,8 @@ switch ($action) {
         }
 
         try {
-            $is_read_by_user_int = (int)$is_read_by_user;
-            $is_read_by_customer_int = (int)$is_read_by_customer;
-
             $stmt = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$session_id, $sender_id, $sender_type, $message_text, $is_read_by_user_int, $is_read_by_customer_int]);
+            $stmt->execute([$session_id, $sender_id, $sender_type, $message_text, (int)$is_read_by_user, (int)$is_read_by_customer]);
 
             echo json_encode(['success' => true, 'message' => 'Pesan berhasil dikirim.']);
         } catch (\PDOException $e) {
@@ -192,6 +192,7 @@ switch ($action) {
                 $stmt_mark_read_user = $pdo->prepare("UPDATE messages SET is_read_by_user = TRUE WHERE chat_session_id = ? AND (sender_type = 'customer' OR sender_type = 'bot') AND is_read_by_user = FALSE");
                 $stmt_mark_read_user->execute([$session_id]);
             } catch (\PDOException $e) {
+                // Log error
             }
         } elseif (isset($_SESSION['customer_id'])) {
             try {
@@ -200,6 +201,7 @@ switch ($action) {
                 $stmt_update_activity = $pdo->prepare("UPDATE chat_sessions SET last_customer_activity = NOW() WHERE session_id = ?");
                 $stmt_update_activity->execute([$session_id]);
             } catch (\PDOException $e) {
+                // Log error
             }
         }
 
@@ -215,7 +217,9 @@ switch ($action) {
         break;
 
     case 'get_new_messages':
-        if (!checkCustomerAuth($pdo)) { exit(); }
+        if (!checkCustomerAuth($pdo)) {
+            exit();
+        }
         $session_id = $_GET['session_id'] ?? '';
 
         if (empty($session_id)) {
@@ -361,11 +365,7 @@ switch ($action) {
             $stmt->execute([$activity_threshold_time]);
             $online_users_count = $stmt->fetchColumn();
 
-            if ($online_users_count > 0) {
-                echo json_encode(['success' => true, 'users_available' => true]);
-            } else {
-                echo json_encode(['success' => true, 'users_available' => false]);
-            }
+            echo json_encode(['success' => true, 'users_available' => $online_users_count > 0]);
         } catch (\PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Gagal cek ketersediaan admin: ' . $e->getMessage()]);
         }
@@ -382,10 +382,10 @@ switch ($action) {
         }
 
         if ($who_typing === 'customer') {
-            if (!checkCustomerAuth($pdo)) { exit(); }
-        } elseif ($who_typing === 'user') {
-            // No admin authentication needed for this action anymore, as per request
-        } else {
+            if (!checkCustomerAuth($pdo)) {
+                exit();
+            }
+        } elseif ($who_typing !== 'user') {
             echo json_encode(['success' => false, 'message' => 'Tipe pengirim tidak valid atau tidak diizinkan.']);
             exit();
         }
@@ -407,10 +407,6 @@ switch ($action) {
         if (empty($session_id) || empty($who_checking)) {
             echo json_encode(['success' => false, 'message' => 'ID Sesi dan pemeriksa tidak boleh kosong.']);
             exit();
-        }
-        if ($who_checking === 'customer') {
-            if (!isset($_SESSION['customer_id'])) { /* tidak wajib exit(), tapi bisa warning */ }
-        } elseif ($who_checking === 'user') {
         }
 
         try {
@@ -467,7 +463,7 @@ switch ($action) {
                 exit();
         }
 
-        $sender_id = $_SESSION['user_id'] ?? 0; // Menggunakan 0 atau ID default jika tidak ada user_id di sesi
+        $sender_id = $_SESSION['user_id'] ?? 0;
         $sender_type = 'user';
         $is_read_by_user = 1;
         $is_read_by_customer = 0;
@@ -521,25 +517,36 @@ switch ($action) {
     case 'get_vehicles':
         try {
             $stmt = $pdo->query("
-                SELECT
-                    v.id,
-                    vm.name AS name,
-                    v.price,
-                    (v.price * 0.8) AS min_price,
-                    (SELECT photo_path FROM vehicle_photos WHERE vehicle_id = v.id ORDER BY id ASC LIMIT 1) AS image,
-                    v.description
-                FROM
-                    vehicles v
-                JOIN
-                    vehicle_models vm ON v.vehicle_model_id = vm.id
-                ORDER BY
-                    vm.name ASC
-            ");
+            SELECT
+                v.id AS vehicle_id,
+                vm.name AS model_name,
+                b.name AS brand_name,
+                v.price_displayed AS price,
+                v.lowest_price AS min_price,
+                (SELECT photo_path FROM vehicle_photos WHERE vehicle_id = v.id ORDER BY id ASC LIMIT 1) AS image,
+                v.description
+            FROM
+                vehicles v
+            JOIN
+                vehicle_models vm ON v.vehicle_model_id = vm.id
+            JOIN
+                brands b ON vm.brand_id = b.id
+            WHERE
+                v.deleted_at IS NULL
+                AND vm.deleted_at IS NULL
+                AND b.deleted_at IS NULL
+                AND v.status = 'available'
+                AND v.stnk_deadline >= CURDATE()
+            ORDER BY
+                b.name ASC, vm.name ASC
+        ");
             $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $base_image_url = 'http://localhost:8888/project-galacticos-v-2.0/public/uploads/';
 
             foreach ($vehicles as &$vehicle) {
+                $vehicle['display_name'] = $vehicle['vehicle_id'] . ' - ' . $vehicle['brand_name'] . ' ' . $vehicle['model_name'];
+
                 if (!empty($vehicle['image'])) {
                     $vehicle['image'] = $base_image_url . $vehicle['image'];
                 }
@@ -576,40 +583,47 @@ switch ($action) {
         try {
             $stmt_vehicle = $pdo->prepare("
                 SELECT
-                    v.price,
-                    vm.name AS vehicle_model_name
+                    v.price_displayed,
+                    v.lowest_price,
+                    vm.name AS vehicle_model_name,
+                    b.name AS brand_name,
+                    v.id AS vehicle_plate_id
                 FROM
                     vehicles v
                 JOIN
                     vehicle_models vm ON v.vehicle_model_id = vm.id
+                JOIN
+                    brands b ON vm.brand_id = b.id
                 WHERE
                     v.id = ?
             ");
             $stmt_vehicle->execute([$vehicle_id]);
-            $vehicle = $stmt_vehicle->fetch();
+            $vehicle = $stmt_vehicle->fetch(PDO::FETCH_ASSOC);
 
             if (!$vehicle) {
                 echo json_encode(['success' => false, 'message' => 'Kendaraan tidak ditemukan.']);
                 exit();
             }
 
-            $actual_price = $vehicle['price'];
-            $min_acceptable_price = $actual_price * 0.8;
+            $actual_price = $vehicle['price_displayed'];
+            $min_acceptable_price = $vehicle['lowest_price'];
 
             $customer_id = $_SESSION['customer_id'];
 
             $stmt_insert_customer_message = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt_insert_customer_message->execute([$session_id, $customer_id, 'customer', $customer_message_text, 0, 1]);
 
+
             $response_message_customer_html = '';
             $response_message_admin_text = '';
+            $full_vehicle_name = $vehicle['vehicle_plate_id'] . ' - ' . htmlspecialchars($vehicle['brand_name']) . ' ' . htmlspecialchars($vehicle['vehicle_model_name']);
 
             if ($offer_amount >= $min_acceptable_price) {
-                $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . htmlspecialchars($vehicle['vehicle_model_name']) . ' diterima.</p><button class="negotiation-btn" data-action="newNegotiation">Negosiasi Baru</button><button class="negotiation-btn" data-action="order-negosiasi">Pesan sekarang</button>';
-                $response_message_admin_text = 'Penawaran DITERIMA untuk ' . htmlspecialchars($vehicle['vehicle_model_name']) . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Pesan sekarang" untuk melanjutkan transaksi.';
+              $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Transaksi</button>';
+    $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
             } else {
-                $response_message_customer_html = '<strong>Penawaran DITOLAK</strong><p>Maaf, penawaran Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . htmlspecialchars($vehicle['vehicle_model_name']) . ' terlalu rendah.</p><button class="negotiation-btn" data-action="tryAgain">Coba Lagi</button><button class="negotiation-btn" data-action="selectOtherVehicle">Pilih Kendaraan Lain</button>';
-                $response_message_admin_text = 'Penawaran DITOLAK untuk ' . htmlspecialchars($vehicle['vehicle_model_name']) . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Terlalu rendah.';
+                $response_message_customer_html = '<strong>Penawaran DITOLAK</strong><p>Maaf, penawaran Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' terlalu rendah.</p><button class="negotiation-btn" data-action="tryAgain">Coba Lagi</button><button class="negotiation-btn" data-action="selectOtherVehicle">Pilih Kendaraan Lain</button>';
+                $response_message_admin_text = 'Penawaran DITOLAK untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Terlalu rendah.';
             }
 
             $stmt_insert_bot_message_for_customer = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, ?, ?)");
@@ -618,6 +632,7 @@ switch ($action) {
             $stmt_insert_bot_message_for_admin = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, ?, ?)");
             $stmt_insert_bot_message_for_admin->execute([$session_id, $customer_id, $response_message_admin_text, 0, 0]);
 
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Penawaran berhasil diajukan.',
@@ -625,6 +640,72 @@ switch ($action) {
             ]);
         } catch (\PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Gagal mengajukan penawaran: ' . $e->getMessage()]);
+        }
+        break;
+
+    case 'create_test_drive_order':
+        if (!checkCustomerAuth($pdo)) {
+            exit();
+        }
+
+        $customer_id = $_SESSION['customer_id'];
+        $vehicle_id = $input['vehicle_id'] ?? null;
+        $negotiated_price = $input['negotiated_price'] ?? 0.00;
+
+        if (empty($vehicle_id)) {
+            echo json_encode(['success' => false, 'message' => 'ID kendaraan tidak boleh kosong.']);
+            exit();
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare("INSERT INTO orders (customer_id, vehicle_id, negotiated_price, type_order, status, is_read, created_at) VALUES (?, ?, ?, 'test_driver', 'proced', 0, NOW())");
+            $stmt->execute([$customer_id, $vehicle_id, $negotiated_price]);
+            $order_id = $pdo->lastInsertId();
+
+            $stmt_update_vehicle_status = $pdo->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
+            $stmt_update_vehicle_status->execute([$vehicle_id]);
+
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Order Lanjut Test Drive berhasil dibuat.', 'order_id' => $order_id]);
+        } catch (\PDOException $e) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Gagal membuat order Lanjut Test Drive: ' . $e->getMessage()]);
+        }
+        break;
+
+    case 'create_transaction_order':
+        if (!checkCustomerAuth($pdo)) {
+            exit();
+        }
+
+        $customer_id = $_SESSION['customer_id'];
+        $vehicle_id = $input['vehicle_id'] ?? null;
+        $negotiated_price = $input['negotiated_price'] ?? 0.00;
+
+        if (empty($vehicle_id) || !isset($negotiated_price) || !is_numeric($negotiated_price) || $negotiated_price < 0) {
+            echo json_encode(['success' => false, 'message' => 'Data transaksi tidak lengkap atau tidak valid.']);
+            exit();
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare("INSERT INTO orders (customer_id, vehicle_id, negotiated_price, type_order, status, is_read, created_at) VALUES (?, ?, ?, 'transaction', 'proced', 0, NOW())");
+            $stmt->execute([$customer_id, $vehicle_id, $negotiated_price]);
+            $order_id = $pdo->lastInsertId();
+
+            // Opsional: Perbarui status kendaraan menjadi 'transaction' atau 'on_loan' jika sudah dibayar sebagian/lunas
+            // Anda mungkin ingin logika ini lebih kompleks di masa depan (misal: hanya update setelah pembayaran berhasil)
+            $stmt_update_vehicle_status = $pdo->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?");
+            $stmt_update_vehicle_status->execute([$vehicle_id]);
+
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Order Transaksi berhasil dibuat.', 'order_id' => $order_id]);
+        } catch (\PDOException $e) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Gagal membuat order Transaksi: ' . $e->getMessage()]);
         }
         break;
 

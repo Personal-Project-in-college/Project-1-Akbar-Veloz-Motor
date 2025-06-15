@@ -30,6 +30,11 @@ if (isset($_SESSION['user_id'])) {
 
                     <form id="registerForm">
                         <div class="inputGroup">
+                            <input type="name" id="name" name="name" required />
+                            <label for="name">Nama</label>
+                        </div>
+              
+                        <div class="inputGroup">
                             <input type="email" id="email" name="email" required />
                             <label for="email">Email</label>
                         </div>
