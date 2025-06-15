@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once 'db_connect.php';
+include '../helpers/functionGenerateSlug.php';
 
 use App\GoogleOAuth;
 
@@ -112,6 +113,7 @@ switch ($action) {
                 $googleId = $googleUser->getId();
                 $email = $googleUser->getEmail();
                 $name = $googleUser->getName();
+                $slug = generateSlug($name);
 
                 $stmt = $pdo->prepare("SELECT id, username, email, name FROM customers WHERE google_id = ?");
                 $stmt->execute([$googleId]);
@@ -156,8 +158,8 @@ switch ($action) {
                         }
                     } else {
                         error_log("Google Callback: Email not found. Creating new customer for: " . $email);
-                        $stmt_insert = $pdo->prepare("INSERT INTO customers (username, email, password, google_id, is_logged_in, name, registration_method, created_at, updated_at) VALUES (?, ?, NULL, ?, TRUE, ?, 'google', NOW(), NOW())");
-                        if ($stmt_insert->execute([$name, $email, $googleId, $name])) {
+                        $stmt_insert = $pdo->prepare("INSERT INTO customers (username, email, password, google_id, is_logged_in, name, slug, registration_method, created_at, updated_at) VALUES (?, ?, NULL, ?, TRUE, ?, ?, 'google', NOW(), NOW())");
+                        if ($stmt_insert->execute([$name, $email, $googleId, $name, $slug])) {
                             $newCustomerId = $pdo->lastInsertId();
                             $_SESSION['customer_id'] = $newCustomerId;
                             $_SESSION['customer_email'] = $email;
