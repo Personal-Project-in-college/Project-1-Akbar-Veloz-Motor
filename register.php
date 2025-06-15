@@ -1,10 +1,12 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['customer_id'])) {
     header('Location: index.php');
     exit();
 }
 ?>
+
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -29,23 +31,23 @@ if (isset($_SESSION['user_id'])) {
                     <div id="auth-message" class="auth-message" style="display: none; margin: 20px 0px"></div>
 
                     <form id="registerForm">
-                        <div class="inputGroup">
+                        <div class="inputGroup-auth">
                             <input type="name" id="name" name="name" required />
                             <label for="name">Nama</label>
                         </div>
               
-                        <div class="inputGroup">
+                        <div class="inputGroup-auth">
                             <input type="email" id="email" name="email" required />
                             <label for="email">Email</label>
                         </div>
 
-                        <div class="inputGroup">
+                        <div class="inputGroup-auth">
                             <input type="password" id="password" name="password" required />
                             <label for="password">Password</label>
                             <i class="fa fa-eye-slash toggle-password" id="togglePassword"></i>
                         </div>
 
-                        <div class="inputGroup">
+                        <div class="inputGroup-auth">
                             <input type="password" id="confirmPassword" name="confirmPassword" required />
                             <label for="confirmPassword">Konfirmasi Password</label>
                             <i class="fa fa-eye-slash toggle-password" id="toggleConfirmPassword"></i>

@@ -696,8 +696,6 @@ switch ($action) {
             $stmt->execute([$customer_id, $vehicle_id, $negotiated_price]);
             $order_id = $pdo->lastInsertId();
 
-            // Opsional: Perbarui status kendaraan menjadi 'transaction' atau 'on_loan' jika sudah dibayar sebagian/lunas
-            // Anda mungkin ingin logika ini lebih kompleks di masa depan (misal: hanya update setelah pembayaran berhasil)
             $stmt_update_vehicle_status = $pdo->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?");
             $stmt_update_vehicle_status->execute([$vehicle_id]);
 
