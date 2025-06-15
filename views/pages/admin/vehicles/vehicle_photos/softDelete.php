@@ -24,7 +24,7 @@ $vehicle_id = $_GET['vehicle_id'];
 // 3. Proses Soft Delete foto
 // Menjalankan query UPDATE untuk menandai satu foto sebagai terhapus.
 // Kolom `deleted_at` diisi dengan timestamp saat ini, sehingga data tidak akan tampil lagi tapi masih ada di database.
-$data = $koneksi->prepare("UPDATE vehicle_photos SET deleted_at = NOW() WHERE id = ?");
+$data = $koneksi->prepare("UPDATE vehicle_photos SET is_cover = 0, deleted_at = NOW() WHERE id = ?");
 $data->execute([$id]);
 
 
