@@ -100,19 +100,19 @@ include '../layout/sidebar.php';
                 <h5 class="mb-4">Informasi Customer</h5>
                 <table class="table">
                     <tr>
-                        <th>Nama</th>
+                        <th class="w-25">Nama</th>
                         <td><?= htmlspecialchars($test_driver['customer_name']) ?></td>
                     </tr>
                     <tr>
-                        <th>Email</th>
+                        <th class="w-25">Email</th>
                         <td><?= htmlspecialchars($test_driver['customer_email']) ?></td>
                     </tr>
                     <tr>
-                        <th>Nomor HP</th>
+                        <th class="w-25">Nomor HP</th>
                         <td><?= htmlspecialchars($test_driver['customer_phone']) ?></td>
                     </tr>
                     <tr>
-                        <th>Alamat</th>
+                        <th class="w-25">Alamat</th>
                         <td class="text-wrap"><?= htmlspecialchars($test_driver['customer_address']) ?></td>
                     </tr>
                 </table>
@@ -125,7 +125,7 @@ include '../layout/sidebar.php';
                 <h5 class="mb-4">Informasi Kendaraan</h5>
                 <table class="table">
                     <tr>
-                        <th>Kode</th>
+                        <th class="w-25">Kode</th>
                         <td>
                             <a href="../vehicles/detail.php?id=<?= $vehicle['id'] ?>" target="_blank">
                                 <?= htmlspecialchars($vehicle['id']) ?>
@@ -133,16 +133,16 @@ include '../layout/sidebar.php';
                         </td>
                     </tr>
                     <tr>
-                        <th>Tipe</th>
+                        <th class="w-25">Tipe</th>
                         <td><?= $translateTypeVehicle[$vehicle['type_vehicle']] ?? $vehicle['type_vehicle'] ?></td>
                     </tr>
 
                     <tr>
-                        <th>Warna</th>
+                        <th class="w-25">Warna</th>
                         <td><?= htmlspecialchars($vehicle['color']) ?></td>
                     </tr>
                     <tr>
-                        <th>Tahun Produksi</th>
+                        <th class="w-25">Tahun Produksi</th>
                         <td>
                             <?= htmlspecialchars($vehicle['production_year']) ?><br>
                             <small class="text-muted"><?= $umurKendaraan ?> tahun sejak diproduksi</small>
@@ -150,20 +150,20 @@ include '../layout/sidebar.php';
                     </tr>
 
                     <tr>
-                        <th>Pajak STNK</th>
+                        <th class="w-25">Pajak STNK</th>
                         <td><?= htmlspecialchars($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></td>
                     </tr>
                     <tr>
-                        <th>Bahan Bakar</th>
+                        <th class="w-25">Bahan Bakar</th>
                         <td><?= $translateFuel[$vehicle['type_fuel']] ?? $vehicle['type_fuel'] ?></td>
                     </tr>
 
                     <tr>
-                        <th>CC Engine</th>
+                        <th class="w-25">CC Engine</th>
                         <td><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</td>
                     </tr>
                     <tr>
-                        <th>Deskripsi</th>
+                        <th class="w-25">Deskripsi</th>
                         <td class="text-wrap"><?= htmlspecialchars($vehicle['description']) ?></td>
                     </tr>
                 </table>
