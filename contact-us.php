@@ -74,15 +74,15 @@ try {
             </div>
 
             <div class="inputGroup">
-              <textarea id="address" name="address" rows="12" required></textarea>
+              <textarea id="address" name="address" rows="14" required></textarea>
               <label for="address">Alamat</label>
             </div>
           </div>
 
           <div class="testDrive-container">
             <div class="inputGroup">
-              <input type="email" id="email" name="email" required autocomplete="off" autofocus
-                value="<?php echo htmlspecialchars($customer_email); ?>"
+              <input type="email" id="email" name="email" required autocomplete="off" readonly
+                value="<?php echo htmlspecialchars($customer_email);  ?>"
                 <?php if (!empty($customer_email)); ?>>
               <label for="email">Email</label>
             </div>
@@ -99,12 +99,19 @@ try {
               </select>
             </div>
 
-
             <div class="select-wrapper">
               <select class="modern-select" id="purpose" name="purpose" required>
                 <option value="">-- Tentukan tujuan --</option>
                 <option value="test_drive">Test Drive</option>
                 <option value="transaction">Transaksi</option>
+              </select>
+            </div>
+
+            <div class="select-wrapper">
+              <select class="modern-select" id="arrival_method" name="arrival_method" required>
+                <option value="">-- Tentukan Kedatangan --</option>
+                <option value="to_showroom">Saya akan datang ke showroom</option>
+                <option value="to_location">Saya ingin petugas datang ke lokasi saya</option>
               </select>
             </div>
 
@@ -124,7 +131,10 @@ try {
       </div>
       <div class="form-actions">
         <a href="index.html" class="btn-secondary">Kembali</a>
-        <button type="submit" class="btn">
+        <button type="button" onclick="window.location.href='detail-pesanan.php'" class="btn">
+         Lanjut
+        </button>
+        <!-- <button type="submit" class="btn">
           Kirim
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -133,6 +143,7 @@ try {
               <path d="M20 4L3 9.31372L10.5 13.5M20 4L14.5 21L10.5 13.5M20 4L10.5 13.5" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
             </g>
           </svg>
+        </button> -->
       </div>
       </form>
     </section>
@@ -143,7 +154,7 @@ try {
 
 
   <script src="./js/global.js"></script>
-  <script src="./js/testDrive.js"></script>
+  <script src="./js/contact-us.js"></script>
 
 </body>
 

@@ -1,13 +1,26 @@
 document.addEventListener('DOMContentLoaded', function () {
     let purposeChoicesInstance = null;
-    
+
     const modernSelects = document.querySelectorAll('.modern-select');
+
     modernSelects.forEach(selectElement => {
-        const choicesInstance = new Choices(selectElement, {
-            searchEnabled: true,
-            itemSelectText: '',
-            shouldSort: false,
-        });
+        let config;
+
+        if (selectElement.id === 'purpose' || selectElement.id === 'arrival_method') {
+            config = {
+                searchEnabled: false,
+                itemSelectText: '',
+                shouldSort: false,
+            };
+        } else {
+            config = {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+            };
+        }
+        
+        const choicesInstance = new Choices(selectElement, config);
 
         if (selectElement.id === 'purpose') {
             purposeChoicesInstance = choicesInstance;
@@ -28,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 dateInput.required = true;
             }
         };
-
         purposeDropdown.addEventListener('change', toggleDatePicker);
         toggleDatePicker();
     }
@@ -49,14 +61,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         whatsappInput.addEventListener("keydown", (e) => {
             const cursorPos = whatsappInput.selectionStart;
-
-            if (cursorPos < prefix.length) {
-                e.preventDefault();
-            }
-
-            if (e.key === "Backspace" && cursorPos === prefix.length) {
-                e.preventDefault();
-            }
+            if (cursorPos < prefix.length) { e.preventDefault(); }
+            if (e.key === "Backspace" && cursorPos === prefix.length) { e.preventDefault(); }
         });
 
         whatsappInput.addEventListener("input", () => {
@@ -75,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
     const purposeFromUrl = urlParams.get('purpose');
 
-    if (purposeFromUrl && purposeChoicesInstance) {
-        purposeChoicesInstance.setChoiceByValue(purposeFromUrl);
+    if (purposeFromUrl === 'test_drive' && purposeChoicesInstance) {
+        purposeChoicesInstance.setChoiceByValue('test_drive');
     }
 });

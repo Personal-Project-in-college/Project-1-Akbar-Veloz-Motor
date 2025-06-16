@@ -1,5 +1,3 @@
-// index.php
-// Navbar toggle
 function toggleMenu() {
   const navList = document.getElementById("navList");
   navList.classList.toggle("show");

@@ -542,7 +542,7 @@ switch ($action) {
         ");
             $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $base_image_url = 'http://localhost:8888/project-galacticos-v-2.0/public/uploads/';
+            $base_image_url = '../storage/';
 
             foreach ($vehicles as &$vehicle) {
                 $vehicle['display_name'] = $vehicle['vehicle_id'] . ' - ' . $vehicle['brand_name'] . ' ' . $vehicle['model_name'];
@@ -619,8 +619,8 @@ switch ($action) {
             $full_vehicle_name = $vehicle['vehicle_plate_id'] . ' - ' . htmlspecialchars($vehicle['brand_name']) . ' ' . htmlspecialchars($vehicle['vehicle_model_name']);
 
             if ($offer_amount >= $min_acceptable_price) {
-              $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Transaksi</button>';
-    $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
+                $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Transaksi</button>';
+                $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
             } else {
                 $response_message_customer_html = '<strong>Penawaran DITOLAK</strong><p>Maaf, penawaran Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' terlalu rendah.</p><button class="negotiation-btn" data-action="tryAgain">Coba Lagi</button><button class="negotiation-btn" data-action="selectOtherVehicle">Pilih Kendaraan Lain</button>';
                 $response_message_admin_text = 'Penawaran DITOLAK untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Terlalu rendah.';
@@ -657,12 +657,25 @@ switch ($action) {
             exit();
         }
 
+        // Cek dulu apakah sudah ada order dengan vehicle_id dan status 'proced'
+        $checkVehicleIdInOrders = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE vehicle_id = ? AND status = 'proced'");
+        $checkVehicleIdInOrders->execute([$vehicle_id]);
+        $alreadyExists = $checkVehicleIdInOrders->fetchColumn();
+
+        if ($alreadyExists) {
+            echo json_encode(['success' => false, 'message' => 'Pesanan sudah dibuat sebelumnya untuk kendaraan ini.']);
+            exit;
+        }
+
         try {
             $pdo->beginTransaction();
 
             $stmt = $pdo->prepare("INSERT INTO orders (customer_id, vehicle_id, negotiated_price, type_order, status, is_read, created_at) VALUES (?, ?, ?, 'test_driver', 'proced', 0, NOW())");
             $stmt->execute([$customer_id, $vehicle_id, $negotiated_price]);
             $order_id = $pdo->lastInsertId();
+
+            $InsertTestDriver = $pdo->prepare("INSERT INTO test_drivers (order_id, status, created_at) VALUES (?, 'process', NOW())");
+            $InsertTestDriver->execute([$order_id]);
 
             $stmt_update_vehicle_status = $pdo->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
             $stmt_update_vehicle_status->execute([$vehicle_id]);
@@ -689,6 +702,15 @@ switch ($action) {
             exit();
         }
 
+        $checkVehicleIdInOrders = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE vehicle_id = ? AND status = 'proced'");
+        $checkVehicleIdInOrders->execute([$vehicle_id]);
+        $alreadyExists = $checkVehicleIdInOrders->fetchColumn();
+
+        if ($alreadyExists) {
+            echo json_encode(['success' => false, 'message' => 'Pesanan sudah dibuat sebelumnya untuk kendaraan ini.']);
+            exit;
+        }
+
         try {
             $pdo->beginTransaction();
 
@@ -696,6 +718,16 @@ switch ($action) {
             $stmt->execute([$customer_id, $vehicle_id, $negotiated_price]);
             $order_id = $pdo->lastInsertId();
 
+            $getPriceVehicle = $pdo->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
+            $getPriceVehicle->execute([$vehicle_id]);
+            $vehicle_price = $getPriceVehicle->fetchColumn();
+
+            // Langsung buat record transaksi dengan status 'pending' agar validasi berfungsi
+            $insertTransaction = $pdo->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, grand_total, amount_paid, payment_type, payment_method, status, created_at) VALUES (?, ?, 0, 0, 0, 'tunai', 'cash', 'pending', NOW())");
+            $insertTransaction->execute([$order_id, $vehicle_price]);
+
+            // Opsional: Perbarui status kendaraan menjadi 'transaction' atau 'on_loan' jika sudah dibayar sebagian/lunas
+            // Anda mungkin ingin logika ini lebih kompleks di masa depan (misal: hanya update setelah pembayaran berhasil)
             $stmt_update_vehicle_status = $pdo->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?");
             $stmt_update_vehicle_status->execute([$vehicle_id]);
 

@@ -362,7 +362,10 @@ include '../layout/sidebar.php';
             $photoCountStmt = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NULL AND deleted_by_vehicle_at IS NULL)");
             $photoCountStmt->execute([$id]);
             $photoCount = $photoCountStmt->fetchColumn();
-            var_dump($photoCount);
+
+            $coverCheckStmt = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_photos WHERE vehicle_id = ? AND is_cover = 1 AND (deleted_at IS NULL AND deleted_by_vehicle_at IS NULL)");
+            $coverCheckStmt->execute([$id]);
+            $hasCover = $coverCheckStmt->fetchColumn() > 0;
 
             $query = $koneksi->prepare("SELECT * FROM vehicle_photos WHERE vehicle_id = :vehicle_id AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL ORDER BY created_at ASC");
             $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
@@ -370,7 +373,7 @@ include '../layout/sidebar.php';
             $dataVehiclePhotos = $query->fetchAll(PDO::FETCH_ASSOC);
             ?>
 
-            <?php if ($photoCount < 5): ?>
+            <?php if ($photoCount < 6): ?>
                 <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalUploadPhoto">Tambah</button>
             <?php endif; ?>
 

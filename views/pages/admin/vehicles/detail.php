@@ -326,6 +326,7 @@ include '../layout/sidebar.php';
 
 
         <!-- Table Vehicle Photos -->
+
         <div class="mt-5">
             <h3 class="mb-4">Data Foto Kendaraan</h3>
 
@@ -333,7 +334,10 @@ include '../layout/sidebar.php';
             $photoCountStmt = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NULL AND deleted_by_vehicle_at IS NULL)");
             $photoCountStmt->execute([$id]);
             $photoCount = $photoCountStmt->fetchColumn();
-            var_dump($photoCount);
+
+            $coverCheckStmt = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_photos WHERE vehicle_id = ? AND is_cover = 1 AND (deleted_at IS NULL AND deleted_by_vehicle_at IS NULL)");
+            $coverCheckStmt->execute([$id]);
+            $hasCover = $coverCheckStmt->fetchColumn() > 0;
 
             $query = $koneksi->prepare("SELECT * FROM vehicle_photos WHERE vehicle_id = :vehicle_id AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL ORDER BY created_at ASC");
             $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
@@ -341,13 +345,11 @@ include '../layout/sidebar.php';
             $dataVehiclePhotos = $query->fetchAll(PDO::FETCH_ASSOC);
             ?>
 
-            <?php if ($photoCount < 5): ?>
+            <?php if ($photoCount < 6): ?>
                 <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalUploadPhoto">Tambah</button>
             <?php endif; ?>
 
-            <?php
-            $activePage = basename($_SERVER['PHP_SELF']);
-            ?>
+            <?php $activePage = basename($_SERVER['PHP_SELF']); ?>
 
             <ul class="nav nav-tabs mb-3">
                 <li class="nav-item">
@@ -359,7 +361,6 @@ include '../layout/sidebar.php';
             </ul>
 
             <div class="row">
-
                 <?php foreach ($dataVehiclePhotos as $row): ?>
                     <div class="col-md-4 mb-4">
                         <div class="card">
@@ -369,15 +370,32 @@ include '../layout/sidebar.php';
                                 alt="Foto Kendaraan"
                                 onclick="openFullscreen(this)"
                                 style="height: 200px; object-fit: cover; cursor: zoom-in;">
-                            <div class="card-body d-flex justify-content-center gap-2">
-                                <button data-bs-toggle="modal" data-bs-target="#modalEditPhoto" title="Edit"
-                                    class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="mdi mdi-pencil"></i>
-                                </button>
-                                <a href="./vehicle_photos/softDelete.php?id=<?= $row['id'] ?>&vehicle_id=<?= $vehicle['id'] ?>"
-                                    title="Delete" class="btn btn-danger btn-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; color: white;">
-                                    <i class="mdi mdi-delete-restore"></i>
-                                </a>
+                            <div class="card-body d-flex flex-column align-items-center gap-2">
+                                <?php if ($row['is_cover']): ?>
+                                    <span class="badge bg-success mb-2">Foto Cover</span>
+                                <?php endif; ?>
+
+                                <div class="d-flex gap-2">
+                                    <button data-bs-toggle="modal" data-bs-target="#modalEditPhoto" title="Edit"
+                                        class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="mdi mdi-pencil"></i>
+                                    </button>
+                                    <a href="./vehicle_photos/softDelete.php?id=<?= $row['id'] ?>&vehicle_id=<?= $vehicle['id'] ?>"
+                                        title="Delete" class="btn btn-danger btn-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; color: white;">
+                                        <i class="mdi mdi-delete-restore"></i>
+                                    </a>
+                                </div>
+
+                                <?php if ($row['is_cover'] || !$hasCover): ?>
+                                    <form action="vehicle_photos/setCover.php" method="POST">
+                                        <input type="hidden" name="photo_id" value="<?= $row['id'] ?>">
+                                        <input type="hidden" name="vehicle_id" value="<?= $vehicle['id'] ?>">
+                                        <button type="submit" class="btn btn-outline-<?= $row['is_cover'] ? 'danger' : 'success' ?> btn-sm mt-2">
+                                            <?= $row['is_cover'] ? 'Lepas Cover' : 'Jadikan Cover' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
                             </div>
                         </div>
                     </div>
@@ -390,6 +408,7 @@ include '../layout/sidebar.php';
                 <?php endif; ?>
             </div>
         </div>
+
 
 
         <?php

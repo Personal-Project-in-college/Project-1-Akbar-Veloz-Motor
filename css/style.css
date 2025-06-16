@@ -1,5 +1,5 @@
-/* Global Styles */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
 :root {
   --primary-color: #1a237e;
   --secondary-color: #ff6d00;
@@ -1045,7 +1045,9 @@ footer {
   flex-direction: column;
   width: 100%;
   gap: 24px;
-  padding: 24px 0px;
+  background-color: var(--white-color);
+  padding: 24px 22px;
+  border-radius: 8px;
 }
 
 /* Input Group Styles */
@@ -1103,8 +1105,26 @@ footer {
 /* Disabled/Readonly State */
 .credit-form__input:disabled,
 .credit-form__input[readonly] {
-  background-color: #f3f4f6;
+  background-color: var(--white-color);
 }
+
+/* input readonly */
+.credit-form__input-group input[readonly] {
+  border-color: var(--secondary-color);
+  background-color: var(--white-color);
+  color: var(--gray-color);
+  cursor: not-allowed;
+}
+
+.credit-form__input-group input[readonly] ~ label {
+  transform: translateY(-50%) scale(0.9);
+  margin: 0;
+  margin-left: 1em;
+  padding: 0.2em;
+  background-color: var(--white-color);
+  color: var(--secondary-color);
+}
+
 
 /* Error State (optional) */
 .credit-form__input--error {
@@ -1161,6 +1181,8 @@ footer {
   border-color: #000;
   outline: none;
 }
+
+
 
 /* Style untuk payment summary */
 .credit-form__summary {
@@ -1482,6 +1504,8 @@ footer {
   color: var(--gray-color);
 }
 
+
+
 .inputGroup input,
 .inputGroup #address,
 .inputGroup select {
@@ -1516,6 +1540,7 @@ footer {
   padding: 0.2em;
   background-color: var(--white-color);
   color: var(--secondary-color);
+
 }
 
 .inputGroup
@@ -1530,6 +1555,23 @@ footer {
   border-color: var(--secondary-color);
 }
 
+/* input readonly */
+.inputGroup input[readonly] {
+  border-color: var(--secondary-color);
+  color: var(--gray-color);
+  cursor: not-allowed;
+}
+
+.inputGroup input[readonly] ~ label {
+  transform: translateY(-50%) scale(0.9);
+  margin: 0;
+  margin-left: 1em;
+  padding: 0.2em;
+  background-color: var(--white-color);
+  color: var(--secondary-color);
+}
+
+
 /* Date Input Specific */
 .inputGroup-2 {
   display: flex;
@@ -1541,6 +1583,12 @@ footer {
   color: var(--gray-color);
   font-size: 100%;
   margin-left: 0.5em;
+  transform: translateY(-50%) scale(0.9);
+  margin: 0;
+  margin-left: 1em;
+  padding: 0.2em;
+  background-color: var(--white-color);
+  color: var(--secondary-color);
 }
 
 .input-date {
@@ -2025,7 +2073,7 @@ h2 {
   max-width: 450px;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -2074,6 +2122,10 @@ h2 {
   pointer-events: none;
   transition: all 0.2s ease;
 }
+
+
+
+
 
 .inputGroup-auth input:focus ~ label,
 .inputGroup-auth input:valid ~ label {

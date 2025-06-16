@@ -336,11 +336,19 @@ include '../layout/sidebar.php';
             $photoCountStmt = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_photos WHERE vehicle_id = ? AND (deleted_at IS NULL AND deleted_by_vehicle_at IS NULL)");
             $photoCountStmt->execute([$id]);
             $photoCount = $photoCountStmt->fetchColumn();
-            var_dump($photoCount);
+
+            $coverCheckStmt = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_photos WHERE vehicle_id = ? AND is_cover = 1 AND (deleted_at IS NULL AND deleted_by_vehicle_at IS NULL)");
+            $coverCheckStmt->execute([$id]);
+            $hasCover = $coverCheckStmt->fetchColumn() > 0;
+
+            $query = $koneksi->prepare("SELECT * FROM vehicle_photos WHERE vehicle_id = :vehicle_id AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL ORDER BY created_at ASC");
+            $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
+            $query->execute();
+            $dataVehiclePhotos = $query->fetchAll(PDO::FETCH_ASSOC);
             ?>
 
             <!-- Tombol Memunculkan Form Tambah Data Vehicle Documents -->
-            <?php if ($photoCount < 5): ?>
+            <?php if ($photoCount < 6): ?>
                 <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadPhoto">
                         Tambah
@@ -393,7 +401,7 @@ include '../layout/sidebar.php';
                                 onclick="openFullscreen(this)"
                                 style="height: 200px; object-fit: cover; cursor: zoom-in;">
                             <div class="card-body d-flex justify-content-center gap-2">
-                                <?php if ($photoCount < 5): ?>
+                                <?php if ($photoCount < 6): ?>
                                     <a href="./vehicle_photos/restore.php?id=<?= $row['id'] ?>&vehicle_id=<?= $vehicle['id'] ?>" title='Restore' class='btn btn-success btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
                                         <i class='mdi mdi-restore'></i>
                                     </a>

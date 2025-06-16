@@ -1,0 +1,102 @@
+:root {
+  --primary-color: #1a237e;
+  --secondary-color: #ff6d00;
+  --light-color: #f5f5f5;
+  --dark-color: #212121;
+  --gray-color: #757575;
+  --white-color: #ffffff;
+  --error-color: #f44336;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--light-color);
+  text-align: center;
+  padding: 40px 20px;
+  margin: 0;
+}
+
+.status-card {
+  max-width: 600px;
+  margin: auto;
+  background: var(--white-color);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.status-icon {
+  width: 100px;
+  height:100%;
+}
+
+h1 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+}
+
+p {
+  color: var(--gray-color);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 25px;
+}
+
+.address-box {
+  text-align: left;
+  background-color: var(--light-color);
+  padding: 20px;
+  border-radius: 8px;
+  margin: 25px 0;
+  border-left: 5px solid var(--secondary-color);
+}
+
+.address-box strong {
+  color: var(--dark-color);
+}
+
+.map-container {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.timer-info {
+  margin-top: 30px;
+}
+
+#cancel-timer {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin: 10px 0;
+}
+
+.btn-cancel {
+  display: inline-block;
+  background-color: var(--error-color);
+  color: var(--white-color);
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.btn-cancel:disabled {
+  background-color: var(--gray-color);
+  cursor: not-allowed;
+  transform: none;
+}
