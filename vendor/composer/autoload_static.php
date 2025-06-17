@@ -29,6 +29,7 @@ class ComposerStaticInit747c4097e0e6cf9ca09ae317e16680c1
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Ctype\\' => 23,
+            'SnapBi\\' => 7,
         ),
         'R' => 
         array (
@@ -47,6 +48,7 @@ class ComposerStaticInit747c4097e0e6cf9ca09ae317e16680c1
         'M' => 
         array (
             'Monolog\\' => 8,
+            'Midtrans\\' => 9,
         ),
         'G' => 
         array (
@@ -93,6 +95,10 @@ class ComposerStaticInit747c4097e0e6cf9ca09ae317e16680c1
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
+        'SnapBi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/midtrans/midtrans-php/SnapBi',
+        ),
         'Ramsey\\Uuid\\' => 
         array (
             0 => __DIR__ . '/..' . '/ramsey/uuid/src',
@@ -129,6 +135,10 @@ class ComposerStaticInit747c4097e0e6cf9ca09ae317e16680c1
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'Midtrans\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/midtrans/midtrans-php/Midtrans',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
