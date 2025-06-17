@@ -46,23 +46,40 @@ $today = new DateTime();
 $interval = $today->diff($stnk_deadline);
 $sisaHari = $interval->days . " hari (" . ($stnk_deadline > $today ? "tersisa" : "lewat") . ")";
 
+// Ambil list user dengan role = 2 (misal: Petugas Test Drive)
+$staffQuery = $koneksi->prepare("SELECT id, name FROM users WHERE role_id = 2 AND deleted_at IS NULL");
+$staffQuery->execute();
+$staffList = $staffQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Kondisi apakah user_id sudah terisi (test driver sudah dilayani)
+$alreadyAssigned = !empty($test_driver['user_id']);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $status = trim($_POST['status']);
-    $result_note = trim($_POST['result_note']);
+    if (isset($_POST['assign_user'])) {
+        // Simpan petugas
+        $user_id = $_POST['user_id'];
+        $updateStaff = $koneksi->prepare("UPDATE test_drivers SET user_id = ?, updated_at = NOW() WHERE id = ?");
+        $updateStaff->execute([$user_id, $test_driver['id']]);
+        $_SESSION['success_message'] = "Petugas telah ditugaskan.";
+        header("Location: ../orders/orders.php");
+        exit;
+    } else {
+        // Simpan hasil dan status
+        $status = trim($_POST['status']);
+        $result_note = trim($_POST['result_note']);
 
-    // Update status test driver
-    $updateQuery = $koneksi->prepare("UPDATE test_drivers SET status = ?, result_note = ?, updated_at = NOW() WHERE id = ?");
-    $updateQuery->execute([$status, $result_note, $test_driver['id']]);
+        $updateQuery = $koneksi->prepare("UPDATE test_drivers SET status = ?, result_note = ?, updated_at = NOW() WHERE id = ?");
+        $updateQuery->execute([$status, $result_note, $test_driver['id']]);
 
-    // Jika status 'cancelled' atau 'finish', update juga status di orders
-    if ($status === 'cancelled' || $status === 'finish') {
-        $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
-        $updateOrder->execute([$test_driver['order_id']]);
+        if ($status === 'cancelled' || $status === 'finish') {
+            $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
+            $updateOrder->execute([$test_driver['order_id']]);
+        }
+
+        $_SESSION['success_message'] = "Pesanan <strong>{$test_driver['customer_name']}</strong> telah diselesaikan.";
+        header("Location: ../orders/orders.php");
+        exit;
     }
-
-    $_SESSION['success_message'] = "Pesanan <strong>{$test_driver['customer_name']}</strong> telah diselesaikan.";
-    header("Location: ../orders/orders.php");
-    exit;
 }
 // Mapping ke Bahasa Indonesia
 $translateTypeVehicle = [
@@ -109,11 +126,11 @@ include '../layout/sidebar.php';
                     </tr>
                     <tr>
                         <th class="w-25">Nomor HP</th>
-                        <td><?= htmlspecialchars($test_driver['customer_phone']) ?></td>
+                        <td><?= htmlspecialchars($test_driver['customer_phone'] ?? '-') ?></td>
                     </tr>
                     <tr>
                         <th class="w-25">Alamat</th>
-                        <td class="text-wrap"><?= htmlspecialchars($test_driver['customer_address']) ?></td>
+                        <td class="text-wrap"><?= htmlspecialchars($test_driver['customer_address'] ?? '-') ?></td>
                     </tr>
                 </table>
             </div>
@@ -170,29 +187,55 @@ include '../layout/sidebar.php';
             </div>
         </div>
 
-
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-body">
-                <h5 class="mb-4">Edit Hasil Coba Kendaraan</h5>
+                <h5 class="mb-4">Dilayani Oleh</h5>
                 <form method="POST">
+                    <input type="hidden" name="assign_user" value="1">
                     <div class="mb-3">
-                        <label for="result_note" class="form-label">Catatan Hasil</label>
-                        <textarea class="form-control" id="result_note" name="result_note" autofocus rows="8"><?= htmlspecialchars($test_driver['result_note'] ?? '') ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" style="color: black;" required>
-                            <option value="finish" <?= $test_driver['status'] === 'finish' ?>>Selesai</option>
-                            <option value="cancelled" <?= $test_driver['status'] === 'cancelled' ?>>Dibatalkan</option>
+                        <label for="user_id" class="form-label">Pilih Petugas</label>
+                        <select name="user_id" id="user_id" class="form-select" required style="color: black;">
+                            <option value="">-- Pilih Petugas --</option>
+                            <?php foreach ($staffList as $staff): ?>
+                                <option value="<?= $staff['id'] ?>" <?= ($test_driver['user_id'] == $staff['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($staff['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
-
                     <button type="submit" class="btn btn-primary">Simpan</button>
-                    <a href="../orders/orders.php" class="btn btn-secondary mx-2 text-white">Kembali</a>
                 </form>
             </div>
         </div>
+
+
+        <?php if ($alreadyAssigned): ?>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-4">Edit Hasil Coba Kendaraan</h5>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="result_note" class="form-label">Catatan Hasil</label>
+                            <textarea class="form-control" id="result_note" name="result_note" autofocus rows="8">
+                        <?= htmlspecialchars($test_driver['result_note'] ?? '') ?>
+                    </textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" style="color: black;" required>
+                                <option value="process" <?= $test_driver['status'] === 'process' ? 'selected' : '' ?>>Proses</option>
+                                <option value="finish" <?= $test_driver['status'] === 'finish' ? 'selected' : '' ?>>Selesai</option>
+                                <option value="cancelled" <?= $test_driver['status'] === 'cancelled' ? 'selected' : '' ?>>Dibatalkan</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <a href="../orders/orders.php" class="btn btn-secondary mx-2 text-white">Kembali</a>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
