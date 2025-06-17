@@ -279,9 +279,7 @@ nav ul li a:hover .auth-link .icon svg {
 }
 
 
-/*=============================================
-=            Content Sections                 =
-=============================================*/
+
 .vehicle-list {
   margin: 40px 0;
 }
@@ -308,6 +306,7 @@ nav ul li a:hover .auth-link .icon svg {
 
 .vehicle-card img {
   width: 100%;
+  height: 188px;
   object-fit: cover;
 }
 

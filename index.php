@@ -5,7 +5,95 @@ header("Expires: Sat, 1 Jul 2000 05:00:00 GMT");
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+include_once './config/koneksi.php';
+
+$all_vehicles = [];
+$motorcycles = [];
+$cars = [];
+$db_error = null;
+
+try {
+    $stmt = $koneksi->query("
+        SELECT
+            v.id,
+            v.type_vehicle,
+            v.price_displayed,
+            CONCAT(b.name, ' ', vm.name) AS display_name,
+            (
+                SELECT photo_path 
+                FROM vehicle_photos 
+                WHERE vehicle_id = v.id AND deleted_at IS NULL 
+                ORDER BY is_cover DESC, id ASC 
+                LIMIT 1
+            ) AS image
+        FROM
+            vehicles v
+        JOIN
+            vehicle_models vm ON v.vehicle_model_id = vm.id
+        JOIN
+            brands b ON vm.brand_id = b.id
+        WHERE
+            v.status = 'available'
+            AND v.stnk_deadline >= CURDATE()
+            AND v.deleted_at IS NULL
+            AND vm.deleted_at IS NULL
+            AND b.deleted_at IS NULL
+        ORDER BY
+            v.created_at DESC
+    ");
+
+    $all_vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $base_image_url = './storage/'; 
+    foreach ($all_vehicles as &$vehicle) {
+        if (!empty($vehicle['image']) && file_exists($base_image_url . $vehicle['image'])) {
+            $vehicle['image'] = $base_image_url . $vehicle['image'];
+        } else {
+            $vehicle['image'] = './assets/images/placeholder.png'; 
+        }
+
+        if (strtolower($vehicle['type_vehicle']) === 'motorcycle') {
+            $motorcycles[] = $vehicle;
+        } elseif (strtolower($vehicle['type_vehicle']) === 'car') {
+            $cars[] = $vehicle;
+        }
+    }
+    unset($vehicle);
+
+} catch (PDOException $e) {
+    error_log('Database Error: ' . $e->getMessage());
+    $db_error = "Gagal memuat data dari server. Silakan coba lagi nanti.";
+}
+
+function render_vehicle_card($vehicle) {
+    $formattedPrice = 'Rp ' . number_format($vehicle['price_displayed'], 0, ',', '.');
+    $detailUrl = 'detail.php?id=' . htmlspecialchars($vehicle['id']);
+    $displayName = htmlspecialchars($vehicle['display_name']);
+    $imageUrl = htmlspecialchars($vehicle['image']);
+
+    echo '
+    <div class="vehicle-card">
+      <div class="card-image-wrapper" style="position: relative;">
+        <img src="' . $imageUrl . '" alt="' . $displayName . '" onerror="this.onerror=null;this.src=\'./assets/images/placeholder.png\';">
+        <button class="save-btn" onclick="saveToWishlist(this)"
+                data-id="' . htmlspecialchars($vehicle['id']) . '"
+                data-name="' . $displayName . '" 
+                data-price="' . $formattedPrice . '" 
+                data-image="' . $imageUrl . '"
+                data-detail-url="' . $detailUrl . '">
+                  <svg width="64px" height="64px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.4997 18.9911L9.5767 15.9911L6.6767 12.9911C5.10777 11.3331 5.10777 8.73809 6.6767 7.08009C7.44494 6.34175 8.48548 5.95591 9.54937 6.01489C10.6133 6.07387 11.6048 6.57236 12.2867 7.39109L12.4997 7.60009L12.7107 7.38209C13.3926 6.56336 14.3841 6.06487 15.448 6.00589C16.5119 5.94691 17.5525 6.33275 18.3207 7.07109C19.8896 8.72909 19.8896 11.3241 18.3207 12.9821L15.4207 15.9821L12.4997 18.9911Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+        </button>
+      </div>
+      <div class="card-content">
+        <h3>' . $displayName . '</h3>
+        <p>Mulai dari ' . $formattedPrice . '</p>
+        <a href="' . $detailUrl . '" class="btn-secondary">Detail</a>
+      </div>
+    </div>';
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="id" translate="no">
   <head>
@@ -106,18 +194,52 @@ if (session_status() == PHP_SESSION_NONE) {
         <!-- Semua -->
         <div id="Semua" class="tabcontent" style="display: block;">
           <div class="grid-container" id="semua-container">
-            
+            <?php
+              if (isset($db_error)) {
+                  echo "<p>$db_error</p>";
+              } elseif (empty($all_vehicles)) {
+                  echo "<p>Saat ini belum ada kendaraan yang tersedia.</p>";
+              } else {
+                  foreach ($all_vehicles as $vehicle) {
+                      render_vehicle_card($vehicle);
+                  }
+              }
+            ?>
           </div>
         </div>
       
         <!-- Motor -->
         <div id="Motor" class="tabcontent">
-          <div class="grid-container" id="motor-container"></div>
+          <div class="grid-container" id="motor-container">
+            <?php
+              if (isset($db_error)) {
+                  echo "<p>$db_error</p>";
+              } elseif (empty($motorcycles)) {
+                  echo "<p>Saat ini belum ada motor yang tersedia.</p>";
+              } else {
+                  foreach ($motorcycles as $vehicle) {
+                      render_vehicle_card($vehicle);
+                  }
+              }
+            ?>
+          </div>
         </div>
       
         <!-- Mobil -->
         <div id="Mobil" class="tabcontent">
-          <div class="grid-container" id="mobil-container"></div>
+          <div class="grid-container" id="mobil-container">
+            <?php
+              if (isset($db_error)) {
+                  echo "<p>$db_error</p>";
+              } elseif (empty($cars)) {
+                  echo "<p>Saat ini belum ada mobil yang tersedia.</p>";
+              } else {
+                  foreach ($cars as $vehicle) {
+                      render_vehicle_card($vehicle);
+                  }
+              }
+            ?>
+          </div>
         </div>
       </section>
       
