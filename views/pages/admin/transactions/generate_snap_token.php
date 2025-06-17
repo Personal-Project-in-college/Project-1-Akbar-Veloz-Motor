@@ -15,6 +15,7 @@ $query = $koneksi->prepare("
     SELECT 
         t.id AS transaction_id,
         t.grand_total,
+        t.down_payment,
         t.payment_type,
         o.id AS order_id,
         c.name AS customer_name,
@@ -33,11 +34,16 @@ if (!$data) {
     exit;
 }
 
+// Tentukan jumlah yang dibayarkan ke Midtrans
+$grossAmount = ($data['payment_type'] === 'cicilan')
+    ? (int) $data['down_payment']
+    : (int) $data['grand_total'];
+
 // Siapkan payload Snap
 $params = [
     'transaction_details' => [
         'order_id' => 'TRX-' . $data['transaction_id'],
-        'gross_amount' => (int) $data['grand_total']
+        'gross_amount' => $grossAmount
     ],
     'customer_details' => [
         'first_name' => $data['customer_name'],
