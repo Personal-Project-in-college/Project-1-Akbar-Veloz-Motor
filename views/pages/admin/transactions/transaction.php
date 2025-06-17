@@ -66,15 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateStaff = $koneksi->prepare("UPDATE transactions SET user_id = ?, updated_at = NOW() WHERE id = ?");
         $updateStaff->execute([$user_id, $transaction['id']]);
         $_SESSION['success_message'] = "Petugas telah ditugaskan.";
-        header("Location: ../orders/orders.php");
+        header("Location: transaction.php?id=" . $orderId);
         exit;
     } else {
         $order_id = $_POST['order_id'];
-        $deal_negotiation = $_POST['deal_negotiation'];
-        $grand_total = (int) $deal_negotiation;
-
         $payment_type = $_POST['payment_type'];
-        $amount_paid = $_POST['amount_paid'];
+        $down_payment = $_POST['down_payment']; // dari input form
+        $remaining_amount = $_POST['remaining_amount'];
         $payment_method = $_POST['payment_method'];
 
         // Tentukan status berdasarkan jenis pembayaran
@@ -105,29 +103,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mkdir($basePath, 0777, true);
             }
 
-            // Cek apakah ada file yang diupload
-            if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === UPLOAD_ERR_OK) {
-                $paymentProofFile = $_FILES['payment_proof'];
-                $ext = pathinfo($paymentProofFile['name'], PATHINFO_EXTENSION);
-                $filename = 'payment_proof_' . time() . '.' . $ext;
-                $fullPath = $basePath . '/' . $filename;
-                $relativePath = str_replace('../../../../', '', $fullPath);
+            // Tentukan status berdasarkan jenis pembayaran
+            $status = ($payment_type === 'cicilan') ? 'dp_paid' : 'paid';
 
-                move_uploaded_file($paymentProofFile['tmp_name'], $fullPath);
+            // Path dan upload file tetap sama...
+            // ↓ setelah selesai handle upload, bagian ini yang kita ubah
+            if ($payment_type === 'cicilan') {
+                if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === UPLOAD_ERR_OK) {
+                    $paymentProofFile = $_FILES['payment_proof'];
+                    $ext = pathinfo($paymentProofFile['name'], PATHINFO_EXTENSION);
+                    $filename = 'payment_proof_' . time() . '.' . $ext;
+                    $fullPath = $basePath . '/' . $filename;
+                    $relativePath = str_replace('../../../../', '', $fullPath);
 
-                // Update dengan bukti pembayaran
-                $stmt = $koneksi->prepare("UPDATE transactions 
-                    SET deal_negotiation = ?, grand_total = ?, payment_type = ?, amount_paid = ?, 
-                        payment_method = ?, payment_proof = ?, status = ?, updated_at = NOW() 
-                    WHERE order_id = ?");
-                $stmt->execute([$deal_negotiation, $grand_total, $payment_type, $amount_paid, $payment_method, $relativePath, $status, $order_id]);
-            } else {
-                // Update tanpa bukti pembayaran
-                $stmt = $koneksi->prepare("UPDATE transactions 
-                    SET deal_negotiation = ?, grand_total = ?, payment_type = ?, amount_paid = ?, 
-                        payment_method = ?, status = ?, updated_at = NOW() 
-                    WHERE order_id = ?");
-                $stmt->execute([$deal_negotiation, $grand_total, $payment_type, $amount_paid, $payment_method, $status, $order_id]);
+                    move_uploaded_file($paymentProofFile['tmp_name'], $fullPath);
+
+                    $stmt = $koneksi->prepare("UPDATE transactions SET payment_type = ?, down_payment = ?, remaining_amount = ?, payment_method = ?, payment_proof = ?, status = ?, updated_at = NOW() WHERE order_id = ?");
+                    $stmt->execute([$payment_type, $down_payment, $remaining_amount, $payment_method, $relativePath, $status, $order_id]);
+
+                    $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
+                    $updateOrder->execute([$order_id]);
+                } else {
+                    $stmt = $koneksi->prepare("UPDATE transactions SET payment_type = ?, down_payment = ?, remaining_amount = ?, payment_method = ?, status = ?, updated_at = NOW() WHERE order_id = ?");
+                    $stmt->execute([$payment_type, $down_payment, $remaining_amount, $payment_method, $status, $order_id]);
+
+                    $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
+                    $updateOrder->execute([$order_id]);
+                }
+            } else { // pembayaran tunai
+                if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === UPLOAD_ERR_OK) {
+                    $paymentProofFile = $_FILES['payment_proof'];
+                    $ext = pathinfo($paymentProofFile['name'], PATHINFO_EXTENSION);
+                    $filename = 'payment_proof_' . time() . '.' . $ext;
+                    $fullPath = $basePath . '/' . $filename;
+                    $relativePath = str_replace('../../../../', '', $fullPath);
+
+                    move_uploaded_file($paymentProofFile['tmp_name'], $fullPath);
+
+                    $stmt = $koneksi->prepare("UPDATE transactions SET payment_type = ?, payment_method = ?, payment_proof = ?, status = ?, updated_at = NOW() WHERE order_id = ?");
+                    $stmt->execute([$payment_type, $payment_method, $relativePath, $status, $order_id]);
+
+                    $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
+                    $updateOrder->execute([$order_id]);
+                } else {
+                    $stmt = $koneksi->prepare("UPDATE transactions SET payment_type = ?, payment_method = ?, status = ?, updated_at = NOW() WHERE order_id = ?");
+                    $stmt->execute([$payment_type, $payment_method, $status, $order_id]);
+
+                    $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
+                    $updateOrder->execute([$order_id]);
+                }
             }
 
             $_SESSION['success_message'] = "Transaksi berhasil diperbarui.";
@@ -298,118 +322,157 @@ include '../layout/sidebar.php';
         <!-- TABEL TRANSAKSI -->
         <?php if ($alreadyAssigned && $transaction['deal_negotiation'] > 0): ?>
             <div class="card mb-4">
-                <form method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="order_id" value="<?= $transaction['order_id'] ?>">
-                    <div class="card-body">
-                        <h5 class="mb-4">Transaksi</h5>
-                        <table class="table" id="transaction_table">
+                <div class="card-body">
+                    <h5 class="mb-4">Transaksi</h5>
+
+                    <?php if (in_array($transaction['status'], ['paid', 'dp_paid'])): ?>
+                        <table class="table">
                             <tr>
-                                <th class="w-25">Jenis Pembayaran<span class="text-danger">*</span></th>
-                                <td>
-                                    <select name="payment_type" id="payment_type" class="form-control" style="color: black;">
-                                        <option value="">Pilih Jenis Pembayaran</option>
-                                        <option value="tunai">Tunai</option>
-                                        <option value="cicilan">Cicilan</option>
-                                    </select>
-                                </td>
+                                <th class="w-25">Jenis Pembayaran</th>
+                                <td><?= $transaction['payment_type'] ?></td>
                             </tr>
 
-                            <tr class="cicilan-row" style="display:none">
-                                <th class="w-25">Jenis DP<span class="text-danger">*</span></th>
-                                <td>
-                                    <select id="dp_type" class="form-control" style="color: black;">
-                                        <option value="">Pilih Jenis</option>
-                                        <option value="persen">Persentase</option>
-                                        <option value="nominal">Nominal Langsung</option>
-                                    </select>
-                                </td>
+                            <!-- Jika Cicilan Tampilkan -->
+                            <tr>
+                                <th class="w-25">Uang DP</th>
+                                <td><?= $transaction['down_payment'] ?></td>
                             </tr>
-                            <tr class="cicilan-row persen-row" style="display:none">
-                                <th class="w-25">Persentase DP (%)<span class="text-danger">*</span></th>
-                                <td>
-                                    <div class="input-group">
-                                        <input style="border: 0;" type="number" id="dp_percentage" class="form-control" value="0">
-                                        <div class="input-group-append" style="border: 0; color:black"><span style="border: 0; color:black" class="input-group-text">%</span></div>
-                                    </div>
-                                    <div class="mt-2">
-                                        <button type="button" class="btn btn-sm btn-outline-primary quick-percent">3%</button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary quick-percent">5%</button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary quick-percent">8%</button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary quick-percent">12%</button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary quick-percent">20%</button>
-                                    </div>
-                                </td>
+                            <tr>
+                                <th class="w-25">Sisa Pembayaran</th>
+                                <td><?= $transaction['remaining_amount'] ?></td>
                             </tr>
-                            <tr class="cicilan-row nominal-row" style="display:none">
-                                <th class="w-25">Nominal DP<span class="text-danger">*</span></th>
-                                <td>
-                                    <input style="border: 0;" type="number" id="dp_nominal" class="form-control" value="0">
-                                    <div class="mt-2">
-                                        <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="1000000">1.000.000</button>
-                                        <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="2000000">2.000.000</button>
-                                        <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="3000000">3.000.000</button>
-                                        <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="5000000">5.000.000</button>
-                                        <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="10000000">10.000.000</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="cicilan-row" style="display:none">
-                                <th class="w-25">Jumlah Dibayarkan<span class="text-danger">*</span></th>
-                                <td>
-                                    <input style="border: 0;" type="number" name="amount_paid" class="form-control" value="0">
-                                    <input type="hidden" id="deal_negotiation_value" value="<?= $transaction['deal_negotiation'] ?>">
-                                </td>
-                            </tr>
-                            <tr class="cicilan-row total-row" style="display:none">
-                                <th class="w-25">Sisa Pembayaran Nanti</th>
-                                <td><input style="border: 0;" type="text" name="remaining_amount" id="remaining_amount" class="form-control" readonly value="0"></td>
-                            </tr>
+                            <!-- End Cicilan Tampilkan -->
 
-                            <tr style="display:none">
-                                <th class="w-25">Metode Pembayaran<span class="text-danger">*</span></th>
-                                <td>
-                                    <select name="payment_method" id="payment_method" class="form-control" style="color: black;">
-                                        <option value="">Pilih Metode</option>
-                                        <option value="cash">Cash</option>
-                                        <option value="transfer">Transfer</option>
-                                        <option value="midtrans">Midtrans</option>
-                                    </select>
-                                </td>
+                            <tr>
+                                <th class="w-25">Metode Pembayaran</th>
+                                <td><?= $transaction['payment_method'] ?></td>
                             </tr>
-                            <tr id="bank_list_row" style="display:none">
-                                <th class="w-25">Rekening Tujuan</th>
-                                <td>
-                                    <ul class="mb-0">
-                                        <?php foreach ($banks as $bank): ?>
-                                            <li><?= $bank['name'] ?> - <?= $bank['number'] ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                </td>
-                            </tr>
-                            <tr id="midtrans_button_row" style="display:none">
-                                <th class="w-25">Aksi Midtrans</th>
-                                <td>
-                                    <a href="#"
-                                        id="midtrans_btn"
-                                        class="btn btn-primary text-white"
-                                        data-order-id="<?= $transaction['order_id'] ?>">Bayar via Midtrans</a>
-                                </td>
-                            </tr>
-
-                            <tr id="payment_proof_button_row" style="display:none">
-                                <th class="w-25">Bukti Pembayaran<span class="text-danger">*</span></th>
-                                <td><input type="file" name="payment_proof" accept="image/*" class="form-control" required></td>
+                            <tr>
+                                <th class="w-25">Status</th>
+                                <td><?= $transaction['status'] ?></td>
                             </tr>
 
 
+                            <!-- Tampilkan jika not null saja -->
+                            <?php if (!empty($transaction['payment_gateway_ref'])): ?>
+                                <tr>
+                                    <th class="w-25">Midtrans Ref</th>
+                                    <td><?= $transaction['payment_gateway_ref'] ?></td>
+                                </tr>
+                            <?php endif; ?>
 
+                            <?php if (!empty($transaction['payment_proof'])): ?>
+                                <tr>
+                                    <th class="w-25">Bukti Pembayaran</th>
+                                    <td><?= $transaction['payment_proof'] ?></td>
+                                </tr>
+                            <?php endif; ?>
                         </table>
+                        
+                    <?php endif; ?>
 
-                        <a href="partner.php" class="mt-3 btn btn-danger text-white">Batalkan Transaksi</a>
-                        <button type="submit" class="mt-3 mx-2 btn btn-primary">Simpan</button>
+                    <?php if (!in_array($transaction['status'], ['paid', 'dp_paid'])): ?>
+                        <form method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="order_id" value="<?= $transaction['order_id'] ?>">
 
-                    </div>
-                </form>
+                            <table class="table" id="transaction_table">
+                                <tr>
+                                    <th class="w-25">Jenis Pembayaran<span class="text-danger">*</span></th>
+                                    <td>
+                                        <select name="payment_type" id="payment_type" class="form-control" style="color: black;">
+                                            <option value="">Pilih Jenis Pembayaran</option>
+                                            <option value="tunai">Tunai</option>
+                                            <option value="cicilan">Cicilan</option>
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr class="cicilan-row" style="display:none">
+                                    <th class="w-25">Jenis DP<span class="text-danger">*</span></th>
+                                    <td>
+                                        <select id="dp_type" class="form-control" style="color: black;">
+                                            <option value="">Pilih Jenis</option>
+                                            <option value="persen">Persentase</option>
+                                            <option value="nominal">Nominal Langsung</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr class="cicilan-row persen-row" style="display:none">
+                                    <th class="w-25">Persentase DP (%)<span class="text-danger">*</span></th>
+                                    <td>
+                                        <div class="input-group">
+                                            <input style="border: 0;" type="number" id="dp_percentage" class="form-control" value="0">
+                                            <div class="input-group-append" style="border: 0; color:black"><span style="border: 0; color:black" class="input-group-text">%</span></div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary quick-percent">3%</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary quick-percent">5%</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary quick-percent">8%</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary quick-percent">12%</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary quick-percent">20%</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="cicilan-row nominal-row" style="display:none">
+                                    <th class="w-25">Nominal DP<span class="text-danger">*</span></th>
+                                    <td>
+                                        <input style="border: 0;" type="number" id="dp_nominal" class="form-control" value="0">
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="1000000">1.000.000</button>
+                                            <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="2000000">2.000.000</button>
+                                            <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="3000000">3.000.000</button>
+                                            <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="5000000">5.000.000</button>
+                                            <button type="button" class="btn btn-sm btn-outline-success quick-nominal" data-nominal="10000000">10.000.000</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="cicilan-row" style="display:none">
+                                    <th class="w-25">Jumlah Dibayarkan<span class="text-danger">*</span></th>
+                                    <td>
+                                        <input style="border: 0;" type="number" name="down_payment" class="form-control" value="0">
+                                        <input type="hidden" id="deal_negotiation_value" value="<?= $transaction['deal_negotiation'] ?>">
+                                    </td>
+                                </tr>
+                                <tr class="cicilan-row total-row" style="display:none">
+                                    <th class="w-25">Sisa Pembayaran Nanti</th>
+                                    <td><input style="border: 0;" type="text" name="remaining_amount" id="remaining_amount" class="form-control" readonly value="0"></td>
+                                </tr>
+                                <tr style="display:none">
+                                    <th class="w-25">Metode Pembayaran<span class="text-danger">*</span></th>
+                                    <td>
+                                        <select name="payment_method" id="payment_method" class="form-control" style="color: black;">
+                                            <option value="">Pilih Metode</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="transfer">Transfer</option>
+                                            <option value="midtrans">Midtrans</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr id="bank_list_row" style="display:none">
+                                    <th class="w-25">Rekening Tujuan</th>
+                                    <td>
+                                        <ul class="mb-0">
+                                            <?php foreach ($banks as $bank): ?>
+                                                <li><?= $bank['name'] ?> - <?= $bank['number'] ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr id="midtrans_button_row" style="display:none">
+                                    <th class="w-25">Aksi Midtrans</th>
+                                    <td><a href="#" id="midtrans_btn" class="btn btn-primary text-white" data-order-id="<?= $transaction['order_id'] ?>">Bayar via Midtrans</a>
+                                    </td>
+                                </tr>
+                                <tr id="payment_proof_button_row" style="display:none">
+                                    <th class="w-25">Bukti Pembayaran<span class="text-danger">*</span></th>
+                                    <td><input type="file" name="payment_proof" accept="image/*" class="form-control" required></td>
+                                </tr>
+                            </table>
+                            <a href="partner.php" class="mt-3 btn btn-danger text-white">Batalkan Transaksi</a>
+                            <button type="submit" class="mt-3 mx-2 btn btn-primary">Simpan</button>
+                        </form>
+                    <?php endif; ?>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -419,8 +482,8 @@ include '../layout/sidebar.php';
                 const paymentMethod = document.getElementById('payment_method');
                 const dealNegotiation = parseFloat(document.getElementById('deal_negotiation_value').value);
 
-                const amountPaidRow = document.querySelector('input[name="amount_paid"]').closest('tr');
-                const amountPaidInput = document.querySelector('input[name="amount_paid"]');
+                const amountPaidRow = document.querySelector('input[name="down_payment"]').closest('tr');
+                const amountPaidInput = document.querySelector('input[name="down_payment"]');
 
                 const bankListRow = document.getElementById('bank_list_row');
                 const midtransButtonRow = document.getElementById('midtrans_button_row');
@@ -433,7 +496,7 @@ include '../layout/sidebar.php';
                 const dpPercentageInput = document.getElementById('dp_percentage');
                 const dpNominalInput = document.getElementById('dp_nominal');
 
-                const downPaymentInput = document.querySelector('input[name="amount_paid"]');
+                const downPaymentInput = document.querySelector('input[name="down_payment"]');
                 const remainingAmountInput = document.getElementById('remaining_amount');
                 const totalRow = document.querySelector('.total-row');
 
@@ -484,6 +547,7 @@ include '../layout/sidebar.php';
                         amountPaidInput.value = dealNegotiation;
                         amountPaidRow.style.display = '';
                         paymentMethodRow.style.display = '';
+                        dpTypeRow.style.display = 'none';
                     } else if (value === 'cicilan') {
                         dpTypeRow.style.display = '';
                     }
@@ -535,48 +599,57 @@ include '../layout/sidebar.php';
         <!-- Tambahkan di akhir sebelum </body> -->
         <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-VooMLjZdL3DUhthB"></script>
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                const midtransBtn = document.getElementById("midtrans_btn");
+            document.getElementById('midtrans_btn').addEventListener('click', function(e) {
+                e.preventDefault();
 
-                if (midtransBtn) {
-                    midtransBtn.addEventListener("click", function(e) {
-                        e.preventDefault();
+                const orderId = this.dataset.orderId;
+                const paymentType = document.querySelector('[name="payment_type"]').value;
+                const downPayment = document.querySelector('[name="down_payment"]').value;
+                const paymentMethod = document.querySelector('[name="payment_method"]').value;
+                const remainingAmount = document.querySelector('[name="remaining_amount"]').value;
 
-                        const orderId = this.getAttribute("data-order-id");
-
-                        if (!orderId) {
-                            alert("Order ID tidak ditemukan.");
-                            return;
+                fetch('save_transaction_ajax.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            order_id: orderId,
+                            payment_type: paymentType,
+                            down_payment: downPayment,
+                            payment_method: paymentMethod,
+                            remaining_amount: remainingAmount
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.status === 'success') {
+                            // lanjut ke Midtrans
+                            fetch(`generate_snap_token.php?id=${orderId}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.snap_token) {
+                                        window.snap.pay(data.snap_token, {
+                                            onSuccess: function(result) {
+                                                alert("Pembayaran berhasil!");
+                                                location.reload();
+                                            },
+                                            onPending: function(result) {
+                                                alert("Menunggu pembayaran.");
+                                                location.reload();
+                                            },
+                                            onError: function(result) {
+                                                alert("Terjadi kesalahan saat pembayaran.");
+                                            }
+                                        });
+                                    } else {
+                                        alert('Gagal generate token Midtrans');
+                                    }
+                                });
+                        } else {
+                            alert(response.message || 'Gagal menyimpan transaksi.');
                         }
-
-                        fetch(`generate_snap_token.php?id=${orderId}`)
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.snap_token) {
-                                    snap.pay(data.snap_token, {
-                                        onSuccess: function(result) {
-                                            alert("Pembayaran berhasil!");
-                                            location.reload();
-                                        },
-                                        onPending: function(result) {
-                                            alert("Pembayaran sedang diproses...");
-                                        },
-                                        onError: function(result) {
-                                            alert("Pembayaran gagal.");
-                                        }
-                                    });
-                                } else if (data.error) {
-                                    alert("Gagal generate token: " + data.error);
-                                } else {
-                                    alert("Gagal generate token: response tidak dikenali.");
-                                }
-                            })
-                            .catch(err => {
-                                console.error("Error:", err);
-                                alert("Gagal menghubungi server.");
-                            });
                     });
-                }
             });
         </script>
     </div>

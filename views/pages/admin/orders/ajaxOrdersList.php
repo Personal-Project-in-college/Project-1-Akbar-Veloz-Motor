@@ -63,6 +63,9 @@ if ($data) {
                 <td>{$typeLabel}</td>
                 <td>{$statusValue}</td>
                 <td style='display: flex; align-items: center; gap: 8px;'>
+                    <a href='../transactions/checkout.php?id={$orderId}' title='Lanjut' class='btn btn-dark btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
+                        <i class='mdi mdi-text-box'></i>
+                    </a>
                     <a href='{$redirectHref}' title='Lanjut' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
                         <i class='mdi mdi-arrow-right-bold-circle'></i>
                     </a>

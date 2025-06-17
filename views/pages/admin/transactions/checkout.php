@@ -3,7 +3,7 @@ session_start();
 include '../../../../config/koneksi.php'; // Pastikan path ke file koneksi sudah benar
 
 // Ambil order_id dari URL
-$order_id = isset($_GET['order_id']) ? $_GET['order_id'] : null;
+$order_id = isset($_GET['id']) ? $_GET['id'] : null;
 
 if (!$order_id) {
     die("Error: Order ID tidak ditemukan.");
@@ -11,29 +11,7 @@ if (!$order_id) {
 
 try {
     // Query baru sesuai dengan struktur relasi yang benar
-    $query = "
-        SELECT 
-            t.order_id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, 
-            t.down_payment, t.amount_paid, t.payment_method, t.status, t.payment_gateway_ref,
-            c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address,
-            v.id AS vehicle_id, v.type_vehicle AS vehicle_type, v.color AS vehicle_color, v.production_year, 
-            v.stnk_deadline, v.type_fuel, v.cc_engine,
-            u.name AS user_name
-        FROM 
-            transactions t
-        LEFT JOIN 
-            orders o ON t.order_id = o.id -- Relasi ke tabel orders
-        LEFT JOIN 
-            customers c ON o.customer_id = c.id -- Relasi dari orders ke customers
-        LEFT JOIN 
-            vehicles v ON o.vehicle_id = v.id -- Relasi dari orders ke vehicles
-        LEFT JOIN 
-            users u ON t.user_id = u.id -- Relasi ke users tetap
-        WHERE 
-            t.order_id = ?
-    ";
-
-    $stmt = $koneksi->prepare($query);
+    $stmt = $koneksi->prepare("SELECT t.order_id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, t.down_payment, t.remaining_amount, t.payment_method, t.status, t.payment_gateway_ref, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, v.type_vehicle AS vehicle_type, v.color AS vehicle_color, v.production_year, v.stnk_deadline, v.type_fuel, v.cc_engine, u.name AS user_name FROM transactions t LEFT JOIN orders o ON t.order_id = o.id LEFT JOIN customers c ON o.customer_id = c.id LEFT JOIN vehicles v ON o.vehicle_id = v.id LEFT JOIN users u ON t.user_id = u.id WHERE t.order_id = ?");
     $stmt->execute([$order_id]);
     $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -223,8 +201,8 @@ include '../layout/sidebar.php';
                 <h3>Detail Pelanggan</h3>
                 <p><strong>Nama:</strong> <?php echo htmlspecialchars($data['customer_name']); ?></p>
                 <p><strong>Email:</strong> <?php echo htmlspecialchars($data['customer_email']); ?></p>
-                <p><strong>Telepon:</strong> <?php echo htmlspecialchars($data['customer_phone']); ?></p>
-                <p class="text-wrap"><strong>Alamat:</strong> <?php echo htmlspecialchars($data['customer_address']); ?></p>
+                <p><strong>Telepon:</strong> <?php echo htmlspecialchars($data['customer_phone'] ?? '-'); ?></p>
+                <p class="text-wrap"><strong>Alamat:</strong> <?php echo htmlspecialchars($data['customer_address'] ?? '-'); ?></p>
             </div>
 
             <div class="card-section">
@@ -249,10 +227,11 @@ include '../layout/sidebar.php';
 
                 <?php if (!is_null($data['down_payment']) && $data['down_payment'] > 0): ?>
                     <p><strong>Uang Muka (DP):</strong> Rp <?php echo number_format($data['down_payment'], 0, ',', '.'); ?></p>
+                    <p><strong>Sisa Pembayaran:</strong> Rp <?php echo number_format($data['remaining_amount'], 0, ',', '.'); ?></p>
                 <?php endif; ?>
 
-                <?php if ($data['amount_paid'] > 0): ?>
-                    <p><strong>Sudah Dibayar:</strong> Rp <?php echo number_format($data['amount_paid'], 0, ',', '.'); ?></p>
+                <?php if ($data['down_payment'] > 0): ?>
+                    <p><strong>Sudah Dibayar:</strong> Rp <?php echo number_format($data['down_payment'], 0, ',', '.'); ?></p>
                 <?php endif; ?>
 
                 <p><strong>Metode Pembayaran:</strong> <?php echo htmlspecialchars($data['payment_method']); ?></p>
