@@ -43,7 +43,9 @@
         border-radius: var(--border-radius);
         margin-top: 30px;
         margin-bottom: 30px;
+        
       }
+      
 
       header {
         background-color: var(--primary-color);
@@ -102,23 +104,34 @@
         .container {
           margin: 15px;
           padding: 15px;
+          
         }
 
         h1 {
           font-size: 24px;
         }
       }
+
+      .wrap-img  {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
     </style>
   </head>
 
   <body>
     <div class="container">
-      <header>
-        <img
-          src="logo-akbar-veloz-motor.png"
+      <div class="wrap-img">
+
+       <img
+          src="./assets/icons/logo.png"
           alt="Logo Akbar Veloz Motor"
           class="logo"
         />
+      </div>
+
+      <header>
         <h1>Kebijakan Privasi Akbar Veloz Motor</h1>
       </header>
 
@@ -191,6 +204,7 @@
         <li>Memperbarui atau memperbaiki informasi yang tidak akurat</li>
         <li>Meminta penghapusan data pribadi Anda</li>
         <li>Menarik persetujuan pemrosesan data</li>
+        <li>Terkait penghapusan akun pengguna <a href="penghapusan-data-pengguna.php">lihat</a></li>
       </ul>
 
       <h2>Perubahan Kebijakan Privasi</h2>

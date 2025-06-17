@@ -124,8 +124,8 @@ $jadwalFormatted = date('d F Y', strtotime($pesanan['schedule_date']));
                     <dd style="font-weight: 500; font-size: 0.95rem;"><?php echo htmlspecialchars($pesanan['description']); ?></dd>
                 </div>
                 <div class="form-actions">
-                    <a href="index.html" class="btn-secondary">Kembali</a>
-                    <button type="button" class="btn" onclick="window.location.href='datang-ke-showroom.php'">
+                    <a href="contact-us.php" class="btn-secondary">Kembali</a>
+                    <button type="button" class="btn" onclick="window.location.href='tunggu-petugas.php'">
                         Kirim
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
