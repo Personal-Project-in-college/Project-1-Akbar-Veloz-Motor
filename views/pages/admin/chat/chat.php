@@ -24,7 +24,7 @@ include '../layout/header.php';
     <div class="content-wrapper">
         <div class="dashboard-header" id="dashboard-header">
             <h1>Manajemen Chat</h1>
-            <p>Admin ID: <?php echo htmlspecialchars($_SESSION['user_id']); ?></p>
+            <p>Admin, <?php echo htmlspecialchars($_SESSION['name']); ?></p>
         </div>
 
         <div id="backButtonContainer" style="display: none; margin-bottom: 10px;">
