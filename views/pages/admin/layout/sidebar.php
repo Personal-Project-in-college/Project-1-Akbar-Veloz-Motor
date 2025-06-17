@@ -12,6 +12,7 @@ include_once '../../../../helpers/functionCheckRole.php';
 
 $isBrandActive = isSidebarMenuActive('brand');
 $isBranchActive = isSidebarMenuActive('branch');
+$isCustomerActive = isSidebarMenuActive('customer');
 $isPartnerActive = isSidebarMenuActive('partner');
 $isVehicleActive = isSidebarMenuActive('vehicles');
 $isVehicleModelActive = isSidebarMenuActive('vehicle_model');
@@ -19,7 +20,7 @@ $isVehicleLoanActive = isSidebarMenuActive('vehicle_loans');
 $isRoleActive = isSidebarMenuActive('role');
 $isUserActive = isSidebarMenuActive('users');
 
-$isManageActive = isSubMenuActive(['brand', 'branch', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
+$isManageActive = isSubMenuActive(['brand', 'branch', 'customer', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
 $isChatActive = isSidebarMenuActive('chat');
 $isOrderActive = isSidebarMenuActive('orders');
@@ -63,6 +64,7 @@ $isTransactionsActive = isSubMenuActive(['chat', 'orders', 'transactions', 'test
           <li class="nav-item"><a class="nav-link <?= $isVehicleModelActive ? 'active' : '' ?>" href="../vehicle_model/vehicle_model.php">Model Kendaraan</a></li>
           <li class="nav-item"><a class="nav-link <?= $isBrandActive ? 'active' : '' ?>" href="../brand/brand.php">Merek</a></li>
           <li class="nav-item"><a class="nav-link <?= $isPartnerActive ? 'active' : '' ?>" href="../partner/partner.php">Partner</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isCustomerActive ? 'active' : '' ?>" href="../customer/customer.php">Pelanggan</a></li>
           <li class="nav-item"><a class="nav-link <?= $isVehicleLoanActive ? 'active' : '' ?>" href="../vehicle_loans/vehicle_loans.php">Peminjaman</a></li>
         </ul>
       </div>
