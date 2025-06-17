@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $photoCountStmt->execute([$id]);
     $photoCount = $photoCountStmt->fetchColumn();
 
-    if ($photoCount >= 5) {
-        echo "❌ Gagal: Maksimal 5 foto untuk kendaraan ini.";
+    if ($photoCount >= 6) {
+        echo "❌ Gagal: Maksimal 6 foto untuk kendaraan ini.";
         exit;
     }
 
