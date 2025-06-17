@@ -39,6 +39,12 @@ $staffList = $staffQuery->fetchAll(PDO::FETCH_ASSOC);
 // Kondisi apakah user_id sudah terisi (test driver sudah dilayani)
 $alreadyAssigned = !empty($transaction['user_id']);
 
+$currentUserId    = $_SESSION['user_id'];
+$currentUserName  = $_SESSION['name'];
+$currentUserPhone = $_SESSION['phone'];
+$currentUserRole  = $_SESSION['role_id'];
+
+
 if (isset($_POST['submit_deal'])) {
     $orderId = $_POST['order_id'];
     $deal = str_replace('.', '', $_POST['deal_negotiation']); // hapus titik
@@ -65,7 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $order_id = $_POST['order_id'];
         $deal_negotiation = $_POST['deal_negotiation'];
-        $grand_total = $_POST['grand_total'];
+        $grand_total = (int) $deal_negotiation;
+
         $payment_type = $_POST['payment_type'];
         $amount_paid = $_POST['amount_paid'];
         $payment_method = $_POST['payment_method'];
@@ -222,43 +229,70 @@ include '../layout/sidebar.php';
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="mb-4">Dilayani Oleh</h5>
-                <form method="POST">
-                    <input type="hidden" name="assign_user" value="1">
-                    <div class="mb-3">
-                        <label for="user_id" class="form-label">Pilih Petugas</label>
-                        <select name="user_id" id="user_id" class="form-select" required style="color: black;">
-                            <option value="">-- Pilih Petugas --</option>
-                            <?php foreach ($staffList as $staff): ?>
-                                <option value="<?= $staff['id'] ?>" <?= ($transaction['user_id'] == $staff['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($staff['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </form>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Petugas</th>
+                        <td>
+                            <?= htmlspecialchars($currentUserName) ?>
+                            <span class="badge bg-info mx-2"><?= $currentUserRole == 1 ? 'Owner' : 'Karyawan' ?></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Nomor Hp</th>
+                        <td><?= htmlspecialchars($currentUserPhone) ?></td>
+                    </tr>
+                </table>
+
+                <?php if ($transaction['user_id'] == null): ?>
+                    <form method="POST" class="mt-3">
+                        <input type="hidden" name="assign_user" value="1">
+                        <input type="hidden" name="user_id" value="<?= $currentUserId ?>">
+                        <button type="submit" class="btn btn-primary">Saya Akan Menangani</button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
 
+
+
         <!-- TABEL NEGOISASI -->
-        <form method="POST" action="" enctype="multipart/form-data">
+        <?php if ($alreadyAssigned): ?>
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="mb-4">Negosiasi Harga</h5>
-                    <input type="hidden" name="order_id" value="<?= $transaction['order_id'] ?>">
+                    <h5 class="mb-4">Negosiasi</h5>
 
-                    <div class="mb-3">
-                        <label>Harga Kendaraan</label>
-                        <input type="text" id="vehicle_price" class="form-control" readonly value="<?= number_format($transaction['vehicle_price'], 0, ',', '.') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label>Deal Negosiasi<span class="text-danger">*</span></label>
-                        <input type="number" id="deal_negotiation" name="deal_negotiation" class="form-control" value="<?= $transaction['deal_negotiation'] ?>">
-                    </div>
-                    <button type="submit" name="submit_deal" class="btn btn-primary">Simpan</button>
+                    <?php if (!empty($transaction['deal_negotiation'])): ?>
+                        <!-- ✅ Jika sudah ada negosiasi, tampilkan tabel -->
+                        <table class="table">
+                            <tr>
+                                <th class="w-25">Harga Kendaraan</th>
+                                <td><?= number_format($transaction['vehicle_price'], 0, ',', '.') ?></td>
+                            </tr>
+                            <tr>
+                                <th class="w-25">Deal Negosiasi</th>
+                                <td><?= number_format($transaction['deal_negotiation'], 0, ',', '.') ?></td>
+                            </tr>
+                        </table>
+
+                    <?php else: ?>
+                        <!-- ❌ Jika belum ada negosiasi, tampilkan form -->
+                        <form method="POST" action="" enctype="multipart/form-data">
+                            <input type="hidden" name="order_id" value="<?= $transaction['order_id'] ?>">
+                            <div class="mb-3">
+                                <label>Harga Kendaraan</label>
+                                <input type="text" class="form-control" readonly value="<?= number_format($transaction['vehicle_price'], 0, ',', '.') ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label>Deal Negosiasi<span class="text-danger">*</span></label>
+                                <input type="number" name="deal_negotiation" class="form-control" required>
+                            </div>
+                            <button type="submit" name="submit_deal" class="btn btn-primary">Simpan</button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
-        </form>
+        <?php endif; ?>
+
 
 
         <!-- TABEL TRANSAKSI -->
@@ -279,6 +313,7 @@ include '../layout/sidebar.php';
                                     </select>
                                 </td>
                             </tr>
+
                             <tr class="cicilan-row" style="display:none">
                                 <th class="w-25">Jenis DP<span class="text-danger">*</span></th>
                                 <td>
@@ -318,15 +353,19 @@ include '../layout/sidebar.php';
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="cicilan-row total-row" style="display:none">
-                                <th class="w-25">Total Uang Muka</th>
-                                <td><input style="border: 0;" type="text" id="dp_total" class="form-control" readonly value="0"></td>
-                            </tr>
-                            <tr class="cicilan-row">
+                            <tr class="cicilan-row" style="display:none">
                                 <th class="w-25">Jumlah Dibayarkan<span class="text-danger">*</span></th>
-                                <td><input style="border: 0;" type="number" name="amount_paid" class="form-control" value="0"></td>
+                                <td>
+                                    <input style="border: 0;" type="number" name="amount_paid" class="form-control" value="0">
+                                    <input type="hidden" id="deal_negotiation_value" value="<?= $transaction['deal_negotiation'] ?>">
+                                </td>
                             </tr>
-                            <tr>
+                            <tr class="cicilan-row total-row" style="display:none">
+                                <th class="w-25">Sisa Pembayaran Nanti</th>
+                                <td><input style="border: 0;" type="text" name="remaining_amount" id="remaining_amount" class="form-control" readonly value="0"></td>
+                            </tr>
+
+                            <tr style="display:none">
                                 <th class="w-25">Metode Pembayaran<span class="text-danger">*</span></th>
                                 <td>
                                     <select name="payment_method" id="payment_method" class="form-control" style="color: black;">
@@ -361,6 +400,9 @@ include '../layout/sidebar.php';
                                 <th class="w-25">Bukti Pembayaran<span class="text-danger">*</span></th>
                                 <td><input type="file" name="payment_proof" accept="image/*" class="form-control" required></td>
                             </tr>
+
+
+
                         </table>
 
                         <a href="partner.php" class="mt-3 btn btn-danger text-white">Batalkan Transaksi</a>
@@ -372,98 +414,122 @@ include '../layout/sidebar.php';
         <?php endif; ?>
 
         <script>
-            function formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            }
+            document.addEventListener('DOMContentLoaded', function() {
+                const paymentType = document.getElementById('payment_type');
+                const paymentMethod = document.getElementById('payment_method');
+                const dealNegotiation = parseFloat(document.getElementById('deal_negotiation_value').value);
 
-            const priceInput = document.getElementById('vehicle_price');
-            const negoInput = document.getElementById('deal_negotiation');
-            const grandTotalHidden = document.getElementById('grand_total');
-            const grandTotalDisplay = document.getElementById('grand_total_display');
+                const amountPaidRow = document.querySelector('input[name="amount_paid"]').closest('tr');
+                const amountPaidInput = document.querySelector('input[name="amount_paid"]');
 
-            function updateGrandTotal() {
-                let price = parseFloat(priceInput.value.replace(/[^\d]/g, '')) || 0;
-                let nego = parseFloat(negoInput.value) || 0;
-                let total = price - nego;
-                grandTotalHidden.value = total.toFixed(2);
-                grandTotalDisplay.value = formatRupiah(total);
-            }
+                const bankListRow = document.getElementById('bank_list_row');
+                const midtransButtonRow = document.getElementById('midtrans_button_row');
+                const paymentProofRow = document.getElementById('payment_proof_button_row');
 
-            function updateDP() {
-                let total = parseFloat(grandTotalHidden.value) || 0;
-                let type = document.getElementById('dp_type').value;
-                let result = 0;
+                const dpTypeRow = document.getElementById('dp_type').closest('tr');
+                const dpTypeSelect = document.getElementById('dp_type');
+                const dpPercentageRow = document.querySelector('.persen-row');
+                const dpNominalRow = document.querySelector('.nominal-row');
+                const dpPercentageInput = document.getElementById('dp_percentage');
+                const dpNominalInput = document.getElementById('dp_nominal');
 
-                if (type === 'persen') {
-                    let percent = parseFloat(document.getElementById('dp_percentage').value) || 0;
-                    result = total * (percent / 100);
-                } else if (type === 'nominal') {
-                    let nominal = parseFloat(document.getElementById('dp_nominal').value) || 0;
-                    result = nominal;
+                const downPaymentInput = document.querySelector('input[name="amount_paid"]');
+                const remainingAmountInput = document.getElementById('remaining_amount');
+                const totalRow = document.querySelector('.total-row');
+
+                const paymentMethodRow = paymentMethod.closest('tr');
+
+                function resetCicilanFields() {
+                    dpTypeSelect.value = '';
+                    dpPercentageInput.value = 0;
+                    dpNominalInput.value = 0;
+                    downPaymentInput.value = 0;
+                    remainingAmountInput.value = 0;
+
+                    dpPercentageRow.style.display = 'none';
+                    dpNominalRow.style.display = 'none';
+                    totalRow.style.display = 'none';
+                    paymentMethodRow.style.display = 'none';
+                    bankListRow.style.display = 'none';
+                    midtransButtonRow.style.display = 'none';
+                    paymentProofRow.style.display = 'none';
+                    amountPaidRow.style.display = 'none';
                 }
 
-                document.getElementById('dp_total').value = formatRupiah(result);
+                function updateDownPayment() {
+                    let dpValue = 0;
+                    if (dpTypeSelect.value === 'persen') {
+                        dpValue = dealNegotiation * (parseFloat(dpPercentageInput.value || 0) / 100);
+                    } else if (dpTypeSelect.value === 'nominal') {
+                        dpValue = parseFloat(dpNominalInput.value || 0);
+                    }
+                    downPaymentInput.value = dpValue;
+                    updateRemaining();
+                    amountPaidRow.style.display = '';
+                    paymentMethodRow.style.display = '';
+                }
 
-                // Otomatis isi jumlah dibayarkan
-                const amountPaidInput = document.querySelector('input[name="amount_paid"]');
-                amountPaidInput.value = result.toFixed(0);
-            }
+                function updateRemaining() {
+                    const downPayment = parseFloat(downPaymentInput.value || 0);
+                    const remaining = dealNegotiation - downPayment;
+                    remainingAmountInput.value = remaining < 0 ? 0 : remaining;
+                    totalRow.style.display = '';
+                }
 
-            document.addEventListener('DOMContentLoaded', updateGrandTotal);
-            negoInput.addEventListener('input', updateGrandTotal);
+                paymentType.addEventListener('change', function() {
+                    const value = this.value;
+                    resetCicilanFields();
 
-            document.getElementById('payment_type').addEventListener('change', function() {
-                let cicilanRows = document.querySelectorAll('.cicilan-row');
-                cicilanRows.forEach(row => row.style.display = this.value === 'cicilan' ? '' : 'none');
-
-                document.getElementById('dp_type').value = '';
-                document.querySelector('.persen-row').style.display = 'none';
-                document.querySelector('.nominal-row').style.display = 'none';
-                document.querySelector('.total-row').style.display = 'none';
-            });
-
-            document.getElementById('dp_type').addEventListener('change', function() {
-                let persen = document.querySelector('.persen-row');
-                let nominal = document.querySelector('.nominal-row');
-                let totalRow = document.querySelector('.total-row');
-
-                persen.style.display = this.value === 'persen' ? '' : 'none';
-                nominal.style.display = this.value === 'nominal' ? '' : 'none';
-                totalRow.style.display = this.value ? '' : 'none';
-
-                updateDP();
-            });
-
-            document.getElementById('dp_percentage').addEventListener('input', updateDP);
-            document.getElementById('dp_nominal').addEventListener('input', updateDP);
-
-            document.querySelectorAll('.quick-percent').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    let val = parseInt(this.innerText);
-                    document.getElementById('dp_percentage').value = val;
-                    updateDP();
+                    if (value === 'tunai') {
+                        amountPaidInput.value = dealNegotiation;
+                        amountPaidRow.style.display = '';
+                        paymentMethodRow.style.display = '';
+                    } else if (value === 'cicilan') {
+                        dpTypeRow.style.display = '';
+                    }
                 });
-            });
 
-            document.querySelectorAll('.quick-nominal').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    let val = parseInt(this.getAttribute('data-nominal'));
-                    document.getElementById('dp_nominal').value = val;
-                    updateDP();
+                dpTypeSelect.addEventListener('change', function() {
+                    dpPercentageRow.style.display = 'none';
+                    dpNominalRow.style.display = 'none';
+                    totalRow.style.display = 'none';
+
+                    if (this.value === 'persen') {
+                        dpPercentageRow.style.display = '';
+                    } else if (this.value === 'nominal') {
+                        dpNominalRow.style.display = '';
+                    }
+
+                    updateDownPayment();
                 });
-            });
 
-            document.getElementById('payment_method').addEventListener('change', function() {
-                const value = this.value;
-                document.getElementById('bank_list_row').style.display = value === 'transfer' ? '' : 'none';
-                document.getElementById('midtrans_button_row').style.display = value === 'midtrans' ? '' : 'none';
-                document.getElementById('payment_proof_button_row').style.display = (value === 'cash' || value === 'transfer') ? '' : 'none';
+                dpPercentageInput.addEventListener('input', updateDownPayment);
+                dpNominalInput.addEventListener('input', updateDownPayment);
+                downPaymentInput.addEventListener('input', updateRemaining);
+
+                document.querySelectorAll('.quick-percent').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        dpPercentageInput.value = parseFloat(this.textContent);
+                        updateDownPayment();
+                    });
+                });
+
+                document.querySelectorAll('.quick-nominal').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        dpNominalInput.value = parseFloat(this.dataset.nominal);
+                        updateDownPayment();
+                    });
+                });
+
+                paymentMethod.addEventListener('change', function() {
+                    const val = this.value;
+                    bankListRow.style.display = val === 'transfer' ? '' : 'none';
+                    midtransButtonRow.style.display = val === 'midtrans' ? '' : 'none';
+                    paymentProofRow.style.display = (val === 'cash' || val === 'transfer') ? '' : 'none';
+                });
             });
         </script>
+
 
         <!-- Midtrans -->
         <!-- Tambahkan di akhir sebelum </body> -->

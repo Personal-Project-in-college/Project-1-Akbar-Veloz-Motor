@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $vehicle_price = $getPriceStmt->fetchColumn();
 
                 // Langsung buat record transaksi dengan status 'pending' agar validasi berfungsi
-                $koneksi->prepare("INSERT INTO transactions (order_id, user_id, vehicle_price, deal_negotiation, grand_total, amount_paid, payment_type, payment_method, status, created_at) VALUES (?, ?, ?, 0, 0, 0, 'tunai', 'cash', 'pending', NOW())")->execute([$order_id, $user_id, $vehicle_price]);
+                $koneksi->prepare("INSERT INTO transactions (order_id, user_id, vehicle_price, deal_negotiation, payment_type, payment_method, status, created_at) VALUES (?, ?, ?, 0, 'tunai', 'cash', 'pending', NOW())")->execute([$order_id, $user_id, $vehicle_price]);
 
                 // 3. Update status kendaraan
                 $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?")->execute([$vehicle_id]);

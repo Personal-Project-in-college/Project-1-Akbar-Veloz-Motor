@@ -44,6 +44,7 @@ try {
     die("Gagal mengambil data: " . $e->getMessage());
 }
 include '../layout/header.php';
+include '../layout/sidebar.php';
 ?>
 
 <!DOCTYPE html>
@@ -64,16 +65,17 @@ include '../layout/header.php';
         background-color: #f0f2f5;
         /* Latar belakang abu-abu */
         margin: 0;
-        padding: 20px;
         display: flex;
         justify-content: center;
         align-items: center;
+        width: 100%;
         min-height: 100vh;
     }
 
     .checkout-container {
         width: 100%;
         max-width: 800px;
+        margin: 20px auto
     }
 
     .card {
@@ -200,6 +202,15 @@ include '../layout/header.php';
     .alert.success {
         background-color: #28a745;
     }
+
+ 
+
+    .wrap-btn{
+        display: flex;
+        flex-direction: row;
+        justify-content: end;
+        gap: 6px;
+    }
 </style>
 
 <body>
@@ -213,7 +224,7 @@ include '../layout/header.php';
                 <p><strong>Nama:</strong> <?php echo htmlspecialchars($data['customer_name']); ?></p>
                 <p><strong>Email:</strong> <?php echo htmlspecialchars($data['customer_email']); ?></p>
                 <p><strong>Telepon:</strong> <?php echo htmlspecialchars($data['customer_phone']); ?></p>
-                <p><strong>Alamat:</strong> <?php echo htmlspecialchars($data['customer_address']); ?></p>
+                <p class="text-wrap"><strong>Alamat:</strong> <?php echo htmlspecialchars($data['customer_address']); ?></p>
             </div>
 
             <div class="card-section">
@@ -232,7 +243,7 @@ include '../layout/header.php';
                 <p><strong>Order ID:</strong> <?php echo htmlspecialchars($data['order_id']); ?></p>
                 <p><strong>Penjual:</strong> <?php echo htmlspecialchars($data['user_name']); ?></p>
                 <p><strong>Harga Kendaraan:</strong> Rp <?php echo number_format($data['vehicle_price'], 0, ',', '.'); ?></p>
-                <p><strong>Deal Negosiasi:</strong> Rp <?php echo number_format($data['deal_negotiation'], 0, ',', '.'); ?></p>
+                <p><strong>Deal Negosiasi:</strong> Rp <?= number_format($data['deal_negotiation'] ?? 0, 0, ',', '.') ?></p>
                 <p><strong>Total Bayar:</strong> Rp <?php echo number_format($data['grand_total'], 0, ',', '.'); ?></p>
                 <p><strong>Tipe Pembayaran:</strong> <?php echo htmlspecialchars(ucfirst($data['payment_type'])); ?></p>
 
@@ -253,16 +264,14 @@ include '../layout/header.php';
             </div>
 
             <div class="card-section">
-                <h3>Unggah Bukti Pembayaran</h3>
-                <form action="upload_proof.php" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($data['order_id']); ?>">
-                    <div class="form-group">
-                        <label for="payment_proof">Pilih file gambar:</label>
-                        <input type="file" class="form-control" id="payment_proof" name="payment_proof" accept="image/*" required>
-                    </div>
-                    <button type="submit" class="btn-submit">Unggah</button>
-                </form>
+                <h3>Aksi Lanjutan</h3>
+                <div class="wrap-btn">
+                    <button class="btn btn-dark" onclick="window.print()">Cetak Struk</button>
+                    <button class="btn btn-primary" onclick="alert('Fitur kirim email belum diimplementasi')">Kirim Email</button>
+                </div>
+
             </div>
+
         </div>
     </div>
 

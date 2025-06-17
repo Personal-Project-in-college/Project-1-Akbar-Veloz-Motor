@@ -50,7 +50,7 @@ $params = [
     'expiry' => [
         'start_time' => date("Y-m-d H:i:s O"),
         'unit' => 'minutes',
-        'duration' => 60
+        'duration' => 5
     ]
 ];
 

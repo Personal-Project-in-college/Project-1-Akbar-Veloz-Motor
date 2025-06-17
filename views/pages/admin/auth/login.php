@@ -50,12 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($user && password_verify($password, $user['password'])) {
                 // Regenerasi session ID untuk keamanan
                 session_regenerate_id(true);
-                
+
                 // Simpan informasi penting ke dalam session
                 $_SESSION['user_id']   = $user['id'];
                 $_SESSION['name']      = $user['name'];
                 $_SESSION['role_name'] = $user['role_name'];
+                $_SESSION['role_id'] = $user['role_id']; // ✅ Tidak undefined lagi
                 $_SESSION['photo']     = $user['photo'];
+                $_SESSION['phone']     = $user['phone'];
 
                 // Perbarui status online dan waktu aktivitas terakhir pengguna
                 $stmt_update_online = $koneksi->prepare("UPDATE users SET is_online = TRUE, last_activity = NOW() WHERE id = ?");
@@ -92,7 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['user_id']   = $user['id'];
             $_SESSION['name']      = $user['name'];
             $_SESSION['role_name'] = $user['role_name'];
+            $_SESSION['role_id'] = $user['role_id']; // ✅ Tidak undefined lagi
             $_SESSION['photo']     = $user['photo'];
+            $_SESSION['phone']     = $user['phone'];
 
             // Di sini juga, kita update status online saat login standar
             $stmt_update_online = $koneksi->prepare("UPDATE users SET is_online = TRUE, last_activity = NOW() WHERE id = ?");
@@ -151,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             const form = event.target;
             const formData = new FormData(form);
-            
+
             // Menambahkan parameter 'action' untuk memicu logika AJAX di PHP
             formData.append('action', 'ajax_login');
 
@@ -159,29 +163,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             errorMessageDiv.style.display = 'none'; // Sembunyikan pesan error lama
 
             fetch(form.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Jika login sukses, tampilkan pesan dan arahkan ke dashboard
-                    alert(data.message);
-                    window.location.href = '../dashboard/index.php';
-                } else {
-                    // Jika gagal, tampilkan pesan error dari server
-                    errorMessageDiv.textContent = data.message;
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Jika login sukses, tampilkan pesan dan arahkan ke dashboard
+                        alert(data.message);
+                        window.location.href = '../dashboard/index.php';
+                    } else {
+                        // Jika gagal, tampilkan pesan error dari server
+                        errorMessageDiv.textContent = data.message;
+                        errorMessageDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    // Jika ada error jaringan atau parsing JSON
+                    console.error('Error:', error);
+                    errorMessageDiv.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
                     errorMessageDiv.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                // Jika ada error jaringan atau parsing JSON
-                console.error('Error:', error);
-                errorMessageDiv.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
-                errorMessageDiv.style.display = 'block';
-            });
+                });
         });
     </script>
 
 </body>
+
 </html>
