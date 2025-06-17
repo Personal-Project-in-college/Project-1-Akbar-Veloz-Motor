@@ -1,9 +1,5 @@
-// Update tombol wishlist sesuai localStorage
 function updateWishlistButtons() {
   button = document.getElementById("simpan");
-
-  // console.log(button);
-
   const vehicle = {
     name: document.getElementById("detail-title").textContent,
     price: document.getElementById("harga").textContent,

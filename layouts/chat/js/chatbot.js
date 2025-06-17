@@ -143,7 +143,7 @@ function attachNegotiationListeners(containerId) {
             if (data.success) {
                 appendMessage("bot", `Order Test Drive Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Tim kami akan segera menghubungi Anda.`, containerId);
                 await sendChatMessageToBackend(`Order Test Drive Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Tim kami akan segera menghubungi Anda.`, "bot");
-                window.location.href = "order.php?order_id=" + data.order_id + "&type=test_driver";
+                window.location.href = "contact-us.php?order_id=" + data.order_id + "&type=test_driver";
             } else {
                 appendMessage("bot", `Gagal membuat order Test Drive: ${data.message}`, containerId);
                 await sendChatMessageToBackend(`Gagal membuat order Test Drive: ${data.message}`, "bot");
@@ -168,9 +168,9 @@ function attachNegotiationListeners(containerId) {
             });
             const data = await response.json();
             if (data.success) {
-                appendMessage("bot", `Order Transaksi Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Kami akan mengarahkan Anda ke halaman order.`, containerId);
-                await sendChatMessageToBackend(`Order Transaksi Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Kami akan mengarahkan Anda ke halaman order.`, "bot");
-                window.location.href = "order.php?order_id=" + data.order_id + "&type=transaction";
+                appendMessage("bot", `Order Transaksi Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Kami akan mengarahkan Anda ke halaman hubungi kami.`, containerId);
+                await sendChatMessageToBackend(`Order Transaksi Anda telah berhasil dibuat untuk kendaraan ${vehicleId}! Kami akan mengarahkan Anda ke halaman hubungi kami.`, "bot");
+                window.location.href = "contact-us.php?order_id=" + data.order_id + "&type=transaction";
             } else {
                 appendMessage("bot", `Gagal membuat order Transaksi: ${data.message}`, containerId);
                 await sendChatMessageToBackend(`Gagal membuat order Transaksi: ${data.message}`, "bot");

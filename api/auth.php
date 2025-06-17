@@ -74,7 +74,18 @@ switch ($action) {
                 $stmt_update_customer_login->execute([$customer['id']]);
                 error_log("Regular Login: Customer ID " . $customer['id'] . " is_logged_in set to TRUE.");
 
-                echo json_encode(['success' => true, 'message' => 'Login berhasil!']);
+                $redirectUrl = 'index.php';
+                if (isset($_SESSION['redirect_to'])) {
+                    $redirectUrl = $_SESSION['redirect_to'];
+                    unset($_SESSION['redirect_to']);
+                }
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Login berhasil!',
+                    'redirect' => $redirectUrl 
+                ]);
+
             } else {
                 echo json_encode(['success' => false, 'message' => 'Email atau password salah.']);
             }
@@ -93,6 +104,12 @@ switch ($action) {
         break;
 
     case 'google_callback':
+        $redirectUrl = '../index.php';
+        if (isset($_SESSION['redirect_to'])) {
+            $redirectUrl = $_SESSION['redirect_to'];
+            unset($_SESSION['redirect_to']);
+        }
+    
         error_log("Google Callback: Initiated. Method: " . $_SERVER['REQUEST_METHOD'] . ", Code received: " . ($_GET['code'] ?? 'N/A'));
 
         $googleOAuth = new GoogleOAuth();
@@ -131,8 +148,8 @@ switch ($action) {
                     } else {
                         error_log("Google Callback: FAILED to update is_logged_in for existing Google customer " . $customer['id'] . ". Error Info: " . json_encode($stmt_update_customer_login->errorInfo()));
                     }
-
-                    header('Location: ../index.php');
+                    
+                    header('Location: ' . $redirectUrl);
                     exit();
 
                 } else {
@@ -149,7 +166,8 @@ switch ($action) {
                             $_SESSION['customer_email'] = $existingCustomerByEmail['email'];
                             $_SESSION['customer_username'] = $existingCustomerByEmail['username'] ?? $existingCustomerByEmail['name'];
                             error_log("Google Callback: is_logged_in set to TRUE for linked customer: " . $existingCustomerByEmail['id']);
-                            header('Location: ../index.php');
+                            
+                            header('Location: ' . $redirectUrl);
                             exit();
                         } else {
                             error_log("Google Callback: FAILED to update is_logged_in for linked customer " . $existingCustomerByEmail['id'] . ". Error Info: " . json_encode($stmt_update->errorInfo()));
@@ -166,7 +184,7 @@ switch ($action) {
                             $_SESSION['customer_username'] = $name;
                             error_log("Google Callback: New customer created with ID: " . $newCustomerId . " and is_logged_in set to TRUE.");
 
-                            header('Location: ../index.php');
+                            header('Location: ' . $redirectUrl);
                             exit();
                         } else {
                             error_log("Google Callback: FAILED to create new customer with is_logged_in set. Error Info: " . json_encode($stmt_insert->errorInfo()));

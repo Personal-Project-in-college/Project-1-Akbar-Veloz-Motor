@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['customer_id'])) {
     header('Location: index.php');
     exit();
 }
@@ -72,7 +72,16 @@ if (isset($_SESSION['user_id'])) {
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // validasi input
+            const urlParams = new URLSearchParams(window.location.search);
+            const alertMessage = urlParams.get('alert_message');
+            const error = urlParams.get('error');
+
+            if (alertMessage) {
+                alert(decodeURIComponent(alertMessage.replace(/\+/g, ' ')));
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
             const togglePassword = document.getElementById("togglePassword");
             const passwordInput = document.getElementById("password");
 
@@ -83,29 +92,22 @@ if (isset($_SESSION['user_id'])) {
                 togglePassword.classList.toggle("fa-eye-slash");
             });
 
-            // login api
             const loginForm = document.getElementById('login-form');
-            const loginBtn = document.getElementById('loginBtn');
-            const messageDiv = document.getElementById('auth-message'); // Sekarang elemen ini pasti ditemukan
+            const messageDiv = document.getElementById('auth-message');
             const googleLoginBtn = document.getElementById('btn-google');
             const facebookLoginBtn = document.getElementById('btn-facebook');
 
             function showMessage(type, text) {
-                // Sekarang messageDiv tidak akan null
-                messageDiv.className = `auth-message auth-${type}`; // Menggunakan kelas yang sudah ada
+                messageDiv.className = `auth-message auth-${type}`;
                 messageDiv.textContent = text;
                 messageDiv.style.display = 'block';
             }
 
-            // PERUBAIKAN 3: Menangani pesan error dari URL saat halaman dimuat
-            const urlParams = new URLSearchParams(window.location.search);
-            const error = urlParams.get('error');
             if (error) {
                 showMessage('error', error);
             }
 
-            // Handle regular login
-            loginForm.addEventListener('submit', async (e) => { // Menggunakan event 'submit' pada form
+            loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
@@ -128,8 +130,7 @@ if (isset($_SESSION['user_id'])) {
                     if (data.success) {
                         showMessage('success', data.message);
                         setTimeout(() => {
-                            // Redirect ke halaman index.php setelah berhasil login
-                            window.location.href = 'index.php';
+                            window.location.href = data.redirect || 'index.php';
                         }, 1500);
                     } else {
                         showMessage('error', data.message);
@@ -139,13 +140,10 @@ if (isset($_SESSION['user_id'])) {
                 }
             });
 
-
-            // Handle Google Login
             googleLoginBtn.addEventListener('click', () => {
                 window.location.href = './api/auth.php?action=google_login';
             });
 
-            // Facebook Login (placeholder for future)
             facebookLoginBtn.addEventListener('click', () => {
                 alert('Fitur ini akan segera dikembangkan!');
             });

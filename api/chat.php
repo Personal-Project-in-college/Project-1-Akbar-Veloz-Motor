@@ -657,7 +657,7 @@ switch ($action) {
             exit();
         }
 
-        // ✅ Cek dulu apakah sudah ada order dengan vehicle_id dan status 'proced'
+        // Cek dulu apakah sudah ada order dengan vehicle_id dan status 'proced'
         $checkVehicleIdInOrders = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE vehicle_id = ? AND status = 'proced'");
         $checkVehicleIdInOrders->execute([$vehicle_id]);
         $alreadyExists = $checkVehicleIdInOrders->fetchColumn();

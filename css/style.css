@@ -1,5 +1,5 @@
-/* Global Styles */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
 :root {
   --primary-color: #1a237e;
   --secondary-color: #ff6d00;
@@ -279,9 +279,7 @@ nav ul li a:hover .auth-link .icon svg {
 }
 
 
-/*=============================================
-=            Content Sections                 =
-=============================================*/
+
 .vehicle-list {
   margin: 40px 0;
 }
@@ -308,6 +306,7 @@ nav ul li a:hover .auth-link .icon svg {
 
 .vehicle-card img {
   width: 100%;
+  height: 188px;
   object-fit: cover;
 }
 
@@ -1045,7 +1044,9 @@ footer {
   flex-direction: column;
   width: 100%;
   gap: 24px;
-  padding: 24px 0px;
+  background-color: var(--white-color);
+  padding: 24px 22px;
+  border-radius: 8px;
 }
 
 /* Input Group Styles */
@@ -1103,8 +1104,26 @@ footer {
 /* Disabled/Readonly State */
 .credit-form__input:disabled,
 .credit-form__input[readonly] {
-  background-color: #f3f4f6;
+  background-color: var(--white-color);
 }
+
+/* input readonly */
+.credit-form__input-group input[readonly] {
+  border-color: var(--secondary-color);
+  background-color: var(--white-color);
+  color: var(--gray-color);
+  cursor: not-allowed;
+}
+
+.credit-form__input-group input[readonly] ~ label {
+  transform: translateY(-50%) scale(0.9);
+  margin: 0;
+  margin-left: 1em;
+  padding: 0.2em;
+  background-color: var(--white-color);
+  color: var(--secondary-color);
+}
+
 
 /* Error State (optional) */
 .credit-form__input--error {
@@ -1161,6 +1180,8 @@ footer {
   border-color: #000;
   outline: none;
 }
+
+
 
 /* Style untuk payment summary */
 .credit-form__summary {
@@ -1433,7 +1454,7 @@ footer {
   }
 }
 
-/* Halaman test-drive.php */
+/* Halaman test-drive.html */
 /* Test Drive Form Styles */
 .test-drive-form {
   margin: 40px 0;
@@ -1482,8 +1503,10 @@ footer {
   color: var(--gray-color);
 }
 
+
+
 .inputGroup input,
-.inputGroup textarea,
+.inputGroup #address,
 .inputGroup select {
   font-size: 100%;
   padding: 0.8em;
@@ -1495,7 +1518,7 @@ footer {
   transition: border-color 0.3s ease;
 }
 
-.inputGroup textarea {
+.inputGroup #address {
   min-height: 100px;
   resize: vertical;
 }
@@ -1504,8 +1527,8 @@ footer {
   :is(
     input:focus,
     input:valid,
-    textarea:focus,
-    textarea:valid,
+    #address:focus,
+    #address:valid,
     select:focus,
     select:valid
   )
@@ -1516,19 +1539,37 @@ footer {
   padding: 0.2em;
   background-color: var(--white-color);
   color: var(--secondary-color);
+
 }
 
 .inputGroup
   :is(
     input:focus,
     input:valid,
-    textarea:focus,
-    textarea:valid,
+    #address:focus,
+    #address:valid,
     select:focus,
     select:valid
   ) {
   border-color: var(--secondary-color);
 }
+
+/* input readonly */
+.inputGroup input[readonly] {
+  border-color: var(--secondary-color);
+  color: var(--gray-color);
+  cursor: not-allowed;
+}
+
+.inputGroup input[readonly] ~ label {
+  transform: translateY(-50%) scale(0.9);
+  margin: 0;
+  margin-left: 1em;
+  padding: 0.2em;
+  background-color: var(--white-color);
+  color: var(--secondary-color);
+}
+
 
 /* Date Input Specific */
 .inputGroup-2 {
@@ -1541,6 +1582,12 @@ footer {
   color: var(--gray-color);
   font-size: 100%;
   margin-left: 0.5em;
+  transform: translateY(-50%) scale(0.9);
+  margin: 0;
+  margin-left: 1em;
+  padding: 0.2em;
+  background-color: var(--white-color);
+  color: var(--secondary-color);
 }
 
 .input-date {
@@ -1811,6 +1858,118 @@ h2 {
   }
 }
 
+h2 {
+  text-align: left;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  margin: 10px 0px;
+}
+
+.location h2 {
+  text-align: center;
+}
+
+.avm-btn-secondary,
+.avm-btn-primary {
+  font-size: 0.8rem;
+}
+
+.harga {
+  font-size: 1rem;
+}
+
+/* Responsive Styles */
+@media (min-width: 576px) {
+  /* .avm-vehicle-detail h2 {
+    font-size: 1.8rem;
+  } */
+
+  .avm-wrap-btn {
+    flex-direction: row;
+  }
+
+  .avm-specs-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  .harga {
+    font-size: 1.2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .avm-gallery {
+    flex-direction: row;
+  }
+
+  .avm-main-image {
+    flex: 1.5;
+  }
+
+  .avm-thumbnails {
+    flex: 1;
+    grid-template-columns: 1fr;
+  }
+
+  .avm-detail-content {
+    flex-direction: row;
+  }
+
+  .avm-description {
+    flex: 2;
+  }
+
+  .avm-specs {
+    flex: 1;
+  }
+
+  .avm-thumbnails {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .avm-vehicle-detail {
+    margin: 30px 0;
+  }
+
+  .avm-description {
+    padding: 20px;
+    font-size: 16px;
+  }
+
+  .avm-specs-grid {
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .avm-spec-item {
+    padding: 15px;
+  }
+
+  .avm-thumbnails {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .harga {
+    font-size: 1.4rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .avm-thumbnails {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Responsive Layouts */
 @media (max-width: 768px) {
   nav ul {
@@ -1913,7 +2072,7 @@ h2 {
   max-width: 450px;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -1936,12 +2095,12 @@ h2 {
   padding: 30px;
 }
 
-.inputGroup {
+.inputGroup-auth {
   position: relative;
   margin-bottom: 20px;
 }
 
-.inputGroup input {
+.inputGroup-auth input {
   width: 100%;
   padding: 0.8em;
   padding-right: 40px;
@@ -1950,7 +2109,7 @@ h2 {
   font-size: 16px;
 }
 
-.inputGroup label {
+.inputGroup-auth label {
   position: absolute;
   left: 0.5em;
   text-align: left;
@@ -1963,8 +2122,12 @@ h2 {
   transition: all 0.2s ease;
 }
 
-.inputGroup input:focus ~ label,
-.inputGroup input:valid ~ label {
+
+
+
+
+.inputGroup-auth input:focus ~ label,
+.inputGroup-auth input:valid ~ label {
   top: 0;
   transform: translateY(-50%) scale(0.85);
   color: var(--secondary-color);

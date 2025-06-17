@@ -12,8 +12,8 @@ function resizeImage($sourcePath, $destinationPath, $newWidth = 354, $newHeight 
         case 'image/png':
             $image = imagecreatefrompng($sourcePath);
             break;
-        case 'image/gif':
-            $image = imagecreatefromgif($sourcePath);
+        case 'image/webp':
+            $image = imagecreatefromwebp($sourcePath);
             break;
         default:
             return false;

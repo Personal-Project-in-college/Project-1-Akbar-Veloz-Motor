@@ -1,0 +1,83 @@
+.container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+.card {
+  background-color: var(--white-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+.card-header {
+  background-color: var(--primary-color);
+  color: var(--white-color);
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+.card-body {
+  padding: 24px;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 600px) {
+  .detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.detail-item {
+  margin-bottom: 12px;
+}
+.detail-item dt {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gray-color);
+  margin-bottom: 4px;
+}
+.detail-item dd {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+.stnk-remaining {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--success-color);
+  margin-left: 8px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--gray);
+  margin: 24px 0;
+}
+.next-step-card {
+  text-align: center;
+}
+.next-step-card h3 {
+  font-size: 1.3rem;
+  color: var(--primary-color);
+  margin-top: 0;
+}
+.next-step-card p {
+  font-size: 1rem;
+  color: var(--dark-gray);
+  line-height: 1.6;
+}
+.map-container {
+  width: 100%;
+  height: 350px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+.timer-container {
+  margin: 20px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
