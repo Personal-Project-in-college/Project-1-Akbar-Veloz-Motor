@@ -60,7 +60,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 <a href="create.php" class="btn btn-primary">Tambah</a>
             <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang (Nama, Alamat)...">
             </div>
         </div>
 

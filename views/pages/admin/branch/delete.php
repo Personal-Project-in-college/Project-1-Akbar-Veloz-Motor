@@ -52,9 +52,11 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <h3 class="mb-4">Data Cabang Terhapus</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-            <a href="create.php" class="btn btn-primary">Tambah</a>
+            <?php if (hasAnyRole(['Owner'])) : ?>
+                <a href="create.php" class="btn btn-primary">Tambah</a>
+            <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang Terhapus...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Cabang Terhapus(Nama, Alamat)...">
             </div>
         </div>
 

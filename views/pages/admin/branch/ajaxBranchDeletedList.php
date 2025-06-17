@@ -1,5 +1,7 @@
 <?php
+session_start();
 include '../../../../config/koneksi.php';
+include '../../../../helpers/functionCheckRole.php';
 
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
@@ -20,14 +22,20 @@ if ($data) {
                 <td data-bs-toggle='tooltip' data-bs-placement='top' title='{$address}'>
                     {$shortAddress}
                 </td>
-                <td style='display: flex; align-items: center; gap: 8px;'>
-                    <button data-id='{$row['id']}' class='btn btn-success btn-sm restore-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
-                        <i class='mdi mdi-restore'></i>
-                    </button>
-                    <button data-id='{$row['id']}' class='btn btn-danger btn-sm destroy-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
-                        <i class='mdi mdi-delete-forever'></i>
-                    </button>
-                </td>
+                <td style='display: flex; align-items: center; gap: 8px;'>";
+                    if (hasAnyRole(['Owner'])) {
+                        echo "<button data-id='{$row['id']}' class='btn btn-success btn-sm restore-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
+                                    <i class='mdi mdi-restore'></i>
+                                </button>
+                                <button data-id='{$row['id']}' class='btn btn-danger btn-sm destroy-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
+                                    <i class='mdi mdi-delete-forever'></i>
+                                </button>";
+                        }
+                echo "
+                                <a href='detail.php?slug={$row['slug']}' title='Detail' class='btn btn-secondary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
+                                    <i class='mdi mdi-eye'></i>
+                                </a>
+                    </td>
             </tr>";
         $no++;
     }
