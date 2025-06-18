@@ -49,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customer_id = $_POST['customer_id'];
     $vehicle_id = $_POST['vehicle_id'];
     $type_order = $_POST['type_order']; // Ganti nama variabel agar tidak bentrok dengan kolom
+    $type_arrival = $_POST['type_arrival'];
+    $order_date = $_POST['order_date'];
 
     // ====================================================================
     // Permintaan #1: Validasi Proses yang Sedang Berjalan
@@ -89,20 +91,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($error)) {
         $koneksi->beginTransaction(); // Mulai transaksi database untuk keamanan data
         try {
+
+            $order_date = empty($order_date) ? date('Y-m-d H:i:s') : $order_date;
             // 1. Insert ke tabel orders
-            $insertOrderQuery = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, negotiated_price, is_read, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
-            $insertOrderQuery->execute([$customer_id, $vehicle_id, $type_order]);
+            $insertOrderQuery = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, negotiated_price, is_read, created_at) VALUES (?, ?, ?, ?, ?, 0, 0, NOW())");
+            $insertOrderQuery->execute([$customer_id, $vehicle_id, $type_order, $type_arrival, $order_date]);
 
             $order_id = $koneksi->lastInsertId();
 
             $user_id = $_SESSION['user_id']; // Ambil user id dari session
 
             // 2. Buat record di tabel turunan (test_drivers atau transactions)
-            $test_drive_type = $_POST['test_drive_type'] ?? null;
+            
 
             if ($type_order === 'test_driver') {
-                $stmt = $koneksi->prepare("INSERT INTO test_drivers (order_id, user_id, status, test_drive_type, created_at) VALUES (?, ?, 'process', ?, NOW())");
-                $stmt->execute([$order_id, $user_id, $test_drive_type]);
+                $stmt = $koneksi->prepare("INSERT INTO test_drivers (order_id, user_id, status, created_at) VALUES (?, ?, 'process', NOW())");
+                $stmt->execute([$order_id, $user_id]);
 
                 $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")->execute([$vehicle_id]);
             }
@@ -187,11 +191,16 @@ include '../layout/sidebar.php';
 
 
                     <div class="mb-3" id="test_driver_type_group" style="display:none;">
-                        <label for="test_drive_type" class="form-label">Tipe Test Driver</label>
-                        <select name="test_drive_type" class="form-control" style="color: black;">
+                        <label for="type_arrival" class="form-label">Tipe Test Driver</label>
+                        <select name="type_arrival" class="form-control" style="color: black;">
                             <option value="showroom">Customer Datang Ke Showroom</option>
                             <option value="home_visit">Karyawan Datang Ke Alamat Customers</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3" id="test_driver_date_group" style="display:none;">
+                        <label for="order_date" class="form-label">Tanggal Test Drive</label>
+                        <input type="datetime-local" class="form-control" id="order_date" name="order_date" placeholder="Masukan Tanggal Test Drive">
                     </div>
 
 
@@ -207,12 +216,15 @@ include '../layout/sidebar.php';
     <script>
         const typeOrderSelect = document.querySelector('select[name="type_order"]');
         const testDriverTypeGroup = document.getElementById('test_driver_type_group');
+        const testDriverDateGroup = document.getElementById('test_driver_date_group');
 
         function toggleTestDriverType() {
             if (typeOrderSelect.value === 'test_driver') {
                 testDriverTypeGroup.style.display = 'block';
+                testDriverDateGroup.style.display = 'block';
             } else {
                 testDriverTypeGroup.style.display = 'none';
+                testDriverDateGroup.style.display = 'none';
             }
         }
 
