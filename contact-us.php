@@ -1,4 +1,5 @@
 <?php
+require_once 'config/koneksi.php';
 if (session_status() == PHP_SESSION_NONE) {
   session_start();
 }
@@ -10,11 +11,11 @@ if (!isset($_SESSION['customer_id']) || empty($_SESSION['customer_id'])) {
   exit();
 }
 
-require_once 'config/koneksi.php';
 
+// Load data customer
+$customer_id = $_SESSION['customer_id'];
 $customer_name = '';
 $customer_email = '';
-$customer_id = $_SESSION['customer_id'];
 
 try {
   $stmt = $koneksi->prepare("SELECT name, email FROM customers WHERE id = ?");
@@ -28,6 +29,61 @@ try {
 } catch (PDOException $e) {
   die("Error saat mengambil data pengguna: " . $e->getMessage());
 }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $phone = $_POST['phone'] ?? null;
+  $address = $_POST['address'] ?? null;
+  $vehicle_id = $_POST['vehicle'] ?? null;
+  $type_order = $_POST['type_order'] ?? null;
+  $type_arrival = $_POST['type_arrival'] ?? null;
+  $order_date = $_POST['order_date'] ?? null;
+
+  if (!$phone || !$address) {
+    die("Nomor WhatsApp dan alamat wajib diisi.");
+  }
+
+  try {
+    $koneksi->beginTransaction();
+
+    $updateCustomer = $koneksi->prepare("UPDATE customers SET phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
+    $updateCustomer->execute([$phone, $address, $customer_id]);
+
+    $order_date = empty($order_date) ? date('Y-m-d H:i:s') : $order_date;
+
+    $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+    $stmtOrder->execute([$customer_id, $vehicle_id, $type_order, $type_arrival, $order_date]);
+    $order_id = $koneksi->lastInsertId();
+
+    if ($type_order === 'test_driver') {
+      $stmtTD = $koneksi->prepare("INSERT INTO test_drivers (order_id, status, created_at) VALUES (?, 'process', NOW())");
+      $stmtTD->execute([$order_id]);
+
+      $stmtUpdateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
+      $stmtUpdateVehicle->execute([$vehicle_id]);
+    } elseif ($type_order === 'transaction') {
+      $stmtVehicle = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
+      $stmtVehicle->execute([$vehicle_id]);
+      $vehicle = $stmtVehicle->fetch(PDO::FETCH_ASSOC);
+
+      $vehicle_price = $vehicle['price_displayed'] ?? 0;
+      $stmtTransaction = $koneksi->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, status, created_at) VALUES (?, ?, 0, 'pending', NOW())");
+      $stmtTransaction->execute([$order_id, $vehicle_price]);
+
+      $stmtUpdateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?");
+      $stmtUpdateVehicle->execute([$vehicle_id]);
+    }
+
+    $koneksi->commit();
+    header("Location: detail-pesanan.php?id=$order_id");
+    exit();
+  } catch (PDOException $e) {
+    $koneksi->rollBack();
+    die("Gagal menyimpan data: " . $e->getMessage());
+  }
+}
+
+$vehiclesQuery = $koneksi->query("SELECT v.id, vm.name AS model_name FROM vehicles AS v JOIN vehicle_models AS vm ON v.vehicle_model_id = vm.id WHERE v.status = 'available' AND v.deleted_at IS NULL");
+$vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -58,7 +114,7 @@ try {
       <h2>Hubungi Kami</h2>
       <div>
 
-        <form id="testDriveForm" class="testDriveForm">
+        <form method="POST" id="testDriveForm" class="testDriveForm">
           <div class="testDrive-container">
 
             <div class="inputGroup">
@@ -69,8 +125,8 @@ try {
             </div>
 
             <div class="inputGroup">
-              <input type="tel" id="whatsapp" name="whatsapp" required autocomplete="off">
-              <label for="whatsapp">Nomor WhatsApp Aktif</label>
+              <input type="tel" id="whatsapp" name="phone" required autocomplete="off">
+              <label for="phonr">Nomor WhatsApp Aktif</label>
             </div>
 
             <div class="inputGroup">
@@ -90,35 +146,34 @@ try {
             <div class="select-wrapper">
               <select class="modern-select" id="vehicle" name="vehicle" required>
                 <option value="">-- Pilih Kendaraan --</option>
-                <option value="Honda Beat 2020">Honda Beat 2020</option>
-                <option value="APV">APV</option>
-                <option value="Baleno">Baleno</option>
-                <option value="Hybrid Lux">Hybrid Lux</option>
-                <option value="Honda Brio">Honda Brio</option>
-                <option value="Mitsubishi Xpander">Mitsubishi Xpander</option>
+                <?php foreach ($vehicles as $vehicle): ?>
+                  <option value="<?= $vehicle['id'] ?>">
+                    <?= $vehicle['id'] ?> | <?= htmlspecialchars($vehicle['model_name']) ?>
+                  </option>
+                <?php endforeach; ?>
               </select>
             </div>
 
             <div class="select-wrapper">
-              <select class="modern-select" id="purpose" name="purpose" required>
+              <select class="modern-select" id="purpose" name="type_order" required>
                 <option value="">-- Tentukan tujuan --</option>
-                <option value="test_drive">Test Drive</option>
+                <option value="test_driver">Coba Kendaraan</option>
                 <option value="transaction">Transaksi</option>
               </select>
             </div>
 
             <div class="select-wrapper">
-              <select class="modern-select" id="arrival_method" name="arrival_method" required>
+              <select class="modern-select" id="arrival_method" name="type_arrival" required>
                 <option value="">-- Tentukan Kedatangan --</option>
-                <option value="to_showroom">Saya akan datang ke showroom</option>
-                <option value="to_location">Saya ingin petugas datang ke lokasi saya</option>
+                <option value="showroom">Saya akan datang ke showroom</option>
+                <option value="home_visit">Saya ingin petugas datang ke lokasi saya</option>
               </select>
             </div>
 
             <div class="datepicker-wrapper">
               <label for="date">Tentukan Jadwal</label>
               <div class="datepicker-container">
-                <input class="modern-datepicker" type="date" id="date" name="date" required>
+                <input class="modern-datepicker" type="datetime-local" id="date" name="order_date" required>
                 <div class="datepicker-icon">
                   <svg viewBox="0 0 24 24" width="20" height="20">
                     <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z" fill="currentColor" />
@@ -131,9 +186,7 @@ try {
       </div>
       <div class="form-actions">
         <a href="index.html" class="btn-secondary">Kembali</a>
-        <button type="button" onclick="window.location.href='detail-pesanan.php'" class="btn">
-         Lanjut
-        </button>
+        <button type="submit" class="btn">Lanjut</button>
         <!-- <button type="submit" class="btn">
           Kirim
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,30 +1,71 @@
 <?php
+require 'config/koneksi.php';
 
-$pesanan = [
-    'customer_name' => 'Givi Boy',
-    'customer_email' => 'faradfsfdsfsdf@gmail.com',
-    'customer_whatsapp' => '6281234567890',
-    'customer_address' => 'Jl. Merdeka No. 45, Bandung, Jawa Barat, 40111',
-    'purpose' => 'Test Drive',
-    'schedule_date' => '2025-06-18',
-    'arrival_method' => 'to_location',
-    'vehicle_name' => 'K0101F - Yamaha Aerox',
-    'vehicle_type' => 'Motor',
-    'vehicle_color' => 'Prestige Silver',
-    'vehicle_year' => '2023',
-    'stnk_deadline' => '2025-07-08',
-    'fuel_type' => 'Bensin',
-    'engine_cc' => '155cc',
-    'description' => 'Yamaha Aerox 155 Connected, skutik sporty dengan performa maksimal dan fitur canggih. Dilengkapi dengan Y-Connect untuk sinkronisasi dengan smartphone Anda.',
-    'price' => 'Rp 27.425.000'
-];
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-$today = new DateTime();
-$stnkDate = new DateTime($pesanan['stnk_deadline']);
-$interval = $today->diff($stnkDate);
-$sisaHariSTNK = $interval->days;
+if (!isset($_GET['id']) || empty($_GET['id'])) {
+    echo "ID pesanan tidak ditemukan.";
+    exit();
+}
 
-$jadwalFormatted = date('d F Y', strtotime($pesanan['schedule_date']));
+$order_id = $_GET['id'];
+
+try {
+    $stmt = $koneksi->prepare("
+        SELECT
+            o.id AS order_id,
+            o.type_order,
+            o.type_arrival,
+            o.order_date,
+            o.negotiated_price,
+            c.name AS customer_name,
+            c.email AS customer_email,
+            c.phone AS customer_phone,
+            c.address AS customer_address,
+            v.id AS vehicle_code,
+            v.type_vehicle AS vehicle_type,
+            v.color AS vehicle_color,
+            v.production_year AS vehicle_year,
+            v.type_fuel AS fuel_type,
+            v.cc_engine AS cc,
+            v.price_displayed,
+            v.stnk_deadline,
+            v.description,
+            vm.name AS model_name,
+            b.name AS brand_name
+        FROM orders o
+        JOIN customers c ON o.customer_id = c.id
+        JOIN vehicles v ON o.vehicle_id = v.id
+        JOIN vehicle_models vm ON v.vehicle_model_id = vm.id
+        JOIN brands b ON vm.brand_id = b.id
+        LEFT JOIN test_drivers td ON td.order_id = o.id
+        WHERE o.id = ?
+    ");
+    $stmt->execute([$order_id]);
+    $pesanan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$pesanan) {
+        echo "Data pesanan tidak ditemukan.";
+        exit();
+    }
+
+    $pesanan['vehicle_name'] = $pesanan['brand_name'] . ' ' . $pesanan['model_name'];
+
+    $today = new DateTime();
+    $stnkDate = new DateTime($pesanan['stnk_deadline']);
+    $interval = $today->diff($stnkDate);
+    $sisaHariSTNK = $interval->days;
+
+    $pesanan['stnk_remaining_days'] = $sisaHariSTNK;
+    $pesanan['order_date'] = date('d F Y', strtotime($pesanan['order_date'])) ?? '-';
+} catch (PDOException $e) {
+    echo "Terjadi kesalahan: " . $e->getMessage();
+    exit();
+}
+
+
 
 ?>
 <!DOCTYPE html>
@@ -55,25 +96,25 @@ $jadwalFormatted = date('d F Y', strtotime($pesanan['schedule_date']));
                         </div>
                         <div class="detail-item">
                             <dt>Whatsapp</dt>
-                            <dd><?php echo htmlspecialchars($pesanan['customer_whatsapp']); ?></dd>
+                            <dd><?php echo htmlspecialchars($pesanan['customer_phone'] ?? '-'); ?></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Alamat</dt>
-                            <dd><?php echo htmlspecialchars($pesanan['customer_address']); ?></dd>
+                            <dd><?php echo htmlspecialchars($pesanan['customer_address'] ?? '-'); ?></dd>
                         </div>
                     </div>
                     <div>
                         <div class="detail-item">
                             <dt>Tujuan</dt>
-                            <dd><?php echo htmlspecialchars($pesanan['purpose']); ?></dd>
+                            <dd><?php echo htmlspecialchars($pesanan['type_order']); ?></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Jadwal</dt>
-                            <dd><?php echo htmlspecialchars($jadwalFormatted); ?></dd>
+                            <dd><?php echo htmlspecialchars($pesanan['order_date']); ?></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Metode Kedatangan</dt>
-                            <dd><?php echo $pesanan['arrival_method'] == 'to_location' ? 'Petugas datang ke lokasi saya' : 'Saya akan datang ke showroom'; ?></dd>
+                            <dd><?php echo $pesanan['type_arrival'] == 'home_visit' ? 'Petugas datang ke lokasi saya' : 'Saya akan datang ke showroom'; ?></dd>
                         </div>
                     </div>
                 </dl>
@@ -82,7 +123,7 @@ $jadwalFormatted = date('d F Y', strtotime($pesanan['schedule_date']));
                     <div>
                         <div class="detail-item">
                             <dt>Nama Kendaraan</dt>
-                            <dd><?php echo htmlspecialchars($pesanan['vehicle_name']); ?></dd>
+                            <dd><?php echo htmlspecialchars($pesanan['vehicle_code']); ?> - <?php echo htmlspecialchars($pesanan['vehicle_name']); ?></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Tipe</dt>
@@ -111,12 +152,18 @@ $jadwalFormatted = date('d F Y', strtotime($pesanan['schedule_date']));
                         </div>
                         <div class="detail-item">
                             <dt>Kapasitas Mesin</dt>
-                            <dd><?php echo htmlspecialchars($pesanan['engine_cc']); ?></dd>
+                            <dd><?php echo htmlspecialchars($pesanan['cc']); ?></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Harga Kendaraan</dt>
-                            <dd><?php echo htmlspecialchars($pesanan['price']); ?></dd>
+                            <dd>Rp <?php echo number_format($pesanan['price_displayed'], 0, ',', '.'); ?></dd>
                         </div>
+                        <?php if (!$pesanan['negotiated_price'] == 0) : ?>
+                            <div class="detail-item">
+                                <dt>Harga Negoisasi</dt>
+                                <dd>Rp <?php echo number_format($pesanan['negotiated_price'], 0, ',', '.'); ?></dd>
+                            </div>
+                        <?php endif ?>
                     </div>
                 </dl>
                 <div class="detail-item" style="grid-column: 1 / -1;">
