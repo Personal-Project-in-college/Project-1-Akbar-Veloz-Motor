@@ -1,5 +1,5 @@
 <?php
-
+require '../../../../config/koneksi.php';
 /**
  * File: header.php
  * Bagian atas dari layout aplikasi (template).
@@ -16,6 +16,23 @@ if (session_status() === PHP_SESSION_NONE) {
 $name = $_SESSION['name'];
 $photo = (!empty($_SESSION['photo'])) ? $_SESSION['photo'] : 'default.jpg';
 
+
+$stmt = $koneksi->query("
+  SELECT 
+    o.id AS order_id,
+    c.name AS customer_name,
+    vm.name AS model_name,
+    b.name AS brand_name
+  FROM orders o
+  JOIN customers c ON c.id = o.customer_id
+  JOIN vehicles v ON v.id = o.vehicle_id
+  JOIN vehicle_models vm ON vm.id = v.vehicle_model_id
+  JOIN brands b ON b.id = vm.brand_id
+  WHERE o.is_read = 0
+  ORDER BY o.created_at DESC
+  LIMIT 5
+");
+$notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
@@ -69,15 +86,35 @@ $photo = (!empty($_SESSION['photo'])) ? $_SESSION['photo'] : 'default.jpg';
         <li class="nav-item dropdown">
           <a class="nav-link" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="mdi mdi-bell-outline" style="font-size: 20px; vertical-align: middle;"></i>
-            <span class="badge bg-danger count">3</span>
+            <span class="badge bg-danger count"><?= count($notifications) ?></span>
           </a>
           <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="notificationDropdown">
-            <h6 class="dropdown-header">Notifications</h6>
-            <a class="dropdown-item">
-              <i class="mdi mdi-email-outline text-primary"></i> General
-            </a>
+            <h6 class="dropdown-header">Pesanan Baru</h6>
+            <?php if (count($notifications) === 0): ?>
+              <span class="dropdown-item">Tidak ada notifikasi baru</span>
+            <?php else: ?>
+              <?php foreach ($notifications as $notif): ?>
+                <a class="dropdown-item notification-item" href="../transactions/transaction.php?id=<?= $notif['order_id'] ?>" data-id="<?= $notif['order_id'] ?>">
+                  <i class="mdi mdi-email-outline text-primary"></i>
+                  <strong><?= htmlspecialchars($notif['customer_name']) ?></strong><br>
+                  Order ID: <?= $notif['order_id'] ?> - <?= htmlspecialchars($notif['brand_name'] . ' ' . $notif['model_name']) ?>
+                </a>
+              <?php endforeach; ?>
+            <?php endif; ?>
           </div>
         </li>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+            const items = document.querySelectorAll('.notification-item');
+            items.forEach(item => {
+              item.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                fetch('mark_read.php?id=' + id);
+              });
+            });
+          });
+        </script>
 
         <li class="nav-item nav-profile dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
@@ -114,5 +151,4 @@ $photo = (!empty($_SESSION['photo'])) ? $_SESSION['photo'] : 'default.jpg';
       </button>
     </div>
   </nav>
-
   <div class="container-fluid page-body-wrapper">
