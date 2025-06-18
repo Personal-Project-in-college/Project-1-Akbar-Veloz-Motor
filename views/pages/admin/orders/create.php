@@ -98,16 +98,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user_id = $_SESSION['user_id']; // Ambil user id dari session
 
             // 2. Buat record di tabel turunan (test_drivers atau transactions)
-            if ($type_order === 'test_driver') {
-                // Asumsi: tabel `test_drivers` ada kolom `status`
-                $koneksi->prepare("INSERT INTO test_drivers (order_id, user_id, status, created_at) VALUES (?, ?, 'process', NOW())")->execute([$order_id, $user_id]);
+            $test_drive_type = $_POST['test_drive_type'] ?? null;
 
-                // 3. Update status kendaraan
+            if ($type_order === 'test_driver') {
+                $stmt = $koneksi->prepare("INSERT INTO test_drivers (order_id, user_id, status, test_drive_type, created_at) VALUES (?, ?, 'process', ?, NOW())");
+                $stmt->execute([$order_id, $user_id, $test_drive_type]);
+
                 $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")->execute([$vehicle_id]);
             }
 
+
             if ($type_order === 'transaction') {
-                
+
                 $getPriceStmt = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
                 $getPriceStmt->execute([$vehicle_id]);
                 $vehicle_price = $getPriceStmt->fetchColumn();
@@ -177,10 +179,21 @@ include '../layout/sidebar.php';
                     <div class="mb-3">
                         <label for="type_order" class="form-label">Tipe Pesanan</label>
                         <select name="type_order" class="form-control" required style="color: black;">
+                            <option value="">Pilih Tipe Pesanan</option>
                             <option value="test_driver">Test Driver</option>
                             <option value="transaction">Transaksi</option>
                         </select>
                     </div>
+
+
+                    <div class="mb-3" id="test_driver_type_group" style="display:none;">
+                        <label for="test_drive_type" class="form-label">Tipe Test Driver</label>
+                        <select name="test_drive_type" class="form-control" style="color: black;">
+                            <option value="showroom">Customer Datang Ke Showroom</option>
+                            <option value="home_visit">Karyawan Datang Ke Alamat Customers</option>
+                        </select>
+                    </div>
+
 
                     <button type="submit" class="btn btn-primary">Simpan</button>
                     <a href="orders.php" class="btn btn-secondary text-white mx-2">Kembali</a>
@@ -190,4 +203,21 @@ include '../layout/sidebar.php';
 
         <?php include '../layout/footer.php'; ?>
     </div>
+
+    <script>
+        const typeOrderSelect = document.querySelector('select[name="type_order"]');
+        const testDriverTypeGroup = document.getElementById('test_driver_type_group');
+
+        function toggleTestDriverType() {
+            if (typeOrderSelect.value === 'test_driver') {
+                testDriverTypeGroup.style.display = 'block';
+            } else {
+                testDriverTypeGroup.style.display = 'none';
+            }
+        }
+
+        typeOrderSelect.addEventListener('change', toggleTestDriverType);
+        toggleTestDriverType(); // jalankan saat awal
+    </script>
+
 </div>
