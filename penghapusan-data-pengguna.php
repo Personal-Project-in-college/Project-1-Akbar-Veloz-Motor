@@ -152,17 +152,26 @@
           text-align: center;
         }
       }
+
+       .wrap-img  {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <header>
-        <img
-          src="logo-akbar-veloz-motor.png"
+      <div class="wrap-img">
+    <img
+          src="./assets/icons/logo.png"
           alt="Logo Akbar Veloz Motor"
           class="logo"
         />
-        <h1>Kebijakan Penghapusan Data Pengguna</h1>
+      </div>
+
+      <header>
+        <h1>Kebijakan Privasi Akbar Veloz Motor</h1>
       </header>
 
       <div class="info-box">
@@ -249,7 +258,7 @@
           Mengarsipkan data transaksi dan servis (tanpa identitas pribadi) untuk
           kepatuhan pajak dan regulasi
         </li>
-        <li>Mengirim konfirmasi via email/SMS setelah proses selesai</li>
+        <li>Mengirim konfirmasi via email setelah proses selesai</li>
       </ul>
       <p>
         Data mungkin tetap ada dalam backup sistem selama maksimal

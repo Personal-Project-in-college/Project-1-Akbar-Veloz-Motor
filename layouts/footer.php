@@ -8,7 +8,7 @@
         <div class="footer-section">
           <h3>About</h3>
           <ul>
-            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="kebijakan-privasi.php">Privacy Policy</a></li>
             <li><a href="#">Help Center</a></li>
             <li><a href="#">Terms & Condition</a></li>
           </ul>

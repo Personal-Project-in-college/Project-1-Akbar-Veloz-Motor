@@ -542,7 +542,7 @@ switch ($action) {
         ");
             $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $base_image_url = '../storage/';
+            $base_image_url = './storage/';
 
             foreach ($vehicles as &$vehicle) {
                 $vehicle['display_name'] = $vehicle['vehicle_id'] . ' - ' . $vehicle['brand_name'] . ' ' . $vehicle['model_name'];

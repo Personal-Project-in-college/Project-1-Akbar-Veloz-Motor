@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
   //   });
   // }
 
+
   if (logoutLink) {
     logoutLink.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -106,4 +107,5 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
 
