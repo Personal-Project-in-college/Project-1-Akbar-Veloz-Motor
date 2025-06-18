@@ -723,7 +723,7 @@ switch ($action) {
             $vehicle_price = $getPriceVehicle->fetchColumn();
 
             // Langsung buat record transaksi dengan status 'pending' agar validasi berfungsi
-            $insertTransaction = $pdo->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, grand_total, amount_paid, payment_type, payment_method, status, created_at) VALUES (?, ?, 0, 0, 0, 'tunai', 'cash', 'pending', NOW())");
+            $insertTransaction = $pdo->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, grand_total, payment_type, payment_method, status, created_at) VALUES (?, ?, 0, 0, 'tunai', 'cash', 'pending', NOW())");
             $insertTransaction->execute([$order_id, $vehicle_price]);
 
             // Opsional: Perbarui status kendaraan menjadi 'transaction' atau 'on_loan' jika sudah dibayar sebagian/lunas
