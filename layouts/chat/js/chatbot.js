@@ -239,9 +239,9 @@ async function startNegotiation(containerId) {
       (vehicle) =>
         `<div class="promo-card vehicle-option" data-id="${vehicle.vehicle_id}">
 <h4>${vehicle.vehicle_id} - ${vehicle.brand_name} ${vehicle.model_name}</h4>
-<img src="${vehicle.image}" alt="${
+<img class="promo-card-img" src="${vehicle.image}" alt="${
           vehicle.brand_name
-        } ${vehicle.model_name}" style="max-width:100px; height:auto; border-radius:8px; margin-top:5px;">
+        } ${vehicle.model_name}" >
 <p>Harga: Rp${Number(vehicle.price).toLocaleString("id-ID")}</p>
 </div>`
     )
@@ -275,9 +275,9 @@ function selectVehicle(vehicleId, containerId) {
 <strong>Anda memilih ${vehicle.brand_name} ${vehicle.model_name}</strong>
 <div class="vehicle-card-chat promo-card">
 <h4>${vehicle.vehicle_id} - ${vehicle.brand_name} ${vehicle.model_name}</h4>
-<img src="${vehicle.image}" alt="${vehicle.brand_name} ${
+<img class="promo-card-img" src="${vehicle.image}" alt="${vehicle.brand_name} ${
     vehicle.model_name
-  }" style="max-width:150px; height:auto; border-radius:8px; margin-top:5px;">
+  }" >
 <p><strong>Harga:</strong> Rp${Number(vehicle.price).toLocaleString(
     "id-ID"
   )}</p>

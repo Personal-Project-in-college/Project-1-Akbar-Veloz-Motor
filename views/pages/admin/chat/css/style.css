@@ -354,11 +354,16 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.vehicle-card-chat img {
-  max-width: 100%;
-  height: auto;
+.promo-card-img {
+  width: 100%;
+  height: 160px;
   border-radius: 8px;
   margin-top: 5px;
+  object-fit: cover;
+}
+
+.promo-card img{
+  height: 140px;
 }
 
 .description-card {

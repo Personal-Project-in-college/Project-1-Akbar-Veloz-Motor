@@ -67,7 +67,7 @@ try {
 
 function render_vehicle_card($vehicle)
 {
- $formattedPrice = 'Rp ' . number_format($vehicle['price_displayed'], 0, ',', '.');
+  $formattedPrice = 'Rp ' . number_format($vehicle['price_displayed'], 0, ',', '.');
   $detailUrl = 'detail.php?id=' . htmlspecialchars($vehicle['id']);
   $imageUrl = htmlspecialchars($vehicle['image']);
 
@@ -77,7 +77,7 @@ function render_vehicle_card($vehicle)
   $displayName = $originalDisplayName;
   $maxTitleLength = 19;
   if (mb_strlen($originalDisplayName) > $maxTitleLength) {
-      $displayName = mb_substr($originalDisplayName, 0, $maxTitleLength) . '...';
+    $displayName = mb_substr($originalDisplayName, 0, $maxTitleLength) . '...';
   }
 
   $productionYear = isset($vehicle['production_year']) ? htmlspecialchars(date('Y', strtotime($vehicle['production_year']))) : 'N/A';
@@ -256,11 +256,11 @@ function render_vehicle_card($vehicle)
           }
           ?>
         </div>
-        
+
       </div>
       <div class="show-all-btn-container">
-          <a href="search.php?type_vehicle=" class="btn-primary">Tampilkan Semua</a>
-        </div>
+        <a href="search.php?type_vehicle=" class="btn-primary">Tampilkan Semua</a>
+      </div>
     </section>
 
 
@@ -271,29 +271,18 @@ function render_vehicle_card($vehicle)
       <div class="location-section">
         <div class="map-wrapper">
           <div class="map-container">
-            <!-- <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31709.467082367086!2d107.76811926910234!3d-6.561590679615411!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e693b9ae39cc0eb%3A0x76db7b3959df2011!2sPoliteknik%20Negeri%20Subang%2C%20Kampus%20Utama%20Cibogo!5e0!3m2!1sid!2sid!4v1739072152156!5m2!1sid!2sid"
-                class="map-frame"
-                allowfullscreen
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-              ></iframe> -->
+            <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3964.4631387550817!2d107.7643724835682!3d-6.462859211900479!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMjcnNDYuMiJTIDEwN8KwNDUnNTEuOCJF!5e0!3m2!1sid!2sid!4v1750216898951!5m2!1sid!2sid" class="map-frame" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 
+            <!-- cabang -->
+            <!-- 
+<iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3964.5227567644665!2d107.8121152572227!3d-6.455248575640003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMjcnMTguOSJTIDEwN8KwNDgnNDMuNiJF!5e0!3m2!1sid!2sid!4v1750217111437!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
 
-            <!--  -->
-            <!-- alamat utama belum akurat  -->
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.4745400999514!2d107.76999485943938!3d-6.461404444536622!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6938d1eb0bafdd%3A0xbc2fa5240dfe6b2c!2sKantor%20Desa%20Munjul%20Pagaden%20Barat!5e0!3m2!1sid!2sid!4v1750183762819!5m2!1sid!2sid" class="map-frame" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-
-            <!-- cabang belum akurat -->
-
-            <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.5271868147497!2d107.80664357598123!3d-6.454682693536816!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6938f673c17b15%3A0x35a1c407b5f7fe9f!2sJl.%20Subang%20Pamanukan%20No.224%2C%20Pagaden%2C%20Kec.%20Pagaden%2C%20Kabupaten%20Subang%2C%20Jawa%20Barat%2041252!5e0!3m2!1sid!2sid!4v1750184001272!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
           </div>
         </div>
 
         <div class="location-info">
           <p>
-            Jl. Brigjen Katamso No.37, Dangdeur, Kec. Subang, Kabupaten
-            Subang, Jawa Barat 41213
+           Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec.Pagaden Barat, Kab.Subang 41252
           </p>
           <p><strong>Jam Operasional:</strong> Senin-Sabtu, 08:00-17:00</p>
           <p><strong>Telepon:</strong> (0260) 411015</p>

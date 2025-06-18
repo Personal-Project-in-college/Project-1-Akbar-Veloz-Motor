@@ -1202,6 +1202,7 @@ footer {
   pointer-events: none;
   transition: all 0.2s ease-out;
   color: #6b7280;
+  border-radius: 4px;
   background-color: transparent;
 }
 
@@ -1258,6 +1259,7 @@ footer {
   margin-left: 1em;
   padding: 0.2em;
   background-color: var(--white-color);
+  border-radius: 4px;
   color: var(--secondary-color);
 }
 
@@ -1698,6 +1700,7 @@ footer {
   margin-left: 0.5em;
   pointer-events: none;
   transition: all 0.3s ease;
+  border-radius: 4px;
   color: var(--gray-color);
 }
 
@@ -1762,6 +1765,7 @@ footer {
   margin-left: 1em;
   padding: 0.2em;
   background-color: var(--white-color);
+  border-radius: 4px;
   color: var(--secondary-color);
 }
 
@@ -1782,6 +1786,7 @@ footer {
   padding: 0.2em;
   background-color: var(--white-color);
   color: var(--secondary-color);
+  border-radius: 4px;
 }
 
 .input-date {
@@ -1882,6 +1887,7 @@ footer {
   color: var(--gray-color);
   font-size: 100%;
   margin-left: 0.5em;
+  border-radius: 4px;
 }
 
 .datepicker-container {
@@ -2211,6 +2217,65 @@ h2 {
   .avm-wrap-btn button {
     width: 100%;
   }
+
+  /* index.php */
+  .call-card {
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--primary-color);
+  }
+
+  .call-card svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .tab button {
+    font-size: 12px;
+    padding: 4px 5px;
+  }
+
+  .call-card h5 {
+    font-size: 0.4em;
+  }
+
+  .location-info {
+    width: 100%;
+    background-color: var(--white-color);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .location-info p {
+    font-size: 0.8em;
+    margin-bottom: 15px;
+  }
+
+  .location-info p strong {
+    font-size: 0.8em;
+    color: var(--primary-color);
+  }
+
+
+  .vehicle-list{
+    margin: 0px;
+  }
+
+  .location{
+    margin-top: -20px;
+  }
+  
+  section h2 {
+    font-size: 1em;
+  }
+  
+  .call-container{
+    margin-top: 10px;
+  }
+
+  
+  
 }
 
 /* Responsive Adjustments */
@@ -2308,6 +2373,7 @@ h2 {
   color: var(--dark-gray);
   pointer-events: none;
   transition: all 0.2s ease;
+  border-radius: 4px;
 }
 
 .inputGroup-auth input:focus ~ label,
@@ -2560,10 +2626,9 @@ h2 {
 @media (max-width: 480px) {
   .show-all-btn-container .btn-primary {
     padding: 5px 12px;
-  font-size: 10px;
+    font-size: 10px;
   }
 }
-
 
 /* search.php */
 container {
@@ -2891,12 +2956,9 @@ container {
     right: 8px;
   }
 
-
-    .vehicle-card h3 {
+  .vehicle-card h3 {
     font-size: 0.9rem;
   }
-
-  
 
   .btn-secondary {
     font-size: 0.68em;

@@ -1,4 +1,6 @@
 <?php
+$DOMAIN = 'http://localhost:8888/project-galacticos-v-2.0/';
+
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -542,7 +544,7 @@ switch ($action) {
         ");
             $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $base_image_url = './storage/';
+            $base_image_url = $DOMAIN . '/storage/';
 
             foreach ($vehicles as &$vehicle) {
                 $vehicle['display_name'] = $vehicle['vehicle_id'] . ' - ' . $vehicle['brand_name'] . ' ' . $vehicle['model_name'];
