@@ -106,6 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Tentukan status berdasarkan jenis pembayaran
             $status = ($payment_type === 'cicilan') ? 'dp_paid' : 'paid';
 
+            // Ambil vehicle_id dari order yang selesai
+            $getVehicleIdStmt = $koneksi->prepare("SELECT vehicle_id FROM orders WHERE id = ?");
+            $getVehicleIdStmt->execute([$orderRefId]);
+            $vehicleId = $getVehicleIdStmt->fetchColumn();
+
             // Path dan upload file tetap sama...
             // ↓ setelah selesai handle upload, bagian ini yang kita ubah
             if ($payment_type === 'cicilan') {
@@ -123,12 +128,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
                     $updateOrder->execute([$order_id]);
+
+                    // Update status kendaraan jadi sold
+                    if ($vehicleId) {
+                        $koneksi->prepare("UPDATE vehicles SET status = 'sold', updated_at = NOW() WHERE id = ?")->execute([$vehicleId]);
+                    }
                 } else {
                     $stmt = $koneksi->prepare("UPDATE transactions SET payment_type = ?, down_payment = ?, remaining_amount = ?, payment_method = ?, status = ?, updated_at = NOW() WHERE order_id = ?");
                     $stmt->execute([$payment_type, $down_payment, $remaining_amount, $payment_method, $status, $order_id]);
 
                     $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
                     $updateOrder->execute([$order_id]);
+
+                    // Update status kendaraan jadi sold
+                    if ($vehicleId) {
+                        $koneksi->prepare("UPDATE vehicles SET status = 'sold', updated_at = NOW() WHERE id = ?")->execute([$vehicleId]);
+                    }
                 }
             } else { // pembayaran tunai
                 if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === UPLOAD_ERR_OK) {
@@ -145,17 +160,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
                     $updateOrder->execute([$order_id]);
+
+                    // Update status kendaraan jadi sold
+                    if ($vehicleId) {
+                        $koneksi->prepare("UPDATE vehicles SET status = 'sold', updated_at = NOW() WHERE id = ?")->execute([$vehicleId]);
+                    }
                 } else {
                     $stmt = $koneksi->prepare("UPDATE transactions SET payment_type = ?, payment_method = ?, status = ?, updated_at = NOW() WHERE order_id = ?");
                     $stmt->execute([$payment_type, $payment_method, $status, $order_id]);
 
                     $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
                     $updateOrder->execute([$order_id]);
+
+                    // Update status kendaraan jadi sold
+                    if ($vehicleId) {
+                        $koneksi->prepare("UPDATE vehicles SET status = 'sold', updated_at = NOW() WHERE id = ?")->execute([$vehicleId]);
+                    }
                 }
             }
 
             $_SESSION['success_message'] = "Transaksi berhasil diperbarui.";
-            header("Location: checkout.php?order_id=" . $order_id);
+            header("Location: checkout.php?id=" . $order_id);
             exit;
         } catch (PDOException $e) {
             $_SESSION['danger_message'] = "Gagal menyimpan transaksi: " . $e->getMessage();
@@ -368,7 +393,7 @@ include '../layout/sidebar.php';
                                 </tr>
                             <?php endif; ?>
                         </table>
-                        
+
                     <?php endif; ?>
 
                     <?php if (!in_array($transaction['status'], ['paid', 'dp_paid'])): ?>

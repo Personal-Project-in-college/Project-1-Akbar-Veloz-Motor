@@ -61,7 +61,17 @@ $executed = $update->execute([$status, $paymentRef, $transactionId]);
 if ($executed && in_array($status, ['paid', 'dp_paid'])) {
     $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
     $updateOrder->execute([$orderRefId]);
+
+    // ✅ Tambahan: Update kendaraan jadi sold
+    $getVehicleIdStmt = $koneksi->prepare("SELECT vehicle_id FROM orders WHERE id = ?");
+    $getVehicleIdStmt->execute([$orderRefId]);
+    $vehicleId = $getVehicleIdStmt->fetchColumn();
+
+    if ($vehicleId) {
+        $koneksi->prepare("UPDATE vehicles SET status = 'sold', updated_at = NOW() WHERE id = ?")->execute([$vehicleId]);
+    }
 }
+
 
 if (!$executed) {
     file_put_contents('callback_log.txt', "DB Error: " . implode(', ', $update->errorInfo()) . PHP_EOL, FILE_APPEND);
