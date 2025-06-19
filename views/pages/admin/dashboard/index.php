@@ -16,7 +16,7 @@ include '../layout/sidebar.php';
     <div class="content-wrapper">
         <h3 class="mb-4">Partner Representative</h3>
         <!-- Partner Representative table -->
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card" style="border-radius: 15px; overflow: hidden;">
                     <div class="card-body">
@@ -142,10 +142,10 @@ include '../layout/sidebar.php';
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <!-- end of Partner Representative table -->
         <!-- Info Boxes -->
-        <div class="row mb-4">
+        <!-- <div class="row mb-4">
             <div class="col-md-3 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body text-center">
@@ -190,10 +190,9 @@ include '../layout/sidebar.php';
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
-        <div style="display: flex; flex-direction: row; gap:0px 20px;">
-            <!-- Bar Chart Penjualan -->
+        <!-- <div style="display: flex; flex-direction: row; gap:0px 20px;">
             <div class="row" style="width: 80%;">
                 <div class="col-lg-6 grid-margin stretch-card" style="width: 100%;">
                     <div class="card">
@@ -205,7 +204,6 @@ include '../layout/sidebar.php';
                 </div>
             </div>
 
-            <!-- Bar Chart Penjualan -->
             <div class="row" style="width: 120%;">
                 <div class="col-lg-6 grid-margin stretch-card" style="width: 100%;">
                     <div class="card">
@@ -242,13 +240,12 @@ include '../layout/sidebar.php';
                                         </div>
                                     </td>
                                 </tr>
-                                <!-- Additional rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <script src="../assets/js/index.js"></script>
 
         <?php include '../layout/footer.php'; ?>

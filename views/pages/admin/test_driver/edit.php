@@ -34,6 +34,10 @@ if (!$test_driver) {
     header("Location: ../orders/orders.php");
     exit;
 }
+$currentUserId    = $_SESSION['user_id'];
+$currentUserName  = $_SESSION['name'];
+$currentUserPhone = $_SESSION['phone'];
+$currentUserRole  = $_SESSION['role_id'];
 
 // Ambil tambahan data kendaraan
 $vehicleQuery = $koneksi->prepare("SELECT v.*, vm.name as model_name FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id WHERE v.id = ?");
@@ -74,6 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($status === 'cancelled' || $status === 'finish') {
             $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
             $updateOrder->execute([$test_driver['order_id']]);
+
+            $updateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'available', updated_at = NOW() WHERE id = ?");
+            $updateVehicle->execute([$test_driver['vehicle_id']]);
         }
 
         $_SESSION['success_message'] = "Pesanan <strong>{$test_driver['customer_name']}</strong> telah diselesaikan.";
@@ -190,21 +197,27 @@ include '../layout/sidebar.php';
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="mb-4">Dilayani Oleh</h5>
-                <form method="POST">
-                    <input type="hidden" name="assign_user" value="1">
-                    <div class="mb-3">
-                        <label for="user_id" class="form-label">Pilih Petugas</label>
-                        <select name="user_id" id="user_id" class="form-select" required style="color: black;">
-                            <option value="">-- Pilih Petugas --</option>
-                            <?php foreach ($staffList as $staff): ?>
-                                <option value="<?= $staff['id'] ?>" <?= ($test_driver['user_id'] == $staff['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($staff['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </form>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Petugas</th>
+                        <td>
+                            <?= htmlspecialchars($currentUserName) ?>
+                            <span class="badge bg-info mx-2"><?= $currentUserRole == 1 ? 'Owner' : 'Karyawan' ?></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Nomor Hp</th>
+                        <td><?= htmlspecialchars($currentUserPhone) ?></td>
+                    </tr>
+                </table>
+
+                <?php if ($test_driver['user_id'] == null): ?>
+                    <form method="POST" class="mt-3">
+                        <input type="hidden" name="assign_user" value="1">
+                        <input type="hidden" name="user_id" value="<?= $currentUserId ?>">
+                        <button type="submit" class="btn btn-primary">Saya Akan Menangani</button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -216,9 +229,7 @@ include '../layout/sidebar.php';
                     <form method="POST">
                         <div class="mb-3">
                             <label for="result_note" class="form-label">Catatan Hasil</label>
-                            <textarea class="form-control" id="result_note" name="result_note" autofocus rows="8">
-                        <?= htmlspecialchars($test_driver['result_note'] ?? '') ?>
-                    </textarea>
+                            <textarea class="form-control" id="result_note" name="result_note" autofocus rows="8"><?= htmlspecialchars($test_driver['result_note'] ?? '') ?></textarea>
                         </div>
 
                         <div class="mb-3">

@@ -84,10 +84,7 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       <ul class="navbar-nav navbar-nav-right">
         <li class="nav-item dropdown">
-          <a class="nav-link" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="mdi mdi-bell-outline" style="font-size: 20px; vertical-align: middle;"></i>
-            <span class="badge bg-danger count"><?= count($notifications) ?></span>
-          </a>
+          
           <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="notificationDropdown">
             <h6 class="dropdown-header">Pesanan Baru</h6>
             <?php if (count($notifications) === 0): ?>
