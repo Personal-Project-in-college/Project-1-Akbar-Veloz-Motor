@@ -1,5 +1,5 @@
 <?php
-$DOMAIN = 'http://localhost:8888/project-galacticos-v-2.0/';
+$DOMAIN = 'http://project-1-akbar-veloz-motor.com';
 
 
 if (session_status() == PHP_SESSION_NONE) {

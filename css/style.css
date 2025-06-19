@@ -2257,25 +2257,21 @@ h2 {
     color: var(--primary-color);
   }
 
-
-  .vehicle-list{
+  .vehicle-list {
     margin: 0px;
   }
 
-  .location{
+  .location {
     margin-top: -20px;
   }
-  
+
   section h2 {
     font-size: 1em;
   }
-  
-  .call-container{
+
+  .call-container {
     margin-top: 10px;
   }
-
-  
-  
 }
 
 /* Responsive Adjustments */
@@ -3078,4 +3074,21 @@ container {
     width: calc(100% - 250px - 30px);
     min-width: auto;
   }
+}
+
+
+.w-full {
+  width: 100%;
+  max-width: auto;
+}
+.d-flex {
+  display: flex;
+}
+.justify-start {
+  justify-content: start;
+}
+
+
+.mt-4 {
+  margin-top: 10px;
 }
