@@ -224,10 +224,8 @@ function render_vehicle_card($vehicle)
     <?php include("./layouts/navbar.php"); ?>
 
     <main class="container search-page">
-        <h2>Hasil Pencarian Kendaraan</h2>
-
-
-
+      <section>
+          <h2>Hasil Pencarian Kendaraan</h2>
 
         <div class="search-layout">
             <aside class="filter-sidebar" id="filterSidebar">
@@ -328,6 +326,7 @@ function render_vehicle_card($vehicle)
                 </div>
             </div>
         </div>
+      </section>
     </main>
 
     <div class="filter-overlay" id="filterOverlay"></div>

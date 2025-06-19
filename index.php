@@ -212,9 +212,9 @@ function render_vehicle_card($vehicle)
         <div class="grid-container" id="semua-container">
           <?php
           if (isset($db_error)) {
-            echo "<p>$db_error</p>";
+            echo "<p class='msg-info-query'>$db_error</p>";
           } elseif (empty($all_vehicles)) {
-            echo "<p>Saat ini belum ada kendaraan yang tersedia.</p>";
+            echo "<pclass='msg-info-query' >Saat ini belum ada kendaraan yang tersedia.</pclass=>";
           } else {
             foreach ($all_vehicles as $vehicle) {
               render_vehicle_card($vehicle);

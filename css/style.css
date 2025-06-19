@@ -46,6 +46,10 @@ main {
   min-height: 100dvh;
 }
 
+.msg-info-query {
+  text-align: center;
+}
+
 a {
   text-decoration: none;
   color: var(--primary-color);
@@ -2257,26 +2261,77 @@ h2 {
     color: var(--primary-color);
   }
 
-
-  .vehicle-list{
+  .vehicle-list {
     margin: 0px;
   }
 
-  .location{
+  .location {
     margin-top: -20px;
   }
-  
+
   section h2 {
     font-size: 1em;
   }
-  
-  .call-container{
+
+  .call-container {
     margin-top: 10px;
   }
 
-  
-  
+  .msg-info-query {
+    font-size: 0.8em;
+  }
+  .btn-secondary {
+    padding: 4px;
+  }
+
+  /* footer */
+  footer {
+    padding: 20px 0 20px;
+  }
+
+  .footer-content {
+    gap: 20px;
+  }
+
+  .footer-section h3 {
+    font-size: 1em;
+    margin-bottom: 10px;
+  }
+
+  .footer-section a,
+  p {
+    font-size: 0.8em;
+    margin-bottom: 5px;
+  }
+
+  /* search.php  */
+  .filter-sidebar h3 {
+    font-size: 1em;
+  }
+
+  .filter-group select,
+  .filter-group input[type="text"],
+  .filter-group input[type="number"] {
+    font-size: 8px;
+  }
+
+  .filter-submit-btn,
+  .filter-reset-btn {
+    font-size: 12px;
+  }
+
+  .vehicle-card h3 {
+    font-size: 0.85rem;
+  }
+
+  .search-results-content .no-results,
+  .search-results-content .error-message {
+    font-size: 1em;
+  }
+
+
 }
+
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
@@ -2637,10 +2692,6 @@ container {
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
-}
-
-.search-page {
-  padding: 20px 0;
 }
 
 .search-layout {
