@@ -17,6 +17,16 @@ $customer_id = $_SESSION['customer_id'];
 $customer_name = '';
 $customer_email = '';
 
+// Cek apakah ada pesanan yang statusnya masih process
+$cekPesanan = $koneksi->prepare("SELECT id FROM orders WHERE customer_id = ? AND status = 'proced' LIMIT 1");
+$cekPesanan->execute([$customer_id]);
+$pesananAktif = $cekPesanan->fetch(PDO::FETCH_ASSOC);
+
+if ($pesananAktif) {
+  header("Location: detail-pesanan.php?id=" . $pesananAktif['id']);
+  exit();
+}
+
 try {
   $stmt = $koneksi->prepare("SELECT name, email FROM customers WHERE id = ?");
   $stmt->execute([$customer_id]);
@@ -31,56 +41,21 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $phone = $_POST['phone'] ?? null;
-  $address = $_POST['address'] ?? null;
-  $vehicle_id = $_POST['vehicle'] ?? null;
-  $type_order = $_POST['type_order'] ?? null;
-  $type_arrival = $_POST['type_arrival'] ?? null;
-  $order_date = $_POST['order_date'] ?? null;
+  $_SESSION['pending_order'] = [
+    'name' => $_POST['name'],
+    'email' => $_POST['email'],
+    'phone' => $_POST['phone'],
+    'address' => $_POST['address'],
+    'vehicle_id' => $_POST['vehicle'],
+    'type_order' => $_POST['type_order'],
+    'type_arrival' => $_POST['type_arrival'],
+    'order_date' => $_POST['order_date'] ?? date('Y-m-d H:i:s')
+  ];
 
-  if (!$phone || !$address) {
-    die("Nomor WhatsApp dan alamat wajib diisi.");
-  }
-
-  try {
-    $koneksi->beginTransaction();
-
-    $updateCustomer = $koneksi->prepare("UPDATE customers SET phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
-    $updateCustomer->execute([$phone, $address, $customer_id]);
-
-    $order_date = empty($order_date) ? date('Y-m-d H:i:s') : $order_date;
-
-    $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-    $stmtOrder->execute([$customer_id, $vehicle_id, $type_order, $type_arrival, $order_date]);
-    $order_id = $koneksi->lastInsertId();
-
-    if ($type_order === 'test_driver') {
-      $stmtTD = $koneksi->prepare("INSERT INTO test_drivers (order_id, status, created_at) VALUES (?, 'process', NOW())");
-      $stmtTD->execute([$order_id]);
-
-      $stmtUpdateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?");
-      $stmtUpdateVehicle->execute([$vehicle_id]);
-    } elseif ($type_order === 'transaction') {
-      $stmtVehicle = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
-      $stmtVehicle->execute([$vehicle_id]);
-      $vehicle = $stmtVehicle->fetch(PDO::FETCH_ASSOC);
-
-      $vehicle_price = $vehicle['price_displayed'] ?? 0;
-      $stmtTransaction = $koneksi->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, status, created_at) VALUES (?, ?, 0, 'pending', NOW())");
-      $stmtTransaction->execute([$order_id, $vehicle_price]);
-
-      $stmtUpdateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?");
-      $stmtUpdateVehicle->execute([$vehicle_id]);
-    }
-
-    $koneksi->commit();
-    header("Location: detail-pesanan.php?id=$order_id");
-    exit();
-  } catch (PDOException $e) {
-    $koneksi->rollBack();
-    die("Gagal menyimpan data: " . $e->getMessage());
-  }
+  header("Location: preview-detail-pesanan.php?preview=true");
+  exit();
 }
+
 
 $vehiclesQuery = $koneksi->query("SELECT v.id, vm.name AS model_name FROM vehicles AS v JOIN vehicle_models AS vm ON v.vehicle_model_id = vm.id WHERE v.status = 'available' AND v.deleted_at IS NULL");
 $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
@@ -185,7 +160,7 @@ $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
 
       </div>
       <div class="form-actions">
-        <a href="index.html" class="btn-secondary">Kembali</a>
+        <a href="index.php" class="btn-secondary">Kembali</a>
         <button type="submit" class="btn">Lanjut</button>
         <!-- <button type="submit" class="btn">
           Kirim

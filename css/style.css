@@ -3130,3 +3130,20 @@ container {
     min-width: auto;
   }
 }
+
+
+.w-full {
+  width: 100%;
+  max-width: auto;
+}
+.d-flex {
+  display: flex;
+}
+.justify-start {
+  justify-content: start;
+}
+
+
+.mt-4 {
+  margin-top: 10px;
+}

@@ -16,7 +16,7 @@ if ($data) {
         // Memotong teks alamat jika lebih dari 30 karakter untuk tampilan di tabel.
         $shortAddress = substr($row['address'], 0, 30) . (strlen($row['address']) > 30 ? "..." : "");
         echo "<tr>
-                <td>{$_SESSION['role_name']}</td>
+                <td>{$no}</td>
                 <td>{$row['name']}</td>
                 <td data-bs-toggle='tooltip' data-bs-placement='top' title='{$address}'>
                     {$shortAddress}

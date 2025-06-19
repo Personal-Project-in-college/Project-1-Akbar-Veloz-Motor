@@ -5,38 +5,91 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-$order_id = $_GET['id'] ?? null;
-if (!$order_id) {
-    echo "ID pesanan tidak ditemukan.";
+if (!isset($_SESSION['pending_order'])) {
+    echo "Data pesanan belum tersedia.";
     exit();
 }
 
-// Ambil order beserta info kendaraan dan customer
-$stmt = $koneksi->prepare("
-    SELECT o.*, c.name AS customer_name, c.phone, c.email, c.address,
-           v.type_vehicle, v.color, v.production_year, v.type_fuel, v.cc_engine, v.price_displayed, v.stnk_deadline, v.description,
-           vm.name AS model_name, b.name AS brand_name
-    FROM orders o
-    JOIN customers c ON o.customer_id = c.id
-    JOIN vehicles v ON o.vehicle_id = v.id
-    JOIN vehicle_models vm ON v.vehicle_model_id = vm.id
-    JOIN brands b ON vm.brand_id = b.id
-    WHERE o.id = ?
-");
-$stmt->execute([$order_id]);
-$data = $stmt->fetch(PDO::FETCH_ASSOC);
+$data = $_SESSION['pending_order'];
+$customer_id = $_SESSION['customer_id'];
 
-if (!$data) {
-    echo "Data pesanan tidak ditemukan.";
+if (!isset($_SESSION['pending_order'])) {
+    echo "Data pesanan belum tersedia.";
     exit();
 }
 
-$data['vehicle_name'] = $data['brand_name'] . ' ' . $data['model_name'];
+$data = $_SESSION['pending_order'];
+$vehicle_id = $data['vehicle_id'];
+$type_arrival = $data['type_arrival'];
+
+// Query kendaraan & relasi
+$stmt = $koneksi->prepare("SELECT v.type_vehicle, v.color, v.production_year, v.type_fuel, v.cc_engine, v.price_displayed, v.stnk_deadline, v.description, vm.name AS model_name, b.name AS brand_name FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id JOIN brands b ON vm.brand_id = b.id WHERE v.id = ?");
+$stmt->execute([$vehicle_id]);
+$vehicle = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Gabungkan ke $data
+$data = array_merge($data, $vehicle);
+$data['vehicle_name'] = $vehicle['brand_name'] . ' ' . $vehicle['model_name'];
+
+$negotiated_price = 0;
 
 // Hitung sisa hari STNK
 $today = new DateTime();
 $stnkDate = new DateTime($data['stnk_deadline']);
 $sisaHariSTNK = $today->diff($stnkDate)->days;
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) {
+    $data = $_SESSION['pending_order'];
+
+    try {
+        $koneksi->beginTransaction();
+
+        // Update customer
+        $stmt = $koneksi->prepare("UPDATE customers SET phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$data['phone'], $data['address'], $customer_id]);
+
+        // Insert order
+        $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+        $stmtOrder->execute([$customer_id, $data['vehicle_id'], $data['type_order'], $data['type_arrival'], $data['order_date']]);
+        $order_id = $koneksi->lastInsertId();
+
+        if ($data['type_order'] === 'test_driver') {
+            $koneksi->prepare("INSERT INTO test_drivers (order_id, status, created_at) VALUES (?, 'process', NOW())")
+                ->execute([$order_id]);
+
+            $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")
+                ->execute([$data['vehicle_id']]);
+        } elseif ($data['type_order'] === 'transaction') {
+            $stmt = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
+            $stmt->execute([$data['vehicle_id']]);
+            $vehicle = $stmt->fetch();
+
+            $price = $vehicle['price_displayed'] ?? 0;
+            $koneksi->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, status, created_at) VALUES (?, ?, 0, 'pending', NOW())")
+                ->execute([$order_id, $price]);
+
+            $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?")
+                ->execute([$data['vehicle_id']]);
+        }
+
+        $koneksi->commit();
+        unset($_SESSION['pending_order']); // bersihkan session
+
+        if ($type_arrival == 'showroom') {
+            header("Location: datang-ke-showroom.php?id=$order_id");
+            exit();
+        } else {
+            header("Location: tunggu-petugas.php?id=$order_id");
+            exit();
+        }
+        
+    } catch (PDOException $e) {
+        $koneksi->rollBack();
+        echo "Gagal: " . $e->getMessage();
+    }
+}
+
 
 ?>
 <!DOCTYPE html>
@@ -60,7 +113,7 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                         <div>
                             <div class="detail-item">
                                 <dt>Nama</dt>
-                                <dd><?php echo htmlspecialchars($data['customer_name']); ?></dd>
+                                <dd><?php echo htmlspecialchars($data['name']); ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Email</dt>
@@ -130,10 +183,10 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                                 <dt>Harga Kendaraan</dt>
                                 <dd>Rp <?php echo number_format($data['price_displayed'], 0, ',', '.'); ?></dd>
                             </div>
-                            <?php if (!$data['negotiated_price'] == 0) : ?>
+                            <?php if (!$negotiated_price == 0) : ?>
                                 <div class="detail-item">
                                     <dt>Harga Negoisasi</dt>
-                                    <dd>Rp <?php echo number_format($data['negotiated_price'], 0, ',', '.'); ?></dd>
+                                    <dd>Rp <?php echo number_format($negotiated_price, 0, ',', '.'); ?></dd>
                                 </div>
                             <?php endif ?>
                         </div>
@@ -143,14 +196,17 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                         <dd style="font-weight: 500; font-size: 0.95rem;"><?php echo htmlspecialchars($data['description']); ?></dd>
                     </div>
                     <div class="form-actions">
-                        <a href="index.php" class="btn-secondary">Kembali</a>
-                        <?php $redirectPage = $data['type_arrival'] === 'showroom' ? 'datang-ke-showroom.php' : 'tunggu-petugas.php'; ?>
-                        <a href="<?= $redirectPage ?>?id=<?= $data['id'] ?>" class="btn">
-                            Lacak Status
+                        <a href="contact-us.php" class="btn-secondary">Kembali</a>
+                        <button type="submit" class="btn">
+                            Kirim
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20 4L3 9.31372L10.5 13.5M20 4L14.5 21L10.5 13.5M20 4L10.5 13.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                <g id="SVGRepo_iconCarrier">
+                                    <path d="M20 4L3 9.31372L10.5 13.5M20 4L14.5 21L10.5 13.5M20 4L10.5 13.5" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </g>
                             </svg>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </form>
