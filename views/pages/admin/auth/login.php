@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         try {
             // Mengambil data user dari tabel 'users' (bukan 'admins')
-            $stmt = $koneksi->prepare("SELECT users.*, roles.name AS role_name FROM users JOIN roles ON users.role_id = roles.id WHERE users.username = ? AND users.deleted_at IS NULL");
+            $stmt = $koneksi->prepare("SELECT users.*, roles.name AS role_name FROM users JOIN roles ON users.role_id = roles.id WHERE BINARY users.username = ? AND users.deleted_at IS NULL");
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $username = $_POST['username'];
         $password = $_POST['password'];
 
-        $query = $koneksi->prepare("SELECT users.*, roles.name AS role_name FROM users JOIN roles ON users.role_id = roles.id WHERE users.username = ? AND users.deleted_at IS NULL");
+        $query = $koneksi->prepare("SELECT users.*, roles.name AS role_name FROM users JOIN roles ON users.role_id = roles.id WHERE BINARY users.username = ? AND users.deleted_at IS NULL");
         $query->execute([$username]);
         $user = $query->fetch(PDO::FETCH_ASSOC);
 
