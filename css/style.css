@@ -47,7 +47,12 @@ main {
 }
 
 .msg-info-query {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 30dvh;
+  width: 100%;
+  font-size: 1.2em;
 }
 
 a {
@@ -416,6 +421,10 @@ nav ul li a:hover .auth-link .icon svg {
 }
 
 /* wishlist.php */
+.wishlist {
+  margin: 30px 0px;
+}
+
 .empty-wishlist {
   text-align: center;
   padding: 40px;
@@ -472,6 +481,8 @@ nav ul li a:hover .auth-link .icon svg {
   width: 100%;
   text-align: center;
   padding: 8px 0;
+  display: flex;
+  justify-content: center;
 }
 
 .remove-btn {
@@ -854,6 +865,7 @@ footer {
 .avm-main-image img {
   width: 100%;
   height: auto;
+  object-fit: cover;
   display: block;
   aspect-ratio: 4/3;
 }
@@ -1194,7 +1206,11 @@ footer {
 .credit-form__input-group {
   font-family: "Segoe UI", sans-serif;
   position: relative;
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
+}
+
+.credit-form__installment-options {
+  margin-bottom: 1em;
 }
 
 .credit-form__label {
@@ -1325,7 +1341,7 @@ footer {
 
 /* Style untuk payment summary */
 .credit-form__summary {
-  margin-top: 2em;
+  margin-top: 1.5em;
   padding: 1.5em;
   background-color: #f8f9fa;
   border-radius: 8px;
@@ -1336,7 +1352,7 @@ footer {
 .credit-form__summary-text {
   font-size: 1rem;
   color: #495057;
-  margin-bottom: 0.8em;
+  margin-bottom: 0.6em;
   font-weight: 500;
 }
 
@@ -1661,7 +1677,7 @@ footer {
 /* Halaman test-drive.html */
 /* Test Drive Form Styles */
 .test-drive-form {
-  margin: 40px 0;
+  margin: 30px 0;
   width: 100%;
 }
 
@@ -1963,7 +1979,7 @@ h2 {
 
 .avm-btn-secondary,
 .avm-btn-primary {
-  font-size: 0.8rem;
+  font-size: 0.8em;
 }
 
 .harga {
@@ -2329,9 +2345,89 @@ h2 {
     font-size: 1em;
   }
 
+  /* detail.php */
+  .credit-form__container {
+    gap: 20px;
+  }
 
+  .credit-form__input-group {
+    margin: 0px;
+  }
+
+  .avm-spec-item strong {
+    font-size: 0.8em;
+  }
+
+  .credit-disclaimer {
+    font-size: 0.6em;
+  }
+
+  .harga,
+  .lokasi {
+    font-size: 0.8em;
+  }
+
+  .avm-detail-content h3 {
+    font-size: 0.85em;
+  }
+
+  .avm-specs h3 {
+    font-size: 0.85em;
+  }
+
+  .avm-btn-primary,
+  .avm-btn-secondary {
+    padding: 6px 0px;
+  }
+
+  .credit-form__option-label {
+    font-size: 0.7em;
+  }
+
+  .credit-form__period-button {
+    margin-top: 6px;
+    margin-bottom: 4px;
+    font-size: 0.8em;
+  }
+
+  .credit-form {
+    gap: 10px;
+  }
+
+  .credit-form__containe {
+    gap: 10px;
+  }
+
+  .credit-form__summary-text {
+    font-size: 0.8em;
+  }
+
+  .credit-form__payment-value {
+    font-size: 1.2em;
+  }
+  .credit-form__payment-period {
+    font-size: 0.8em;
+  }
+
+  .avm-vehicle-detail {
+    margin: 15px 0px;
+  }
+
+  /* .credit-form__installment-options{
+  gap: 100px;
+ } */
+
+  /* contact-us.php */
+  .test-drive-form {
+    margin: 15px 0px;
+  }
+
+  /* wishlist.php */
+
+  .wishlist {
+    margin: 15px 0px;
+  }
 }
-
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
@@ -3130,7 +3226,6 @@ container {
     min-width: auto;
   }
 }
-
 
 .w-full {
   width: 100%;

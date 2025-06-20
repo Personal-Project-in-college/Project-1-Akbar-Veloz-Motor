@@ -1,6 +1,6 @@
 <?php
 
-function resizeImage($sourcePath, $destinationPath, $newWidth = 354, $newHeight = 472)
+function resizeImage($sourcePath, $destinationPath, $newWidth =  495 , $newHeight = 335)
 {
     $imageInfo = getimagesize($sourcePath);
     $mime = $imageInfo['mime'];
@@ -34,7 +34,7 @@ function resizeImage($sourcePath, $destinationPath, $newWidth = 354, $newHeight 
     );
 
     // Simpan ke path tujuan
-    imagejpeg($resizedImage, $destinationPath, 90); // quality 90
+    imagejpeg($resizedImage, $destinationPath, 100); // quality 90
     imagedestroy($image);
     imagedestroy($resizedImage);
 

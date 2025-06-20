@@ -224,109 +224,110 @@ function render_vehicle_card($vehicle)
     <?php include("./layouts/navbar.php"); ?>
 
     <main class="container search-page">
-      <section>
-          <h2>Hasil Pencarian Kendaraan</h2>
+        <section>
+            <h2>Hasil Pencarian Kendaraan</h2>
 
-        <div class="search-layout">
-            <aside class="filter-sidebar" id="filterSidebar">
-                <h3>Filter Pencarian</h3>
-                <form action="search.php" method="GET" class="filter-form">
-                    <input type="hidden" name="q" value="<?php echo htmlspecialchars($search_query); ?>">
+            <div class="search-layout">
+                <aside class="filter-sidebar" id="filterSidebar">
+                    <h3>Filter Pencarian</h3>
+                    <form action="search.php" method="GET" class="filter-form">
+                        <input type="hidden" name="q" value="<?php echo htmlspecialchars($search_query); ?>">
 
-                    <div class="filter-group">
-                        <label for="type_vehicle">Jenis Kendaraan:</label>
-                        <select id="type_vehicle" name="type_vehicle">
-                            <option value="">Semua</option>
-                            <option value="motorcycle" <?php echo ($type_vehicle_filter == 'motorcycle') ? 'selected' : ''; ?>>Motor</option>
-                            <option value="car" <?php echo ($type_vehicle_filter == 'car') ? 'selected' : ''; ?>>Mobil</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="brand_id">Merek:</label>
-                        <select id="brand_id" name="brand_id">
-                            <option value="">Semua Merek</option>
-                            <?php foreach ($brands as $brand): ?>
-                                <option value="<?php echo htmlspecialchars($brand['id']); ?>" <?php echo ($brand_id_filter == $brand['id']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($brand['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label>Tahun Produksi:</label>
-                        <div class="range-inputs">
-                            <input type="number" name="min_year" placeholder="Min" value="<?php echo htmlspecialchars($min_year_filter); ?>" min="<?php echo $min_max_values['year']['min']; ?>" max="<?php echo $min_max_values['year']['max']; ?>">
-                            <span>-</span>
-                            <input type="number" name="max_year" placeholder="Max" value="<?php echo htmlspecialchars($max_year_filter); ?>" min="<?php echo $min_max_values['year']['min']; ?>" max="<?php echo $min_max_values['year']['max']; ?>">
+                        <div class="filter-group">
+                            <label for="type_vehicle">Jenis Kendaraan:</label>
+                            <select id="type_vehicle" name="type_vehicle">
+                                <option value="">Semua</option>
+                                <option value="motorcycle" <?php echo ($type_vehicle_filter == 'motorcycle') ? 'selected' : ''; ?>>Motor</option>
+                                <option value="car" <?php echo ($type_vehicle_filter == 'car') ? 'selected' : ''; ?>>Mobil</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="filter-group">
-                        <label>Harga (Rp):</label>
-                        <div class="range-inputs">
-                            <input type="number" name="min_price" placeholder="Min" value="<?php echo htmlspecialchars($min_price_filter); ?>" min="<?php echo $min_max_values['price']['min']; ?>" max="<?php echo $min_max_values['price']['max']; ?>">
-                            <span>-</span>
-                            <input type="number" name="max_price" placeholder="Max" value="<?php echo htmlspecialchars($max_price_filter); ?>" min="<?php echo $min_max_values['price']['min']; ?>" max="<?php echo $min_max_values['price']['max']; ?>">
+                        <div class="filter-group">
+                            <label for="brand_id">Merek:</label>
+                            <select id="brand_id" name="brand_id">
+                                <option value="">Semua Merek</option>
+                                <?php foreach ($brands as $brand): ?>
+                                    <option value="<?php echo htmlspecialchars($brand['id']); ?>" <?php echo ($brand_id_filter == $brand['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($brand['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="filter-group">
-                        <label>Kilometer (KM):</label>
-                        <div class="range-inputs">
-                            <input type="number" name="min_kilometer" placeholder="Min" value="<?php echo htmlspecialchars($min_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min']; ?>" max="<?php echo $min_max_values['kilometer']['max']; ?>">
-                            <span>-</span>
-                            <input type="number" name="max_kilometer" placeholder="Max" value="<?php echo htmlspecialchars($max_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min']; ?>" max="<?php echo $min_max_values['kilometer']['max']; ?>">
+                        <div class="filter-group">
+                            <label>Tahun Produksi:</label>
+                            <div class="range-inputs">
+                                <input type="number" name="min_year" placeholder="Min" value="<?php echo htmlspecialchars($min_year_filter); ?>" min="<?php echo $min_max_values['year']['min']; ?>" max="<?php echo $min_max_values['year']['max']; ?>">
+                                <span>-</span>
+                                <input type="number" name="max_year" placeholder="Max" value="<?php echo htmlspecialchars($max_year_filter); ?>" min="<?php echo $min_max_values['year']['min']; ?>" max="<?php echo $min_max_values['year']['max']; ?>">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="filter-group">
-                        <label>Mesin (CC):</label>
-                        <div class="range-inputs">
-                            <input type="number" name="min_cc" placeholder="Min" value="<?php echo htmlspecialchars($min_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min']; ?>" max="<?php echo $min_max_values['cc_engine']['max']; ?>">
-                            <span>-</span>
-                            <input type="number" name="max_cc" placeholder="Max" value="<?php echo htmlspecialchars($max_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min']; ?>" max="<?php echo $min_max_values['cc_engine']['max']; ?>">
+                        <div class="filter-group">
+                            <label>Harga (Rp):</label>
+                            <div class="range-inputs">
+                                <input type="number" name="min_price" placeholder="Min" value="<?php echo htmlspecialchars($min_price_filter); ?>" min="<?php echo $min_max_values['price']['min']; ?>" max="<?php echo $min_max_values['price']['max']; ?>">
+                                <span>-</span>
+                                <input type="number" name="max_price" placeholder="Max" value="<?php echo htmlspecialchars($max_price_filter); ?>" min="<?php echo $min_max_values['price']['min']; ?>" max="<?php echo $min_max_values['price']['max']; ?>">
+                            </div>
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn-primary filter-submit-btn">Terapkan Filter</button>
-                    <a href="search.php" class="btn-secondary filter-reset-btn">Reset Filter</a>
-                </form>
-            </aside>
+                        <div class="filter-group">
+                            <label>Kilometer (KM):</label>
+                            <div class="range-inputs">
+                                <input type="number" name="min_kilometer" placeholder="Min" value="<?php echo htmlspecialchars($min_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min']; ?>" max="<?php echo $min_max_values['kilometer']['max']; ?>">
+                                <span>-</span>
+                                <input type="number" name="max_kilometer" placeholder="Max" value="<?php echo htmlspecialchars($max_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min']; ?>" max="<?php echo $min_max_values['kilometer']['max']; ?>">
+                            </div>
+                        </div>
 
-            <div class="search-results-content">
-                <div class="search-bar-container">
-                    <form action="search.php" method="GET" class="search-form">
-                        <input type="text" name="q" placeholder="Cari kendaraan..." class="search-input" id="searchInput" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" autocomplete="off">
-                        <button type="submit" class="search-button">
-                            <i class="fas fa-search"></i>
-                        </button>
+                        <div class="filter-group">
+                            <label>Mesin (CC):</label>
+                            <div class="range-inputs">
+                                <input type="number" name="min_cc" placeholder="Min" value="<?php echo htmlspecialchars($min_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min']; ?>" max="<?php echo $min_max_values['cc_engine']['max']; ?>">
+                                <span>-</span>
+                                <input type="number" name="max_cc" placeholder="Max" value="<?php echo htmlspecialchars($max_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min']; ?>" max="<?php echo $min_max_values['cc_engine']['max']; ?>">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary filter-submit-btn">Terapkan Filter</button>
+                        <a href="search.php" class="btn-secondary filter-reset-btn">Reset Filter</a>
                     </form>
-                    <div id="searchResultsDropdown" class="search-suggestions-dropdown"></div>
-                </div>
+                </aside>
 
-                <div class="filter-toggle-container">
-                    <button id="filterToggleButton" class="btn-primary filter-toggle-button">
-                        <i class="fas fa-filter"></i> Filter Kendaraan
-                    </button>
-                </div>
-                <div class="grid-container">
+                <div class="search-results-content">
+                    <div class="search-bar-container">
+                        <form action="search.php" method="GET" class="search-form">
+                            <input type="text" name="q" placeholder="Cari kendaraan..." class="search-input" id="searchInput" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" autocomplete="off">
+                            <button type="submit" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                        <div id="searchResultsDropdown" class="search-suggestions-dropdown"></div>
+                    </div>
+
+                    <div class="filter-toggle-container">
+                        <button id="filterToggleButton" class="btn-primary filter-toggle-button">
+                            <i class="fas fa-filter"></i> Filter Kendaraan
+                        </button>
+                    </div>
+
+
                     <?php
                     if (isset($db_error)) {
-                        echo "<p class='error-message'>$db_error</p>";
+                        echo "<p class='error-message msg-info-query'>$db_error</p>";
                     } elseif (empty($vehicles)) {
-                        echo "<p class='no-results'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
-                    } else {
-                        foreach ($vehicles as $vehicle) {
-                            render_vehicle_card($vehicle);
-                        }
-                    }
-                    ?>
+                        echo "<p  class='no-results msg-info-query'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
+                    } else { ?>
+                        <div class="grid-container">
+                            <?php foreach ($vehicles as $vehicle) { ?>
+                                <?php render_vehicle_card($vehicle);   ?>
+                        <?php } } ?>
+                        </div>
+
                 </div>
             </div>
-        </div>
-      </section>
+        </section>
     </main>
 
     <div class="filter-overlay" id="filterOverlay"></div>
