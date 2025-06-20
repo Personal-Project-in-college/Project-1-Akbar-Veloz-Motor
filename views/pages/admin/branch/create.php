@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insertBranchQuery = $koneksi->prepare("INSERT INTO branches (name, slug, address, created_at) VALUES (?, ?, ?, NOW())");
             $insertBranchQuery->execute([$name, $slug, $address]);
 
-            $_SESSION['success_message'] = "User <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
+            $_SESSION['success_message'] = "Cabang <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
             header("Location: branch.php");
             exit;
         } catch (PDOException $e) {

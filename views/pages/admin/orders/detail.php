@@ -10,30 +10,97 @@ if (!$order_id) {
 }
 
 try {
-    // Query baru sesuai dengan struktur relasi yang benar
-    $stmt = $koneksi->prepare("SELECT t.order_id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, t.down_payment, t.remaining_amount, t.payment_method, t.status, t.payment_gateway_ref, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, v.type_vehicle AS vehicle_type, v.color AS vehicle_color, v.production_year, v.stnk_deadline, v.type_fuel, v.cc_engine, u.name AS user_name FROM transactions t LEFT JOIN orders o ON t.order_id = o.id LEFT JOIN customers c ON o.customer_id = c.id LEFT JOIN vehicles v ON o.vehicle_id = v.id LEFT JOIN users u ON t.user_id = u.id WHERE t.order_id = ?");
+    $stmt = $koneksi->prepare("SELECT 
+        o.id AS order_id,
+        o.type_order,
+        o.type_arrival,
+        o.status AS order_status,
+        o.order_date AS date_order,
+
+        c.name AS customer_name,
+        c.email AS customer_email,
+        c.phone AS customer_phone,
+        c.address AS customer_address,
+
+        v.id AS vehicle_id,
+        v.price_displayed AS vehicle_price,
+        v.type_vehicle AS vehicle_type,
+        v.color AS vehicle_color,
+        v.production_year,
+        v.stnk_deadline,
+        v.type_fuel,
+        v.cc_engine,
+
+        m.name AS model_name,
+        b.name AS brand_name,
+
+        br.name AS branch_name,
+        br.address AS branch_address,
+
+        u.name AS user_name
+
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN vehicles v ON o.vehicle_id = v.id
+        LEFT JOIN vehicle_models m ON v.vehicle_model_id = m.id
+        LEFT JOIN brands b ON m.brand_id = b.id
+        LEFT JOIN branches br ON v.branch_id = br.id
+        LEFT JOIN transactions t ON t.order_id = o.id
+        LEFT JOIN users u ON t.user_id = u.id
+        WHERE o.id = ?");
+
     $stmt->execute([$order_id]);
     $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$data) {
-        die("Data transaksi tidak ditemukan.");
+        die("Data pesanan tidak ditemukan.");
     }
 } catch (PDOException $e) {
     die("Gagal mengambil data: " . $e->getMessage());
 }
+
+function translate_enum($field, $value) {
+    $map = [
+        'type_order' => [
+            'test_driver' => 'Test Drive',
+            'transaction' => 'Transaksi',
+        ],
+        'type_arrival' => [
+            'showroom' => 'Langsung ke Showroom',
+            'home_visit' => 'Kunjungan ke Rumah',
+        ],
+        'order_status' => [
+            'cancelled' => 'Dibatalkan',
+            'proced' => 'Diproses',
+            'finished' => 'Selesai',
+        ],
+        'vehicle_type' => [
+            'motorcycle' => 'Motor',
+            'car' => 'Mobil',
+        ],
+        'type_fuel' => [
+            'gasoline' => 'Bensin',
+            'electric' => 'Listrik',
+            'hybrid' => 'Hybrid',
+        ],
+    ];
+    return $map[$field][$value] ?? $value;
+}
+
+function format_tanggal_indonesia($tanggal) {
+    return date('d-m-Y', strtotime($tanggal));
+}
+
+function hitung_umur_kendaraan($tanggal) {
+    $tahunProduksi = date('Y', strtotime($tanggal));
+    $tahunSekarang = date('Y');
+    return $tahunSekarang - $tahunProduksi;
+}
+
+
 include '../layout/header.php';
 include '../layout/sidebar.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Transaksi - <?php echo htmlspecialchars($data['order_id']); ?></title>
-</head>
-
 <style>
     /* Import Font Google */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -195,7 +262,15 @@ include '../layout/sidebar.php';
 
     <div class="checkout-container">
         <div class="card">
-            <h2 class="card-header">Detail Checkout</h2>
+            <h2 class="card-header">Data Pesanan</h2>
+            <div class="card-section">
+                <h3>Detail Pesanan</h3>
+                <p><strong>Tanggal Pesanan:</strong> <?php echo htmlspecialchars($data['date_order']); ?> WIB</p>
+                <p><strong>Dilayani Oleh</strong> <?php echo htmlspecialchars($data['user_name']); ?></p>
+                <p><strong>Tipe Pesanan</strong> <?= translate_enum('type_order', $data['type_order']) ?></p>
+                <p><strong>Tipe Kedatangan</strong> <?= translate_enum('type_arrival', $data['type_arrival']) ?></p>
+                <p><strong>Status</strong> <?php echo htmlspecialchars($data['order_status']); ?></p>
+            </div>
 
             <div class="card-section">
                 <h3>Detail Pelanggan</h3>
@@ -208,47 +283,27 @@ include '../layout/sidebar.php';
             <div class="card-section">
                 <h3>Detail Kendaraan</h3>
                 <p><strong>ID Kendaraan:</strong> <?php echo htmlspecialchars($data['vehicle_id']); ?></p>
-                <p><strong>Tipe:</strong> <?php echo htmlspecialchars($data['vehicle_type']); ?></p>
+                <p><strong>Harga Kendaraan:</strong> <?php echo number_format($data['vehicle_price']); ?></p>
+                <p><strong>Tipe:</strong> <?= translate_enum('vehicle_type', $data['vehicle_type']) ?></p>
                 <p><strong>Warna:</strong> <?php echo htmlspecialchars($data['vehicle_color']); ?></p>
-                <p><strong>Tahun Produksi:</strong> <?php echo htmlspecialchars($data['production_year']); ?></p>
+                <p><strong>Tahun Produksi:</strong> <?php echo htmlspecialchars(date('d F Y', strtotime($data['production_year']))); ?> | <span><?= hitung_umur_kendaraan($data['production_year']) ?> Tahun Lalu</span></p>
                 <p><strong>Pajak STNK:</strong> <?php echo htmlspecialchars(date('d F Y', strtotime($data['stnk_deadline']))); ?></p>
-                <p><strong>Bahan Bakar:</strong> <?php echo htmlspecialchars($data['type_fuel']); ?></p>
+                <p><strong>Bahan Bakar:</strong>  <?= translate_enum('type_fuel', $data['type_fuel']) ?></p>
                 <p><strong>CC Mesin:</strong> <?php echo htmlspecialchars($data['cc_engine']); ?> CC</p>
             </div>
 
             <div class="card-section">
-                <h3>Detail Transaksi</h3>
-                <p><strong>Order ID:</strong> <?php echo htmlspecialchars($data['order_id']); ?></p>
-                <p><strong>Penjual:</strong> <?php echo htmlspecialchars($data['user_name']); ?></p>
-                <p><strong>Harga Kendaraan:</strong> Rp <?php echo number_format($data['vehicle_price'], 0, ',', '.'); ?></p>
-                <p><strong>Deal Negosiasi:</strong> Rp <?= number_format($data['deal_negotiation'] ?? 0, 0, ',', '.') ?></p>
-                <p><strong>Total Bayar:</strong> Rp <?php echo number_format($data['grand_total'], 0, ',', '.'); ?></p>
-                <p><strong>Tipe Pembayaran:</strong> <?php echo htmlspecialchars(ucfirst($data['payment_type'])); ?></p>
-
-                <?php if (!is_null($data['down_payment']) && $data['down_payment'] > 0): ?>
-                    <p><strong>Uang Muka (DP):</strong> Rp <?php echo number_format($data['down_payment'], 0, ',', '.'); ?></p>
-                    <p><strong>Sisa Pembayaran:</strong> Rp <?php echo number_format($data['remaining_amount'], 0, ',', '.'); ?></p>
-                <?php endif; ?>
-
-                <?php if ($data['down_payment'] > 0): ?>
-                    <p><strong>Sudah Dibayar:</strong> Rp <?php echo number_format($data['down_payment'], 0, ',', '.'); ?></p>
-                <?php endif; ?>
-
-                <p><strong>Metode Pembayaran:</strong> <?php echo htmlspecialchars($data['payment_method']); ?></p>
-                <p><strong>Status:</strong> <span class="status-badge <?php echo strtolower($data['status']); ?>"><?php echo htmlspecialchars(ucfirst($data['status'])); ?></span></p>
-
-                <?php if (!is_null($data['payment_gateway_ref'])): ?>
-                    <p><strong>Referensi Gateway:</strong> <?php echo htmlspecialchars($data['payment_gateway_ref']); ?></p>
-                <?php endif; ?>
+                <h3>Posisi Kendaraan</h3>
+                <p><strong>Cabang :</strong> <?php echo htmlspecialchars($data['branch_name']); ?></p>
+                <p><strong>Alamat :</strong> <?php echo htmlspecialchars($data['branch_address']); ?></p>
             </div>
+
 
             <div class="card-section">
                 <h3>Aksi Lanjutan</h3>
                 <div class="wrap-btn">
-                    <button class="btn btn-dark" onclick="window.print()">Cetak Struk</button>
                     <button class="btn btn-primary" onclick="alert('Fitur kirim email belum diimplementasi')">Kirim Email</button>
                 </div>
-
             </div>
 
         </div>
@@ -268,5 +323,3 @@ include '../layout/sidebar.php';
     <script src="../assets/js/dashboard.js"></script>
     <script src="../assets/js/table_controls.js"></script>
 </body>
-
-</html>
