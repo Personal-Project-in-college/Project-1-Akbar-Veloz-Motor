@@ -161,8 +161,8 @@ function render_vehicle_card($vehicle)
       </div>
 
       <!-- Whatsapp, test drive -->
-      <div class="call-container" onclick="whatsapp()">
-        <div class="call-card">
+      <div class="call-container">
+        <div class="call-card" onclick="whatsapp()">
           <svg width="25px" height="25px" viewBox="0 0 16.00 16.00" xmlns="http://www.w3.org/2000/svg" stroke-width="0.00016">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -209,36 +209,34 @@ function render_vehicle_card($vehicle)
 
       <!-- Semua -->
       <div id="Semua" class="tabcontent" style="display: block;">
-        <div class="grid-container" id="semua-container">
-          <?php
-          if (isset($db_error)) {
-            echo "<p class='msg-info-query'>$db_error</p>";
-          } elseif (empty($all_vehicles)) {
-            echo "<pclass='msg-info-query' >Saat ini belum ada kendaraan yang tersedia.</pclass=>";
-          } else {
-            foreach ($all_vehicles as $vehicle) {
-              render_vehicle_card($vehicle);
-            }
-          }
-          ?>
-        </div>
+        <?php
+        if (isset($db_error)) {
+          echo "<p class='msg-info-query'>$db_error</p>";
+        } elseif (empty($all_vehicles)) {
+          echo "<pclass='msg-info-query' >Saat ini belum ada kendaraan yang tersedia.</pclass=>";
+        } else { ?>
+          <div class="grid-container" id="semua-container">
+            <?php foreach ($all_vehicles as $vehicle) { ?>
+              <?php render_vehicle_card($vehicle); ?>
+          <?php }
+          } ?>
+          </div>
       </div>
 
       <!-- Motor -->
       <div id="Motor" class="tabcontent">
-        <div class="grid-container" id="motor-container">
-          <?php
-          if (isset($db_error)) {
-            echo "<p>$db_error</p>";
-          } elseif (empty($motorcycles)) {
-            echo "<p>Saat ini belum ada motor yang tersedia.</p>";
-          } else {
-            foreach ($motorcycles as $vehicle) {
-              render_vehicle_card($vehicle);
-            }
-          }
-          ?>
-        </div>
+        <?php
+        if (isset($db_error)) {
+          echo "<p class='msg-info-query'>$db_error</p>";
+        } elseif (empty($motorcycles)) {
+          echo "<p class='msg-info-query'>Saat ini belum ada motor yang tersedia.</p>";
+        } else { ?>
+          <div class="grid-container" id="motor-container">
+            <?php foreach ($motorcycles as $vehicle) { ?>
+              <?php render_vehicle_card($vehicle); ?>
+          <?php }
+          } ?>
+          </div>
       </div>
 
       <!-- Mobil -->
@@ -246,9 +244,9 @@ function render_vehicle_card($vehicle)
         <div class="grid-container" id="mobil-container">
           <?php
           if (isset($db_error)) {
-            echo "<p>$db_error</p>";
+            echo "<p class='msg-info-query'>$db_error</p>";
           } elseif (empty($cars)) {
-            echo "<p>Saat ini belum ada mobil yang tersedia.</p>";
+            echo "<p class='msg-info-query'>Saat ini belum ada mobil yang tersedia.</p>";
           } else {
             foreach ($cars as $vehicle) {
               render_vehicle_card($vehicle);
@@ -282,7 +280,7 @@ function render_vehicle_card($vehicle)
 
         <div class="location-info">
           <p>
-           Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec.Pagaden Barat, Kab.Subang 41252
+            Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec.Pagaden Barat, Kab.Subang 41252
           </p>
           <p><strong>Jam Operasional:</strong> Senin-Sabtu, 08:00-17:00</p>
           <p><strong>Telepon:</strong> (0260) 411015</p>

@@ -161,7 +161,7 @@ $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
       </div>
       <div class="form-actions">
         <a href="index.php" class="btn-secondary">Kembali</a>
-        <button type="submit" class="btn">Lanjut</button>
+        <button type="submit" class="btn avm-btn-primary">Lanjut</button>
         <!-- <button type="submit" class="btn">
           Kirim
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
