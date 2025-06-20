@@ -11,7 +11,7 @@ if (!$order_id) {
 
 try {
     // Query baru sesuai dengan struktur relasi yang benar
-    $stmt = $koneksi->prepare("SELECT t.order_id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, t.down_payment, t.remaining_amount, t.payment_method, t.status, t.payment_gateway_ref, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, v.type_vehicle AS vehicle_type, v.color AS vehicle_color, v.production_year, v.stnk_deadline, v.type_fuel, v.cc_engine, u.name AS user_name FROM transactions t LEFT JOIN orders o ON t.order_id = o.id LEFT JOIN customers c ON o.customer_id = c.id LEFT JOIN vehicles v ON o.vehicle_id = v.id LEFT JOIN users u ON t.user_id = u.id WHERE t.order_id = ?");
+    $stmt = $koneksi->prepare("SELECT t.order_id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, t.down_payment, t.remaining_amount, t.payment_method, t.status, t.payment_gateway_ref, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, v.type_vehicle AS vehicle_type, v.color AS vehicle_color, v.production_year, v.stnk_deadline, v.type_fuel, v.cc_engine, u.name AS user_name FROM transactions t LEFT JOIN orders o ON t.order_id = o.id LEFT JOIN customers c ON o.customer_id = c.id LEFT JOIN vehicles v ON o.vehicle_id = v.id LEFT JOIN users u ON t.user_id = u.id WHERE t.id = ?");
     $stmt->execute([$order_id]);
     $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -24,15 +24,6 @@ try {
 include '../layout/header.php';
 include '../layout/sidebar.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Transaksi - <?php echo htmlspecialchars($data['order_id']); ?></title>
-</head>
 
 <style>
     /* Import Font Google */
@@ -195,7 +186,7 @@ include '../layout/sidebar.php';
 
     <div class="checkout-container">
         <div class="card">
-            <h2 class="card-header">Detail Checkout</h2>
+            <h2 class="card-header">Data Transaksi</h2>
 
             <div class="card-section">
                 <h3>Detail Pelanggan</h3>
@@ -268,5 +259,3 @@ include '../layout/sidebar.php';
     <script src="../assets/js/dashboard.js"></script>
     <script src="../assets/js/table_controls.js"></script>
 </body>
-
-</html>

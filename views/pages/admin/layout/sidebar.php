@@ -19,7 +19,6 @@ $isVehicleModelActive = isSidebarMenuActive('vehicle_model');
 $isVehicleLoanActive = isSidebarMenuActive('vehicle_loans');
 $isRoleActive = isSidebarMenuActive('role');
 $isUserActive = isSidebarMenuActive('users');
-
 $isManageActive = isSubMenuActive(['brand', 'branch', 'customer', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
 $isChatActive = isSidebarMenuActive('chat');
@@ -28,12 +27,12 @@ $isTestDriverActive = isSidebarMenuActive('test_driver');
 $isTransactionActive = isSidebarMenuActive('transactions');
 $isTransactionsActive = isSubMenuActive(['chat', 'orders', 'transactions', 'test_driver']);
 
-
+$isTransactionReportActive = isSidebarMenuActive('transactions_report');
+$isReportsActive = isSubMenuActive(['transactions_report']);
 ?>
 
 <nav class="sidebar sidebar-offcanvas" id="sidebar">
   <ul class="nav">
-
     <li class="nav-item">
       <a class="nav-link" href="../dashboard/index.php">
         <i class="mdi mdi-view-dashboard menu-icon"></i>
@@ -85,14 +84,13 @@ $isTransactionsActive = isSubMenuActive(['chat', 'orders', 'transactions', 'test
     </li>
 
     <li class="nav-item">
-      <a class="nav-link <?= $isReportActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseLaporan" aria-expanded="false" aria-controls="collapseLaporan">
+      <a class="nav-link <?= $isReportsActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseLaporan" aria-expanded="false" aria-controls="collapseLaporan">
         <i class="mdi mdi-file-chart menu-icon"></i>
         <span class="menu-title">Laporan</span>
       </a>
-      <div class="collapse <?= $isReportActive ? 'show' : '' ?>" id="collapseLaporan">
+      <div class="collapse <?= $isReportsActive ? 'show' : '' ?>" id="collapseLaporan">
         <ul class="nav flex-column sub-menu">
-          <li class="nav-item"><a class="nav-link" href="../pages/transactions_reports.php">Kendaraan Masuk</a></li>
-          <li class="nav-item"><a class="nav-link" href="../transactions/transactions.php">Penjualan</a></li>
+          <li class="nav-item"><a class="nav-link" href="../transactions_report/transactions_report.php">Penjualan</a></li>
         </ul>
       </div>
     </li>
