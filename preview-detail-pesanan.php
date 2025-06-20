@@ -83,13 +83,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
             header("Location: tunggu-petugas.php?id=$order_id");
             exit();
         }
-        
     } catch (PDOException $e) {
         $koneksi->rollBack();
         echo "Gagal: " . $e->getMessage();
     }
 }
 
+function hitung_umur_kendaraan($tanggal)
+{
+    $tahunProduksi = date('Y', strtotime($tanggal));
+    $tahunSekarang = date('Y');
+    return $tahunSekarang - $tahunProduksi;
+}
+
+function translate_fuel($value)
+{
+    $map = [
+        'gasoline' => 'Bensin',
+        'electric' => 'Listrik',
+        'hybrid' => 'Hybrid'
+    ];
+    return $map[$value] ?? $value;
+}
 
 ?>
 <!DOCTYPE html>
@@ -131,11 +146,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
                         <div>
                             <div class="detail-item">
                                 <dt>Tujuan</dt>
-                                <dd><?php echo htmlspecialchars($data['type_order']); ?></dd>
+                                <dd><?php echo $data['type_order'] == 'test_driver' ? 'Uji Coba Kendaraan' : 'Transaksi Kendaraan'; ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Jadwal</dt>
-                                <dd><?php echo htmlspecialchars($data['order_date']); ?></dd>
+                                <dd><?php echo htmlspecialchars(date('d F Y H.i', strtotime($data['order_date']))) . ' WIB'; ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Metode Kedatangan</dt>
@@ -152,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
                             </div>
                             <div class="detail-item">
                                 <dt>Tipe</dt>
-                                <dd><?php echo htmlspecialchars($data['type_vehicle']); ?></dd>
+                                <dd><?php echo $data['type_vehicle'] == 'motorcycle' ? 'Motor' : 'Mobil'; ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Warna</dt>
@@ -160,7 +175,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
                             </div>
                             <div class="detail-item">
                                 <dt>Tahun Produksi</dt>
-                                <dd><?php echo htmlspecialchars($data['production_year']); ?></dd>
+                                <dd><?php echo date('d F Y', strtotime($data['production_year'])); ?>
+                                    <span class="stnk-remaining" style="color: cadetblue;">(<?= hitung_umur_kendaraan($data['production_year']) ?> Tahun Lalu)</span>
+                                </dd>
                             </div>
                         </div>
                         <div>
@@ -173,11 +190,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
                             </div>
                             <div class="detail-item">
                                 <dt>Bahan Bakar</dt>
-                                <dd><?php echo htmlspecialchars($data['type_fuel']); ?></dd>
+                                <dd><?= htmlspecialchars(translate_fuel($data['type_fuel'])) ?></dd>
                             </div>
+
                             <div class="detail-item">
                                 <dt>Kapasitas Mesin</dt>
-                                <dd><?php echo htmlspecialchars($data['cc_engine']); ?></dd>
+                                <dd><?php echo htmlspecialchars($data['cc_engine']); ?> cc</dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Harga Kendaraan</dt>

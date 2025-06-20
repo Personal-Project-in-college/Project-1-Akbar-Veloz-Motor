@@ -38,6 +38,24 @@ $today = new DateTime();
 $stnkDate = new DateTime($data['stnk_deadline']);
 $sisaHariSTNK = $today->diff($stnkDate)->days;
 
+function hitung_umur_kendaraan($tanggal)
+{
+    $tahunProduksi = date('Y', strtotime($tanggal));
+    $tahunSekarang = date('Y');
+    return $tahunSekarang - $tahunProduksi;
+}
+
+function translate_fuel($value)
+{
+    $map = [
+        'gasoline' => 'Bensin',
+        'electric' => 'Listrik',
+        'hybrid' => 'Hybrid'
+    ];
+    return $map[$value] ?? $value;
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="id" translate="no">
@@ -78,11 +96,11 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                         <div>
                             <div class="detail-item">
                                 <dt>Tujuan</dt>
-                                <dd><?php echo htmlspecialchars($data['type_order']); ?></dd>
+                                <dd><?php echo $data['type_order'] == 'test_drive' ? 'Uji Coba Kendaraan' : 'Transaksi Kendaraan'; ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Jadwal</dt>
-                                <dd><?php echo htmlspecialchars($data['order_date']); ?></dd>
+                                <dd><?php echo htmlspecialchars(date('d F Y H.i', strtotime($data['order_date']))) . ' WIB'; ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Metode Kedatangan</dt>
@@ -99,7 +117,7 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                             </div>
                             <div class="detail-item">
                                 <dt>Tipe</dt>
-                                <dd><?php echo htmlspecialchars($data['type_vehicle']); ?></dd>
+                                <dd><?php echo $data['type_vehicle'] == 'motorcycle' ? 'Motor' : 'Mobil'; ?></dd>
                             </div>
                             <div class="detail-item">
                                 <dt>Warna</dt>
@@ -107,7 +125,9 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                             </div>
                             <div class="detail-item">
                                 <dt>Tahun Produksi</dt>
-                                <dd><?php echo htmlspecialchars($data['production_year']); ?></dd>
+                                <dd><?php echo date('d F Y', strtotime($data['production_year'])); ?>
+                                    <span class="stnk-remaining" style="color: cadetblue;">(<?= hitung_umur_kendaraan($data['production_year']) ?> Tahun Lalu)</span>
+                                </dd>
                             </div>
                         </div>
                         <div>
@@ -120,12 +140,13 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
                             </div>
                             <div class="detail-item">
                                 <dt>Bahan Bakar</dt>
-                                <dd><?php echo htmlspecialchars($data['type_fuel']); ?></dd>
+                                <dd><?= htmlspecialchars(translate_fuel($data['type_fuel'])) ?></dd>
                             </div>
                             <div class="detail-item">
-                                <dt>Kapasitas Mesin</dt>
-                                <dd><?php echo htmlspecialchars($data['cc_engine']); ?></dd>
+                                <dt>Bahan Bakar</dt>
+                                <dd><?= htmlspecialchars(translate_fuel($data['type_fuel'])) ?></dd>
                             </div>
+
                             <div class="detail-item">
                                 <dt>Harga Kendaraan</dt>
                                 <dd>Rp <?php echo number_format($data['price_displayed'], 0, ',', '.'); ?></dd>

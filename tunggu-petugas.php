@@ -11,7 +11,7 @@ if (!$order_id) {
 }
 
 // Ambil data created_at, type_order, dan status
-$stmt = $koneksi->prepare("SELECT created_at, type_order, customer_id, status FROM orders WHERE id = ?");
+$stmt = $koneksi->prepare("SELECT created_at, type_order, vehicle_id, customer_id, status FROM orders WHERE id = ?");
 $stmt->execute([$order_id]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -46,6 +46,12 @@ $remainingSeconds = max(0, 300 - $diffInSeconds);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
     $koneksi->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ?")
         ->execute([$order_id]);
+
+    $vehicleId = $order['vehicle_id'];
+
+    // Update kendaraan jadi available
+    $updateVehicleQuery = $koneksi->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?");
+    $updateVehicleQuery->execute([$vehicleId]);
 
     if ($order['type_order'] === 'test_driver') {
         $koneksi->prepare("UPDATE test_drivers SET status = 'cancelled' WHERE order_id = ?")
@@ -90,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
             <?php if ($canCancel): ?>
                 <form method="POST">
                     <button type="submit" name="cancel" class="btn-cancel">Batalkan Pesanan</button>
-                <p class="mt-4">(Bisa dibatalkan dalam waktu 5 menit sejak dibuat)</p>
+                    <p class="mt-4">(Bisa dibatalkan dalam waktu 5 menit sejak dibuat)</p>
                 </form>
             <?php elseif ($order['status'] === 'cancelled'): ?>
                 <p>Pesanan telah dibatalkan sebelumnya.</p>
@@ -98,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
                 <p>Batas waktu pembatalan telah lewat.</p>
             <?php endif; ?>
         </div>
-        <div class="w-full d-flex justify-start" >
-        <a href="index.php" class="btn-secondary w-full" >Kembali</a>
+        <div class="w-full d-flex justify-start">
+            <a href="index.php" class="btn-secondary w-full">Kembali</a>
         </div>
     </div>
 
