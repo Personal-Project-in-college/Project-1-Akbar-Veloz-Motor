@@ -84,13 +84,13 @@ $isReportsActive = isSubMenuActive(['transactions_report']);
     </li>
 
     <li class="nav-item">
-      <a class="nav-link <?= $isReportsActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseLaporan" aria-expanded="false" aria-controls="collapseLaporan">
-        <i class="mdi mdi-file-chart menu-icon"></i>
+      <a class="nav-link <?= $isReportsActive ? '' : 'collapsed' ?>" data-bs-toggle="collapse" href="#collapseLaporan" aria-expanded="<?= $isReportsActive ? 'true' : 'false' ?>" aria-controls="collapseLaporan">
+        <i class="mdi mdi-file-chart menu-icon <?= $isReportsActive ? 'text-primary' : '' ?>"></i>
         <span class="menu-title">Laporan</span>
       </a>
       <div class="collapse <?= $isReportsActive ? 'show' : '' ?>" id="collapseLaporan">
         <ul class="nav flex-column sub-menu">
-          <li class="nav-item"><a class="nav-link" href="../transactions_report/transactions_report.php">Penjualan</a></li>
+          <li class="nav-item"><a class="nav-link <?= $isTransactionReportActive ? 'active' : '' ?>" href="../transactions_report/transactions_report.php">Penjualan</a></li>
         </ul>
       </div>
     </li>

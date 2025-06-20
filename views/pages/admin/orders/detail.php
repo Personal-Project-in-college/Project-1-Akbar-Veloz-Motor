@@ -86,17 +86,16 @@ function translate_enum($field, $value) {
     ];
     return $map[$field][$value] ?? $value;
 }
-
-function format_tanggal_indonesia($tanggal) {
-    return date('d-m-Y', strtotime($tanggal));
-}
-
 function hitung_umur_kendaraan($tanggal) {
     $tahunProduksi = date('Y', strtotime($tanggal));
     $tahunSekarang = date('Y');
     return $tahunSekarang - $tahunProduksi;
 }
 
+$stnk_deadline = new DateTime($data['stnk_deadline']);
+$today = new DateTime();
+$interval = $today->diff($stnk_deadline);
+$sisaHari = $interval->days . " hari (" . ($stnk_deadline > $today ? "tersisa" : "lewat") . ")";
 
 include '../layout/header.php';
 include '../layout/sidebar.php';
@@ -266,10 +265,10 @@ include '../layout/sidebar.php';
             <div class="card-section">
                 <h3>Detail Pesanan</h3>
                 <p><strong>Tanggal Pesanan:</strong> <?php echo htmlspecialchars($data['date_order']); ?> WIB</p>
-                <p><strong>Dilayani Oleh</strong> <?php echo htmlspecialchars($data['user_name']); ?></p>
+                <p><strong>Dilayani Oleh</strong> <?php echo htmlspecialchars($data['user_name'] ?? 'Belum Dilayani'); ?></p>
                 <p><strong>Tipe Pesanan</strong> <?= translate_enum('type_order', $data['type_order']) ?></p>
                 <p><strong>Tipe Kedatangan</strong> <?= translate_enum('type_arrival', $data['type_arrival']) ?></p>
-                <p><strong>Status</strong> <?php echo htmlspecialchars($data['order_status']); ?></p>
+                <p><strong>Status</strong> <?= translate_enum('order_status', $data['order_status']) ?></p>
             </div>
 
             <div class="card-section">
@@ -283,11 +282,11 @@ include '../layout/sidebar.php';
             <div class="card-section">
                 <h3>Detail Kendaraan</h3>
                 <p><strong>ID Kendaraan:</strong> <?php echo htmlspecialchars($data['vehicle_id']); ?></p>
-                <p><strong>Harga Kendaraan:</strong> <?php echo number_format($data['vehicle_price']); ?></p>
+                <p><strong>Harga Kendaraan:</strong> Rp <?= number_format($data['vehicle_price'] ?? 0, 0, ',', '.') ?></p>
                 <p><strong>Tipe:</strong> <?= translate_enum('vehicle_type', $data['vehicle_type']) ?></p>
                 <p><strong>Warna:</strong> <?php echo htmlspecialchars($data['vehicle_color']); ?></p>
-                <p><strong>Tahun Produksi:</strong> <?php echo htmlspecialchars(date('d F Y', strtotime($data['production_year']))); ?> | <span><?= hitung_umur_kendaraan($data['production_year']) ?> Tahun Lalu</span></p>
-                <p><strong>Pajak STNK:</strong> <?php echo htmlspecialchars(date('d F Y', strtotime($data['stnk_deadline']))); ?></p>
+                <p><strong>Tahun Produksi:</strong> <?php echo htmlspecialchars(date('d F Y', strtotime($data['production_year']))); ?> | <small><?= hitung_umur_kendaraan($data['production_year']) ?> Tahun Lalu</small></p>
+                <p><strong>Pajak STNK:</strong> <?php echo htmlspecialchars(date('d F Y', strtotime($data['stnk_deadline']))); ?> | <small class="text-muted"><?= $sisaHari ?></small></p>
                 <p><strong>Bahan Bakar:</strong>  <?= translate_enum('type_fuel', $data['type_fuel']) ?></p>
                 <p><strong>CC Mesin:</strong> <?php echo htmlspecialchars($data['cc_engine']); ?> CC</p>
             </div>
