@@ -181,7 +181,7 @@ include '../layout/sidebar.php';
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="nomor_mesin" class="form-label">Nomor Mesin<span class="mx-1 text-danger">*</span></label>
-                            <input type="number" class="form-control" id="serial_number" name="serial_number" value="<?= htmlspecialchars($vehicle['serial_number']) ?>">
+                            <input type="text" class="form-control" id="serial_number" name="serial_number" value="<?= htmlspecialchars($vehicle['serial_number']) ?>">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="kilometer" class="form-label">Kilometer<span class="mx-1 text-danger">*</span></label>

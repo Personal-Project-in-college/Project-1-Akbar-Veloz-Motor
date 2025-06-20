@@ -49,6 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
         $stmt = $koneksi->prepare("UPDATE customers SET phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
         $stmt->execute([$data['phone'], $data['address'], $customer_id]);
 
+        // Isi otomatis order_date jika type_order adalah 'transaction'
+        if ($data['type_order'] === 'transaction') {
+            $data['order_date'] = date('Y-m-d');
+        }
+
         // Insert order
         $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
         $stmtOrder->execute([$customer_id, $data['vehicle_id'], $data['type_order'], $data['type_arrival'], $data['order_date']]);
