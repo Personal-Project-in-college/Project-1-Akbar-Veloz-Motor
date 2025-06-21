@@ -150,6 +150,9 @@ include '../layout/sidebar.php';
     .status-badge.paid {
         background-color: #28a745;
     }
+    .status-badge.dp_paid {
+        background-color: #28a745;
+    }
 
     .status-badge.cancelled {
         background-color: #dc3545;

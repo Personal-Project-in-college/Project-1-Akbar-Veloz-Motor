@@ -108,10 +108,9 @@ $endDate = $_GET['end_date'] ?? '';
                                     <th>Jenis Pembayaran</th>
                                     <th>Metode Pembayaran</th>
                                     <th>Status</th>
-                                    <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="transactionTableBody">
+                            <tbody id="deletedTransactionTableBody">
                                 <tr>
                                     <td colspan="8" class="text-center">Memuat data...</td>
                                 </tr>
@@ -126,56 +125,30 @@ $endDate = $_GET['end_date'] ?? '';
 
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('transactionTableBody');
+        const tableBody = document.getElementById('deletedTransactionTableBody');
         const startDate = "<?= $startDate ?>";
         const endDate = "<?= $endDate ?>";
 
-        function loadTransactions(keyword = '') {
+        function loadDeletedTransactions(keyword = '') {
             const params = new URLSearchParams({
                 keyword,
                 start_date: startDate,
                 end_date: endDate
             });
-            fetch(`ajaxTransactionList.php?${params.toString()}`)
+            fetch(`ajaxTransactionDeletedList.php?${params.toString()}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    bindDeleteEvents();
                 });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadTransactions();
+            loadDeletedTransactions();
 
             searchInput.addEventListener('keyup', function() {
-                loadTransactions(this.value);
+                loadDeletedTransactions(this.value);
             });
         });
-
-        function bindDeleteEvents() {
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-
-                    fetch('softDelete.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: 'id=' + encodeURIComponent(id)
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                loadTransactions();
-                                showAlert(data.message, 'danger');
-                            } else {
-                                showAlert(data.message, 'danger');
-                            }
-                        });
-                });
-            });
-        }
 
         function showAlert(message, type = 'success') {
             const alertDiv = document.createElement('div');

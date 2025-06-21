@@ -68,10 +68,11 @@ if ($data) {
                     </a>
                     <a href='{$redirectHref}' title='Lanjut' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
                         <i class='mdi mdi-arrow-right-bold-circle'></i>
-                    </a>
+                    </a>"
+                    . ($row['order_status'] !== 'finished' ? "
                     <button data-id='{$orderId}' class='btn btn-danger btn-sm delete-btn d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
                         <i class='mdi mdi-delete-restore'></i>
-                    </button>
+                    </button>" : "") . "
                 </td>
               </tr>";
         $no++;
