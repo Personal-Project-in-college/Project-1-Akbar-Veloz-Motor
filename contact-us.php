@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Jakarta');
 require_once 'config/koneksi.php';
 if (session_status() == PHP_SESSION_NONE) {
   session_start();
@@ -49,7 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'vehicle_id' => $_POST['vehicle'],
     'type_order' => $_POST['type_order'],
     'type_arrival' => $_POST['type_arrival'],
-    'order_date' => $_POST['order_date'] ?? date('Y-m-d H:i:s')
+    'order_date' => ($_POST['type_order'] === 'transaction' || empty($_POST['order_date']))
+      ? date('Y-m-d H:i:s')
+      : $_POST['order_date'],
   ];
 
   header("Location: preview-detail-pesanan.php?preview=true");

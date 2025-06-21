@@ -1,5 +1,6 @@
 <?php
 require 'config/koneksi.php';
+require_once 'helpers/sendEmailCustomer.php';
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -58,6 +59,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
         $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
         $stmtOrder->execute([$customer_id, $data['vehicle_id'], $data['type_order'], $data['type_arrival'], $data['order_date']]);
         $order_id = $koneksi->lastInsertId();
+
+        $orderLink = "http://project-1-akbar-veloz-motor.com/detail-pesanan.php?id={$order_id}";
+        sendEmailToCustomer(
+            $data['email'],
+            $data['name'],
+            $data['vehicle_id'],
+            $vehicle['brand_name'],
+            $vehicle['model_name'],
+            $data['type_order'],
+            $data['order_date'],
+            $data['type_arrival'],
+            $data['address'],
+            $orderLink
+        );
 
         if ($data['type_order'] === 'test_driver') {
             $koneksi->prepare("INSERT INTO test_drivers (order_id, status, created_at) VALUES (?, 'process', NOW())")
