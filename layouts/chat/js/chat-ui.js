@@ -1,5 +1,6 @@
 console.log("chat-ui-aktive");
 
+// Mendapatkan elemen-elemen DOM yang diperlukan
 const chatButton = document.getElementById("chatButton");
 const chatPanel = document.getElementById("chatPanel");
 const closeBtn = document.getElementById("closeBtn");
@@ -16,24 +17,29 @@ const fullPageSendButton = document.getElementById("fullPageSendButton");
 const adminStatusElement = document.getElementById("adminStatus");
 const chatNotificationBadge = document.getElementById("chatNotificationBadge");
 
+// Variabel untuk mengelola status chat UI
 let unreadMessageCount = 0;
 let isDragging = false;
 let offsetX, offsetY;
 let isFullScreen = false;
 let initialX, initialY;
 
+// Variabel untuk mengelola status admin dan pengetikan
 let adminIsOnline = false;
 let typingTimeout;
 let isCustomerTyping = false;
 
+// Array untuk menyimpan data kendaraan chat
 let vehiclesChat = [];
 
+// Objek untuk mengelola status negosiasi
 let negotiationState = {
   active: false,
   selectedVehicle: null,
   currentOffer: 0,
 };
 
+// Menambahkan pesan ke dalam container chat.
 function appendMessage(sender, message, containerId) {
   const bodyElement = document.getElementById(containerId);
   if (!bodyElement) {
@@ -55,6 +61,7 @@ function appendMessage(sender, message, containerId) {
   bodyElement.scrollTop = bodyElement.scrollHeight;
 }
 
+// Menambahkan indikator pengetikan ke dalam container chat.
 function addTypingIndicatorBubble(containerId, senderType) {
   const bodyElement = document.getElementById(containerId);
   if (!bodyElement) return;
@@ -84,6 +91,7 @@ function addTypingIndicatorBubble(containerId, senderType) {
   bodyElement.scrollTop = bodyElement.scrollHeight;
 }
 
+// Menghapus indikator pengetikan dari container chat.
 function removeTypingIndicatorBubble(containerId) {
   const bodyElement = document.getElementById(containerId);
   if (!bodyElement) return;
@@ -97,6 +105,7 @@ function removeTypingIndicatorBubble(containerId) {
   }
 }
 
+// Override fungsi appendChild untuk mengelola indikator pengetikan
 const originalAppendChild = Node.prototype.appendChild;
 Node.prototype.appendChild = function (newNode) {
   if ((this === chatBody || this === fullPageChatBody) && newNode.classList.contains("message")) {
@@ -109,27 +118,30 @@ Node.prototype.appendChild = function (newNode) {
   return originalAppendChild.call(this, newNode);
 };
 
+// Melampirkan event listener ke kartu promo.
 function attachPromoCardListeners() {
   const attachListeners = (containerId) => {
     const container = document.getElementById(containerId);
     if (!container) return;
 
     container.querySelectorAll(".promo-card").forEach((card) => {
-      card.onclick = null;
-      card.onclick = async () => {
-        const target = card.dataset.target;
-        const userMessageContent = card.querySelector("h4") ?
-          card.querySelector("h4").textContent :
-          card.textContent.trim();
+      if (!card.classList.contains('vehicle-option')) {
+          card.onclick = null;
+          card.onclick = async () => {
+              const target = card.dataset.target;
+              const userMessageContent = card.querySelector("h4") ?
+                  card.querySelector("h4").textContent :
+                  card.textContent.trim();
 
-        appendMessage("customer", userMessageContent, chatBody.id);
-        if (isFullScreen)
-          appendMessage("customer", userMessageContent, fullPageChatBody.id);
+              appendMessage("customer", userMessageContent, chatBody.id);
+              if (isFullScreen)
+                  appendMessage("customer", userMessageContent, fullPageChatBody.id);
 
-        await sendChatMessageToBackend(userMessageContent, "customer");
+              await sendChatMessageToBackend(userMessageContent, "customer");
 
-        handleBotResponse(target);
-      };
+              handleBotResponse(target);
+          };
+      }
     });
     attachNegotiationListeners(containerId);
   };
@@ -138,6 +150,7 @@ function attachPromoCardListeners() {
   if (isFullScreen) attachListeners(fullPageChatBody.id);
 }
 
+// Membuat input penawaran dalam chat.
 function createOfferInput(containerId) {
   const chatBodyElement = document.getElementById(containerId);
   if (!chatBodyElement) return;
@@ -160,6 +173,7 @@ function createOfferInput(containerId) {
   chatBodyElement.scrollTop = chatBodyElement.scrollHeight;
 }
 
+// Memformat input menjadi format Rupiah.
 function formatRupiahInput(event) {
   let input = event.target.value;
   input = input.replace(/[^0-9]/g, "");
@@ -178,6 +192,7 @@ function formatRupiahInput(event) {
   event.target.value = new Intl.NumberFormat("id-ID").format(number);
 }
 
+// Memperbarui jumlah pesan yang belum dibaca.
 async function updateUnreadMessageCount() {
     if (!isCustomerLoggedIn || !chatSessionId) {
         chatNotificationBadge.textContent = 0;
@@ -212,6 +227,7 @@ async function updateUnreadMessageCount() {
     }
 }
 
+// Menandai semua pesan sebagai sudah dibaca.
 async function markMessagesAsRead() {
     if (!chatSessionId) return;
 
@@ -236,6 +252,7 @@ async function markMessagesAsRead() {
     }
 }
 
+// Event listener untuk tombol chat
 chatButton.addEventListener("click", async () => {
   if (!isCustomerLoggedIn) {
     alert("Silakan login terlebih dahulu untuk menggunakan fitur chat.");
@@ -243,23 +260,18 @@ chatButton.addEventListener("click", async () => {
     return;
   }
 
-  const wasChatPanelActive = chatPanel.classList.contains("active");
   chatPanel.classList.toggle("active");
 
-  if (chatPanel.classList.contains("active")) { // Jika chat panel BARU SAJA dibuka
+  if (chatPanel.classList.contains("active")) {
     await getOrCreateChatSession();
     await loadChatHistory();
     await updateAdminStatus();
-    await markMessagesAsRead(); // Tandai semua pesan sebagai sudah dibaca
-    await updateUnreadMessageCount(); // Perbarui badge setelahnya
-  } else { // Jika chat panel ditutup
-    // Saat menutup, kita hanya perlu memastikan badge diperbarui sesuai status database
-    // yang sudah diurus oleh `markMessagesAsRead` jika widget dibuka
-    // dan `setInterval` yang terus memantau `updateUnreadMessageCount`.
+    await markMessagesAsRead();
+    await updateUnreadMessageCount();
   }
 });
 
-
+// Event listener untuk tombol kembali (saat mode fullscreen)
 backButton.addEventListener("click", () => {
   chatBody.innerHTML = fullPageChatBody.innerHTML;
   chatPanel.classList.add("active");
@@ -271,6 +283,7 @@ backButton.addEventListener("click", () => {
   removeTypingIndicatorBubble(fullPageChatBody.id);
 });
 
+// Event listener untuk mengaktifkan fungsionalitas drag pada header chat
 chatHeader.addEventListener("mousedown", (e) => {
   if (chatPanel.classList.contains("fullscreen")) return;
 
@@ -291,6 +304,7 @@ chatHeader.addEventListener("mousedown", (e) => {
   e.preventDefault();
 });
 
+// Event listener untuk menggeser panel chat saat di-drag
 document.addEventListener("mousemove", (e) => {
   if (isDragging && !chatPanel.classList.contains("fullscreen")) {
     const newX = e.clientX - offsetX;
@@ -300,6 +314,7 @@ document.addEventListener("mousemove", (e) => {
   }
 });
 
+// Event listener untuk menghentikan drag dan menyesuaikan posisi panel chat
 document.addEventListener("mouseup", () => {
   if (isDragging) {
     isDragging = false;
@@ -321,12 +336,13 @@ document.addEventListener("mouseup", () => {
   }
 });
 
+// Event listener untuk tombol tutup chat
 closeBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   chatPanel.classList.remove("active");
-  // Setelah menutup, badge akan diurus oleh setInterval yang memanggil updateUnreadMessageCount
 });
 
+// Event listener untuk tombol fullscreen
 fullscreenBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   isFullScreen = !isFullScreen;
@@ -381,6 +397,7 @@ fullscreenBtn.addEventListener("click", (e) => {
   }
 });
 
+// Event listener untuk menyesuaikan posisi panel chat saat ukuran jendela diubah
 window.addEventListener("resize", () => {
   if (
     !chatPanel.classList.contains("active") ||
@@ -409,6 +426,7 @@ window.addEventListener("resize", () => {
   }
 });
 
+// Event listener saat halaman dimuat
 window.addEventListener("load", () => {
   const rect = chatPanel.getBoundingClientRect();
   initialX = rect.left;

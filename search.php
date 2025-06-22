@@ -17,6 +17,10 @@ $max_kilometer_filter = $_GET['max_kilometer'] ?? '';
 $min_cc_filter = $_GET['min_cc'] ?? '';
 $max_cc_filter = $_GET['max_cc'] ?? '';
 
+$initial_load_limit = 9;
+$load_more_limit = 9;
+$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
 $vehicles = [];
 $brands = [];
 $min_max_values = [
@@ -26,13 +30,13 @@ $min_max_values = [
     'cc_engine' => ['min' => null, 'max' => null]
 ];
 $db_error = null;
+$total_results = 0;
+$has_more_data = false;
 
 try {
-    // Fetch all brands for the filter dropdown
     $stmt_brands = $koneksi->query("SELECT id, name FROM brands WHERE deleted_at IS NULL ORDER BY name ASC");
     $brands = $stmt_brands->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch min/max values for filters
     $stmt_min_max = $koneksi->query("
         SELECT
             MIN(YEAR(production_year)) AS min_year,
@@ -58,9 +62,86 @@ try {
         $min_max_values['cc_engine']['max'] = $min_max_values_db['max_cc'];
     }
 
+    $sql_base = "
+        FROM
+            vehicles v
+        JOIN
+            vehicle_models vm ON v.vehicle_model_id = vm.id
+        JOIN
+            brands b ON vm.brand_id = b.id
+        WHERE
+            v.status = 'available'
+            AND v.stnk_deadline >= CURDATE()
+            AND v.deleted_at IS NULL
+            AND vm.deleted_at IS NULL
+            AND b.deleted_at IS NULL
+    ";
 
-    // Build the main vehicle query
-    $sql = "
+    $conditions = [];
+    $params = [];
+
+    if (!empty($search_query)) {
+        $conditions[] = "(CONCAT(b.name, ' ', vm.name) LIKE :search_query OR v.description LIKE :search_query)";
+        $params[':search_query'] = '%' . $search_query . '%';
+    }
+
+    if (!empty($type_vehicle_filter)) {
+        $conditions[] = "v.type_vehicle = :type_vehicle";
+        $params[':type_vehicle'] = $type_vehicle_filter;
+    }
+
+    if (!empty($brand_id_filter)) {
+        $conditions[] = "b.id = :brand_id";
+        $params[':brand_id'] = $brand_id_filter;
+    }
+
+    if (!empty($min_year_filter)) {
+        $conditions[] = "YEAR(v.production_year) >= :min_year";
+        $params[':min_year'] = $min_year_filter;
+    }
+    if (!empty($max_year_filter)) {
+        $conditions[] = "YEAR(v.production_year) <= :max_year";
+        $params[':max_year'] = $max_year_filter;
+    }
+
+    if (!empty($min_price_filter)) {
+        $conditions[] = "v.price_displayed >= :min_price";
+        $params[':min_price'] = $min_price_filter;
+    }
+    if (!empty($max_price_filter)) {
+        $conditions[] = "v.price_displayed <= :max_price";
+        $params[':max_price'] = $max_price_filter;
+    }
+
+    if (!empty($min_kilometer_filter)) {
+        $conditions[] = "v.kilometer >= :min_kilometer";
+        $params[':min_kilometer'] = $min_kilometer_filter;
+    }
+    if (!empty($max_kilometer_filter)) {
+        $conditions[] = "v.kilometer <= :max_kilometer";
+        $params[':max_kilometer'] = $max_kilometer_filter;
+    }
+
+    if (!empty($min_cc_filter)) {
+        $conditions[] = "v.cc_engine >= :min_cc";
+        $params[':min_cc'] = $min_cc_filter;
+    }
+    if (!empty($max_cc_filter)) {
+        $conditions[] = "v.cc_engine <= :max_cc";
+        $params[':max_cc'] = $max_cc_filter;
+    }
+
+    $full_conditions = $sql_base;
+    if (!empty($conditions)) {
+        $full_conditions .= " AND " . implode(" AND ", $conditions);
+    }
+
+    $count_sql = "SELECT COUNT(v.id) " . $full_conditions;
+    $count_stmt = $koneksi->prepare($count_sql);
+    $count_stmt->execute($params);
+    $total_results = $count_stmt->fetchColumn();
+
+    $sql_select = "
         SELECT
             v.id,
             v.type_vehicle,
@@ -76,77 +157,26 @@ try {
                 ORDER BY is_cover DESC, id ASC
                 LIMIT 1
             ) AS image
-        FROM
-            vehicles v
-        JOIN
-            vehicle_models vm ON v.vehicle_model_id = vm.id
-        JOIN
-            brands b ON vm.brand_id = b.id
-        WHERE
-            v.status = 'available'
-            AND v.stnk_deadline >= CURDATE()
-            AND v.deleted_at IS NULL
-            AND vm.deleted_at IS NULL
-            AND b.deleted_at IS NULL
     ";
+    $sql_limit_offset = " ORDER BY v.created_at DESC LIMIT :limit OFFSET :offset";
 
-    $params = [];
+    $stmt = $koneksi->prepare($sql_select . $full_conditions . $sql_limit_offset);
 
-    if (!empty($search_query)) {
-        $sql .= " AND (CONCAT(b.name, ' ', vm.name) LIKE :search_query OR v.description LIKE :search_query)";
-        $params[':search_query'] = '%' . $search_query . '%';
-    }
+    $current_limit = ($offset === 0) ? $initial_load_limit : $load_more_limit;
+    $params[':limit'] = $current_limit;
+    $params[':offset'] = $offset;
 
-    if (!empty($type_vehicle_filter)) {
-        $sql .= " AND v.type_vehicle = :type_vehicle";
-        $params[':type_vehicle'] = $type_vehicle_filter;
+    foreach ($params as $key => &$val) {
+        if ($key === ':limit' || $key === ':offset') {
+            $stmt->bindParam($key, $val, PDO::PARAM_INT);
+        } else if (strpos($key, 'price') !== false || strpos($key, 'kilometer') !== false || strpos($key, 'cc') !== false) {
+            $stmt->bindParam($key, $val, PDO::PARAM_STR);
+        }
+        else {
+            $stmt->bindParam($key, $val);
+        }
     }
-
-    if (!empty($brand_id_filter)) {
-        $sql .= " AND b.id = :brand_id";
-        $params[':brand_id'] = $brand_id_filter;
-    }
-
-    if (!empty($min_year_filter)) {
-        $sql .= " AND YEAR(v.production_year) >= :min_year";
-        $params[':min_year'] = $min_year_filter;
-    }
-    if (!empty($max_year_filter)) {
-        $sql .= " AND YEAR(v.production_year) <= :max_year";
-        $params[':max_year'] = $max_year_filter;
-    }
-
-    if (!empty($min_price_filter)) {
-        $sql .= " AND v.price_displayed >= :min_price";
-        $params[':min_price'] = $min_price_filter;
-    }
-    if (!empty($max_price_filter)) {
-        $sql .= " AND v.price_displayed <= :max_price";
-        $params[':max_price'] = $max_price_filter;
-    }
-
-    if (!empty($min_kilometer_filter)) {
-        $sql .= " AND v.kilometer >= :min_kilometer";
-        $params[':min_kilometer'] = $min_kilometer_filter;
-    }
-    if (!empty($max_kilometer_filter)) {
-        $sql .= " AND v.kilometer <= :max_kilometer";
-        $params[':max_kilometer'] = $max_kilometer_filter;
-    }
-
-    if (!empty($min_cc_filter)) {
-        $sql .= " AND v.cc_engine >= :min_cc";
-        $params[':min_cc'] = $min_cc_filter;
-    }
-    if (!empty($max_cc_filter)) {
-        $sql .= " AND v.cc_engine <= :max_cc";
-        $params[':max_cc'] = $max_cc_filter;
-    }
-
-    $sql .= " ORDER BY v.created_at DESC";
-
-    $stmt = $koneksi->prepare($sql);
-    $stmt->execute($params);
+    $stmt->execute();
     $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $base_image_url = './storage/';
@@ -158,6 +188,9 @@ try {
         }
     }
     unset($vehicle);
+
+    $has_more_data = ($offset + count($vehicles) < $total_results);
+
 } catch (PDOException $e) {
     error_log('Database Error: ' . $e->getMessage());
     $db_error = "Gagal memuat data dari server. Silakan coba lagi nanti.";
@@ -169,9 +202,7 @@ function render_vehicle_card($vehicle)
     $detailUrl = 'detail.php?id=' . htmlspecialchars($vehicle['id']);
     $imageUrl = htmlspecialchars($vehicle['image']);
 
-    // Original display name
     $originalDisplayName = htmlspecialchars($vehicle['display_name']);
-
     $displayName = $originalDisplayName;
     $maxTitleLength = 19;
     if (mb_strlen($originalDisplayName) > $maxTitleLength) {
@@ -181,7 +212,6 @@ function render_vehicle_card($vehicle)
     $productionYear = isset($vehicle['production_year']) ? htmlspecialchars(date('Y', strtotime($vehicle['production_year']))) : 'N/A';
     $kilometer = isset($vehicle['kilometer']) ? htmlspecialchars(number_format($vehicle['kilometer'])) : 'N/A';
     $ccEngine = isset($vehicle['cc_engine']) ? htmlspecialchars($vehicle['cc_engine']) : 'N/A';
-
 
     echo '
     <div class="vehicle-card">
@@ -204,6 +234,27 @@ function render_vehicle_card($vehicle)
       </div>
     </div>';
 }
+
+if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    header('Content-Type: application/json');
+    ob_start();
+    if (isset($db_error)) {
+        echo "<p class='error-message msg-info-query'>$db_error</p>";
+    } elseif (empty($vehicles)) {
+        if ($offset === 0 && $total_results === 0) {
+            echo "<p class='no-results msg-info-query'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
+        } else {
+            echo "<p class='msg-info-query'>Tidak ada kendaraan lagi yang ditemukan.</p>";
+        }
+    } else {
+        foreach ($vehicles as $vehicle) {
+            render_vehicle_card($vehicle);
+        }
+    }
+    $html_content = ob_get_clean();
+    echo json_encode(['html' => $html_content, 'has_more' => $has_more_data]);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -214,11 +265,8 @@ function render_vehicle_card($vehicle)
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hasil Pencarian - Akbar Veloz Motor</title>
     <link rel="stylesheet" href="./css/style.css" />
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
-</head>
 
 <body>
     <?php include("./layouts/navbar.php"); ?>
@@ -257,36 +305,36 @@ function render_vehicle_card($vehicle)
                         <div class="filter-group">
                             <label>Tahun Produksi:</label>
                             <div class="range-inputs">
-                                <input type="number" name="min_year" placeholder="Min" value="<?php echo htmlspecialchars($min_year_filter); ?>" min="<?php echo $min_max_values['year']['min']; ?>" max="<?php echo $min_max_values['year']['max']; ?>">
+                                <input type="number" name="min_year" placeholder="Min" value="<?php echo htmlspecialchars($min_year_filter); ?>" min="<?php echo $min_max_values['year']['min'] ?? ''; ?>" max="<?php echo $min_max_values['year']['max'] ?? ''; ?>">
                                 <span>-</span>
-                                <input type="number" name="max_year" placeholder="Max" value="<?php echo htmlspecialchars($max_year_filter); ?>" min="<?php echo $min_max_values['year']['min']; ?>" max="<?php echo $min_max_values['year']['max']; ?>">
+                                <input type="number" name="max_year" placeholder="Max" value="<?php echo htmlspecialchars($max_year_filter); ?>" min="<?php echo $min_max_values['year']['min'] ?? ''; ?>" max="<?php echo $min_max_values['year']['max'] ?? ''; ?>">
                             </div>
                         </div>
 
                         <div class="filter-group">
                             <label>Harga (Rp):</label>
                             <div class="range-inputs">
-                                <input type="number" name="min_price" placeholder="Min" value="<?php echo htmlspecialchars($min_price_filter); ?>" min="<?php echo $min_max_values['price']['min']; ?>" max="<?php echo $min_max_values['price']['max']; ?>">
+                                <input type="number" name="min_price" placeholder="Min" value="<?php echo htmlspecialchars($min_price_filter); ?>" min="<?php echo $min_max_values['price']['min'] ?? ''; ?>" max="<?php echo $min_max_values['price']['max'] ?? ''; ?>">
                                 <span>-</span>
-                                <input type="number" name="max_price" placeholder="Max" value="<?php echo htmlspecialchars($max_price_filter); ?>" min="<?php echo $min_max_values['price']['min']; ?>" max="<?php echo $min_max_values['price']['max']; ?>">
+                                <input type="number" name="max_price" placeholder="Max" value="<?php echo htmlspecialchars($max_price_filter); ?>" min="<?php echo $min_max_values['price']['min'] ?? ''; ?>" max="<?php echo $min_max_values['price']['max'] ?? ''; ?>">
                             </div>
                         </div>
 
                         <div class="filter-group">
                             <label>Kilometer (KM):</label>
                             <div class="range-inputs">
-                                <input type="number" name="min_kilometer" placeholder="Min" value="<?php echo htmlspecialchars($min_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min']; ?>" max="<?php echo $min_max_values['kilometer']['max']; ?>">
+                                <input type="number" name="min_kilometer" placeholder="Min" value="<?php echo htmlspecialchars($min_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min'] ?? ''; ?>" max="<?php echo $min_max_values['kilometer']['max'] ?? ''; ?>">
                                 <span>-</span>
-                                <input type="number" name="max_kilometer" placeholder="Max" value="<?php echo htmlspecialchars($max_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min']; ?>" max="<?php echo $min_max_values['kilometer']['max']; ?>">
+                                <input type="number" name="max_kilometer" placeholder="Max" value="<?php echo htmlspecialchars($max_kilometer_filter); ?>" min="<?php echo $min_max_values['kilometer']['min'] ?? ''; ?>" max="<?php echo $min_max_values['kilometer']['max'] ?? ''; ?>">
                             </div>
                         </div>
 
                         <div class="filter-group">
                             <label>Mesin (CC):</label>
                             <div class="range-inputs">
-                                <input type="number" name="min_cc" placeholder="Min" value="<?php echo htmlspecialchars($min_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min']; ?>" max="<?php echo $min_max_values['cc_engine']['max']; ?>">
+                                <input type="number" name="min_cc" placeholder="Min" value="<?php echo htmlspecialchars($min_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min'] ?? ''; ?>" max="<?php echo $min_max_values['cc_engine']['max'] ?? ''; ?>">
                                 <span>-</span>
-                                <input type="number" name="max_cc" placeholder="Max" value="<?php echo htmlspecialchars($max_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min']; ?>" max="<?php echo $min_max_values['cc_engine']['max']; ?>">
+                                <input type="number" name="max_cc" placeholder="Max" value="<?php echo htmlspecialchars($max_cc_filter); ?>" min="<?php echo $min_max_values['cc_engine']['min'] ?? ''; ?>" max="<?php echo $min_max_values['cc_engine']['max'] ?? ''; ?>">
                             </div>
                         </div>
 
@@ -312,19 +360,24 @@ function render_vehicle_card($vehicle)
                         </button>
                     </div>
 
-
-                    <?php
-                    if (isset($db_error)) {
-                        echo "<p class='error-message msg-info-query'>$db_error</p>";
-                    } elseif (empty($vehicles)) {
-                        echo "<p  class='no-results msg-info-query'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
-                    } else { ?>
-                        <div class="grid-container">
-                            <?php foreach ($vehicles as $vehicle) { ?>
-                                <?php render_vehicle_card($vehicle);   ?>
-                        <?php } } ?>
-                        </div>
-
+                    <div class="grid-container" id="vehicle-results-container">
+                        <?php
+                        if (isset($db_error)) {
+                            echo "<p class='error-message msg-info-query'>$db_error</p>";
+                        } elseif (empty($vehicles) && $offset === 0) {
+                            echo "<p class='no-results msg-info-query'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
+                        } else {
+                            foreach ($vehicles as $vehicle) {
+                                render_vehicle_card($vehicle);
+                            }
+                        }
+                        ?>
+                    </div>
+                    <div id="loading-indicator" style="display:none; text-align:center; padding: 20px;">
+                        <div class="loader-ring"></div>
+                        <p>Memuat lebih banyak...</p>
+                    </div>
+                    <div id="no-more-data" style="display:none; text-align:center; padding: 20px; color: gray;"></div>
                 </div>
             </div>
         </section>
@@ -332,15 +385,97 @@ function render_vehicle_card($vehicle)
 
     <div class="filter-overlay" id="filterOverlay"></div>
 
-    <!-- Chat widget -->
     <?php include("./layouts/chat/chat_widget.php"); ?>
-
-    <!-- Footer -->
     <?php include("./layouts/footer.php"); ?>
 
     <script src="./js/global.js"></script>
     <script src="./js/script.js"></script>
-    <script src="./js/search.js"></script>
+    <script>
+        const initialOffset = <?php echo $initial_load_limit; ?>;
+        const loadMoreLimit = <?php echo $load_more_limit; ?>;
+        let currentOffset = <?php echo $initial_load_limit; ?>;
+        let isLoading = false;
+        let hasMoreData = <?php echo json_encode($has_more_data); ?>;
+        const totalResults = <?php echo $total_results; ?>;
+
+        const resultsContainer = document.getElementById('vehicle-results-container');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const noMoreDataIndicator = document.getElementById('no-more-data');
+
+        function getCurrentUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            params.delete('offset');
+            params.delete('limit');
+            return params;
+        }
+
+        async function loadMoreVehicles() {
+            if (isLoading || !hasMoreData) {
+                return;
+            }
+
+            isLoading = true;
+            loadingIndicator.style.display = 'flex';
+
+            const currentParams = getCurrentUrlParams();
+            currentParams.set('offset', currentOffset);
+            currentParams.set('limit', loadMoreLimit);
+
+            try {
+                const response = await fetch(`search.php?${currentParams.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.html) {
+                    resultsContainer.insertAdjacentHTML('beforeend', data.html);
+                    currentOffset += loadMoreLimit;
+                    hasMoreData = data.has_more;
+                }
+
+                if (!hasMoreData) {
+                    noMoreDataIndicator.style.display = 'block';
+                    // noMoreDataIndicator.textContent = "Semua data telah dimuat.";
+                    noMoreDataIndicator.textContent = "";
+                }
+
+            } catch (error) {
+                console.error("Error loading more vehicles:", error);
+                noMoreDataIndicator.style.display = 'block';
+                noMoreDataIndicator.textContent = "Terjadi kesalahan saat memuat data. Silakan coba lagi.";
+            } finally {
+                isLoading = false;
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            const {
+                scrollTop,
+                scrollHeight,
+                clientHeight
+            } = document.documentElement;
+
+            if (scrollTop + clientHeight >= scrollHeight - 100 && hasMoreData) {
+                loadMoreVehicles();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (totalResults === 0) {
+                noMoreDataIndicator.style.display = 'block';
+                noMoreDataIndicator.textContent = "Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.";
+            } else if (!hasMoreData && totalResults > 0) {
+                 noMoreDataIndicator.style.display = 'block';
+                 noMoreDataIndicator.textContent = "Semua data telah dimuat.";
+            }
+            if (resultsContainer.offsetHeight < window.innerHeight && hasMoreData && totalResults > initialOffset) {
+                loadMoreVehicles();
+            }
+        });
+    </script>
 </body>
 
 </html>

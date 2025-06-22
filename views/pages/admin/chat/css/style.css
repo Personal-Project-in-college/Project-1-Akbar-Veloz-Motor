@@ -8,6 +8,8 @@
   --bot-msg: #ffffff;
   --user-msg-bg: #dcf8c6;
   --customer-msg-bg: #ffffff;
+  --gray-color: #757575;
+  --gray: #dddddd;
 }
 
 body {
@@ -362,7 +364,7 @@ body {
   object-fit: cover;
 }
 
-.promo-card img{
+.promo-card img {
   height: 140px;
 }
 
@@ -460,4 +462,50 @@ body {
   .chat-body {
     max-height: 60dvh;
   }
+}
+
+/* search */
+.search-container {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+#vehicleSearchInput {
+  flex-grow: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--gray);
+  border-radius: 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+#vehicleSearchInput:focus {
+  border-color: var(--secondary-color);
+}
+
+#clearSearchButton {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  display: none;
+  transition: background-color 0.2s ease;
+}
+
+#clearSearchButton:hover {
+  background-color: #bbb;
+}
+
+#noVehicleResultsMessage {
+  margin-top: 10px;
+  font-style: italic;
+  color: #666;
+  text-align: center;
 }

@@ -71,7 +71,6 @@ function render_vehicle_card($vehicle)
   $detailUrl = 'detail.php?id=' . htmlspecialchars($vehicle['id']);
   $imageUrl = htmlspecialchars($vehicle['image']);
 
-  // Original display name
   $originalDisplayName = htmlspecialchars($vehicle['display_name']);
 
   $displayName = $originalDisplayName;
@@ -149,8 +148,8 @@ function render_vehicle_card($vehicle)
         </div>
 
         <div class="banner-nav">
-          <button class="banner-prev"><i class="fas fa-chevron-left"></i></button>
-          <button class="banner-next"><i class="fas fa-chevron-right"></i></button>
+          <button class="banner-prev">❮</button>
+          <button class="banner-next">❯</button>
         </div>
 
         <div class="banner-indicators">
@@ -207,54 +206,60 @@ function render_vehicle_card($vehicle)
         <button class="tablinks" onclick="openTab(event, 'Mobil')">Mobil</button>
       </div>
 
-      <!-- Semua -->
       <div id="Semua" class="tabcontent" style="display: block;">
-        <?php
-        if (isset($db_error)) {
-          echo "<p class='msg-info-query'>$db_error</p>";
-        } elseif (empty($all_vehicles)) {
-          echo "<pclass='msg-info-query' >Saat ini belum ada kendaraan yang tersedia.</pclass=>";
-        } else { ?>
+        <?php if (isset($db_error)) { ?>
+          <p class='msg-info-query'><?php echo $db_error; ?></p>
+        <?php } elseif (empty($all_vehicles)) { ?>
+          <p class='msg-info-query'>Saat ini belum ada kendaraan yang tersedia.</p>
+        <?php } else { ?>
           <div class="grid-container" id="semua-container">
-            <?php foreach ($all_vehicles as $vehicle) { ?>
-              <?php render_vehicle_card($vehicle); ?>
-          <?php }
-          } ?>
+            <?php
+            $count = 0;
+            foreach ($all_vehicles as $vehicle) {
+              if ($count >= 8) break;
+              render_vehicle_card($vehicle);
+              $count++;
+            }
+            ?>
           </div>
+        <?php } ?>
       </div>
 
-      <!-- Motor -->
       <div id="Motor" class="tabcontent">
-        <?php
-        if (isset($db_error)) {
-          echo "<p class='msg-info-query'>$db_error</p>";
-        } elseif (empty($motorcycles)) {
-          echo "<p class='msg-info-query'>Saat ini belum ada motor yang tersedia.</p>";
-        } else { ?>
+        <?php if (isset($db_error)) { ?>
+          <p class='msg-info-query'><?php echo $db_error; ?></p>
+        <?php } elseif (empty($motorcycles)) { ?>
+          <p class='msg-info-query'>Saat ini belum ada motor yang tersedia.</p>
+        <?php } else { ?>
           <div class="grid-container" id="motor-container">
-            <?php foreach ($motorcycles as $vehicle) { ?>
-              <?php render_vehicle_card($vehicle); ?>
-          <?php }
-          } ?>
+            <?php
+            $count = 0;
+            foreach ($motorcycles as $vehicle) {
+              if ($count >= 8) break;
+              render_vehicle_card($vehicle);
+              $count++;
+            }
+            ?>
           </div>
+        <?php } ?>
       </div>
 
-      <!-- Mobil -->
       <div id="Mobil" class="tabcontent">
         <div class="grid-container" id="mobil-container">
-          <?php
-          if (isset($db_error)) {
-            echo "<p class='msg-info-query'>$db_error</p>";
-          } elseif (empty($cars)) {
-            echo "<p class='msg-info-query'>Saat ini belum ada mobil yang tersedia.</p>";
-          } else {
+          <?php if (isset($db_error)) { ?>
+            <p class='msg-info-query'><?php echo $db_error; ?></p>
+          <?php } elseif (empty($cars)) { ?>
+            <p class='msg-info-query'>Saat ini belum ada mobil yang tersedia.</p>
+          <?php } else {
+            $count = 0;
             foreach ($cars as $vehicle) {
+              if ($count >= 8) break;
               render_vehicle_card($vehicle);
+              $count++;
             }
           }
           ?>
         </div>
-
       </div>
       <div class="show-all-btn-container">
         <a href="search.php?type_vehicle=" class="btn-primary">Tampilkan Semua</a>
