@@ -298,12 +298,12 @@ include '../layout/sidebar.php';
             </div>
 
 
-            <div class="card-section">
+            <!-- <div class="card-section">
                 <h3>Aksi Lanjutan</h3>
                 <div class="wrap-btn">
                     <button class="btn btn-primary" onclick="alert('Fitur kirim email belum diimplementasi')">Kirim Email</button>
                 </div>
-            </div>
+            </div> -->
 
         </div>
     </div>
