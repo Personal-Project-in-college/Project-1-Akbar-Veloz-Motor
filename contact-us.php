@@ -12,6 +12,8 @@ if (!isset($_SESSION['customer_id']) || empty($_SESSION['customer_id'])) {
   exit();
 }
 
+$selected_vehicle = $_GET['vehicle_id'] ?? '';
+$selected_order_type = $_GET['type_order'] ?? '';
 
 // Load data customer
 $customer_id = $_SESSION['customer_id'];
@@ -125,7 +127,7 @@ $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
               <select class="modern-select" id="vehicle" name="vehicle" required>
                 <option value="">-- Pilih Kendaraan --</option>
                 <?php foreach ($vehicles as $vehicle): ?>
-                  <option value="<?= $vehicle['id'] ?>">
+                  <option value="<?= $vehicle['id'] ?>" <?= $vehicle['id'] === $selected_vehicle ? 'selected' : '' ?>>
                     <?= $vehicle['id'] ?> | <?= htmlspecialchars($vehicle['model_name']) ?>
                   </option>
                 <?php endforeach; ?>
@@ -135,8 +137,8 @@ $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
             <div class="select-wrapper">
               <select class="modern-select" id="purpose" name="type_order" required>
                 <option value="">-- Tentukan tujuan --</option>
-                <option value="test_driver">Coba Kendaraan</option>
-                <option value="transaction">Transaksi</option>
+                <option value="test_driver" <?= $selected_order_type === 'test_driver' ? 'selected' : '' ?>>Coba Kendaraan</option>
+                <option value="transaction" <?= $selected_order_type === 'transaction' ? 'selected' : '' ?>>Transaksi</option>
               </select>
             </div>
 
