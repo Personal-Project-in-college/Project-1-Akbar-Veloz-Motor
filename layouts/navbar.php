@@ -74,4 +74,5 @@ $show_search_bar_on_pages = ['index.php', ''];
     </nav>
   </div>
 </header>
+
 <div class="menu-overlay" id="menuOverlay"></div>

@@ -1,5 +1,106 @@
 console.log("koneksi chat aktive");
 
+async function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    console.warn("Browser ini tidak mendukung notifikasi desktop.");
+    return false;
+  }
+
+  if (Notification.permission === "granted") {
+    console.log("Izin notifikasi sudah diberikan.");
+    return true;
+  }
+
+  if (Notification.permission === "denied") {
+    console.warn("Izin notifikasi ditolak oleh pengguna.");
+    return false;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      console.log("Izin notifikasi diberikan.");
+      return true;
+    } else {
+      console.warn("Izin notifikasi tidak diberikan.");
+      return false;
+    }
+  } catch (error) {
+    console.error("Kesalahan saat meminta izin notifikasi:", error);
+    return false;
+  }
+}
+
+function showChatNotification(title, body) {
+  if (Notification.permission === "granted") {
+    if (!chatPanel.classList.contains("active")) {
+      new Notification(title, {
+        body: body,
+        icon: "./assets/images/profile-picture/the-winner.jpeg",
+      });
+    }
+  } else {
+    console.warn("Tidak dapat menampilkan notifikasi: Izin tidak diberikan.");
+  }
+}
+
+const displayedMessageIds = new Set();
+
+setInterval(async () => {
+  if (chatSessionId) {
+    try {
+      // Kirim status apakah chat panel sedang aktif
+      const isChatPanelCurrentlyActive = chatPanel.classList.contains("active");
+      const response = await fetch(
+        `./api/chat.php?action=get_new_messages&session_id=${chatSessionId}&is_chat_active=${isChatPanelCurrentlyActive}`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        data.new_messages.forEach((msg) => {
+          if (!displayedMessageIds.has(msg.id)) {
+            appendMessage(msg.sender_type, msg.message_text, chatBody.id);
+            if (isFullScreen) {
+              appendMessage(
+                msg.sender_type,
+                msg.message_text,
+                fullPageChatBody.id
+              );
+            }
+            displayedMessageIds.add(msg.id);
+
+            // Tampilkan notifikasi desktop hanya jika chat TIDAK aktif
+            showChatNotification("Pesan Baru dari SiVeloz", msg.message_text);
+          }
+        });
+        if (data.new_messages.length > 0) {
+          attachPromoCardListeners();
+          console.log(
+            "Pesan baru diterima dan ditambahkan:",
+            data.new_messages.length
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Kesalahan polling untuk pesan baru:", error);
+    }
+  }
+  updateAdminStatus();
+  getOpponentTypingStatus();
+  await updateUnreadMessageCount(); // Selalu perbarui badge
+}, 1000);
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await getOrCreateChatSession();
+  await fetchVehiclesChat();
+  await loadChatHistory(); // Memuat riwayat dan mengisi `displayedMessageIds`
+  await updateAdminStatus();
+  await requestNotificationPermission();
+  await updateUnreadMessageCount(); // Panggil ini sekali di awal untuk status badge yang benar
+  console.log("Halaman dimuat, inisialisasi selesai.");
+});
+
+
 async function fetchVehiclesChat() {
   try {
     const response = await fetch("./api/chat.php?action=get_vehicles");
@@ -136,6 +237,7 @@ async function loadChatHistory() {
     if (data.success) {
       chatBody.innerHTML = "";
       fullPageChatBody.innerHTML = "";
+      displayedMessageIds.clear();
 
       const initialBotMessagesHTML = `
 <div class="message bot-message">Halo! Butuh bantuan?</div>
@@ -190,6 +292,9 @@ async function loadChatHistory() {
             msg.sender_type === "customer" ||
             msg.sender_type === "user"
         ) {
+          if (msg.id) {
+              displayedMessageIds.add(msg.id);
+          }
           appendMessage(msg.sender_type, msg.message_text, chatBody.id);
           if (isFullScreen) {
             appendMessage(
@@ -272,37 +377,3 @@ async function getOpponentTypingStatus() {
     );
   }
 }
-
-setInterval(async () => {
-  if (chatPanel.classList.contains("active") && chatSessionId) {
-    try {
-      const response = await fetch(
-        `./api/chat.php?action=get_new_messages&session_id=${chatSessionId}`
-      );
-      const data = await response.json();
-      if (data.success) {
-        data.new_messages.forEach((msg) => {
-          appendMessage(msg.sender_type, msg.message_text, chatBody.id);
-          if (isFullScreen) {
-            appendMessage(
-              msg.sender_type,
-              msg.message_text,
-              fullPageChatBody.id
-            );
-          }
-        });
-        if (data.new_messages.length > 0) {
-          attachPromoCardListeners();
-          console.log(
-            "Pesan baru diterima dan ditambahkan:",
-            data.new_messages.length
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Kesalahan polling untuk pesan baru:", error);
-    }
-  }
-  updateAdminStatus();
-  getOpponentTypingStatus();
-}, 1000);

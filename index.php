@@ -149,8 +149,8 @@ function render_vehicle_card($vehicle)
         </div>
 
         <div class="banner-nav">
-          <button class="banner-prev">❮</button>
-          <button class="banner-next">❯</button>
+          <button class="banner-prev"><i class="fas fa-chevron-left"></i></button>
+          <button class="banner-next"><i class="fas fa-chevron-right"></i></button>
         </div>
 
         <div class="banner-indicators">

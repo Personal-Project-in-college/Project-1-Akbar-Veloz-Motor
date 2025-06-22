@@ -1,6 +1,5 @@
 console.log("chat-ui-aktive");
 
-// Variabel elemen DOM
 const chatButton = document.getElementById("chatButton");
 const chatPanel = document.getElementById("chatPanel");
 const closeBtn = document.getElementById("closeBtn");
@@ -15,21 +14,20 @@ const sendButton = document.getElementById("sendButton");
 const fullPageInput = document.getElementById("fullPageInput");
 const fullPageSendButton = document.getElementById("fullPageSendButton");
 const adminStatusElement = document.getElementById("adminStatus");
+const chatNotificationBadge = document.getElementById("chatNotificationBadge");
 
-// Variabel status global
+let unreadMessageCount = 0;
 let isDragging = false;
 let offsetX, offsetY;
 let isFullScreen = false;
-let initialX, initialY; // Posisi awal panel chat (untuk draggable)
+let initialX, initialY;
 
-// Variabel API (chatSessionId didefinisikan di chat_widget.php)
-let adminIsOnline = false; // Status admin online/offline
+let adminIsOnline = false;
 let typingTimeout;
-let isCustomerTyping = false; // Status customer sedang mengetik
+let isCustomerTyping = false;
 
-let vehiclesChat = []; // Data kendaraan yang akan dimuat dari API
+let vehiclesChat = [];
 
-// Data state negosiasi
 let negotiationState = {
   active: false,
   selectedVehicle: null,
@@ -86,7 +84,6 @@ function addTypingIndicatorBubble(containerId, senderType) {
   bodyElement.scrollTop = bodyElement.scrollHeight;
 }
 
-// Menghapus indikator mengetik
 function removeTypingIndicatorBubble(containerId) {
   const bodyElement = document.getElementById(containerId);
   if (!bodyElement) return;
@@ -134,7 +131,7 @@ function attachPromoCardListeners() {
         handleBotResponse(target);
       };
     });
-    attachNegotiationListeners(containerId); 
+    attachNegotiationListeners(containerId);
   };
 
   attachListeners(chatBody.id);
@@ -159,7 +156,7 @@ function createOfferInput(containerId) {
 
   chatBodyElement.appendChild(inputContainer);
   console.log("Input penawaran dibuat.");
-  attachNegotiationListeners(containerId); 
+  attachNegotiationListeners(containerId);
   chatBodyElement.scrollTop = chatBodyElement.scrollHeight;
 }
 
@@ -181,6 +178,64 @@ function formatRupiahInput(event) {
   event.target.value = new Intl.NumberFormat("id-ID").format(number);
 }
 
+async function updateUnreadMessageCount() {
+    if (!isCustomerLoggedIn || !chatSessionId) {
+        chatNotificationBadge.textContent = 0;
+        chatNotificationBadge.classList.remove("active");
+        return;
+    }
+
+    try {
+        const response = await fetch(`./api/chat.php?action=get_unread_count&session_id=${chatSessionId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            unreadMessageCount = data.unread_count;
+
+            if (unreadMessageCount > 0 && !chatPanel.classList.contains("active")) {
+                chatNotificationBadge.textContent = unreadMessageCount;
+                chatNotificationBadge.classList.add("active");
+            } else {
+                chatNotificationBadge.textContent = 0;
+                chatNotificationBadge.classList.remove("active");
+            }
+        } else {
+            console.error("Gagal mendapatkan jumlah pesan belum dibaca:", data.message);
+            chatNotificationBadge.textContent = 0;
+            chatNotificationBadge.classList.remove("active");
+        }
+
+    } catch (error) {
+        console.error("Kesalahan jaringan saat mendapatkan jumlah pesan belum dibaca:", error);
+        chatNotificationBadge.textContent = 0;
+        chatNotificationBadge.classList.remove("active");
+    }
+}
+
+async function markMessagesAsRead() {
+    if (!chatSessionId) return;
+
+    try {
+        const response = await fetch("./api/chat.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "mark_as_read_customer",
+                session_id: chatSessionId,
+            }),
+        });
+        const data = await response.json();
+        if (data.success) {
+            console.log("Pesan ditandai sudah dibaca oleh customer.");
+            await updateUnreadMessageCount();
+        } else {
+            console.error("Gagal menandai pesan sudah dibaca oleh customer:", data.message);
+        }
+    } catch (error) {
+        console.error("Kesalahan jaringan saat menandai pesan sudah dibaca:", error);
+    }
+}
+
 chatButton.addEventListener("click", async () => {
   if (!isCustomerLoggedIn) {
     alert("Silakan login terlebih dahulu untuk menggunakan fitur chat.");
@@ -188,17 +243,25 @@ chatButton.addEventListener("click", async () => {
     return;
   }
 
+  const wasChatPanelActive = chatPanel.classList.contains("active");
   chatPanel.classList.toggle("active");
 
-  if (chatPanel.classList.contains("active")) {
+  if (chatPanel.classList.contains("active")) { // Jika chat panel BARU SAJA dibuka
     await getOrCreateChatSession();
     await loadChatHistory();
     await updateAdminStatus();
+    await markMessagesAsRead(); // Tandai semua pesan sebagai sudah dibaca
+    await updateUnreadMessageCount(); // Perbarui badge setelahnya
+  } else { // Jika chat panel ditutup
+    // Saat menutup, kita hanya perlu memastikan badge diperbarui sesuai status database
+    // yang sudah diurus oleh `markMessagesAsRead` jika widget dibuka
+    // dan `setInterval` yang terus memantau `updateUnreadMessageCount`.
   }
 });
 
+
 backButton.addEventListener("click", () => {
-  chatBody.innerHTML = fullPageChatBody.innerHTML; 
+  chatBody.innerHTML = fullPageChatBody.innerHTML;
   chatPanel.classList.add("active");
   fullPageChat.classList.remove("active");
   chatPanel.classList.remove("fullscreen");
@@ -261,6 +324,7 @@ document.addEventListener("mouseup", () => {
 closeBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   chatPanel.classList.remove("active");
+  // Setelah menutup, badge akan diurus oleh setInterval yang memanggil updateUnreadMessageCount
 });
 
 fullscreenBtn.addEventListener("click", (e) => {
@@ -296,7 +360,6 @@ fullscreenBtn.addEventListener("click", (e) => {
       chatPanel.style.right = "auto";
       chatPanel.style.transform = "scale(1)";
     }, 300);
-    // Ubah ikon kembali ke "fullscreen"
     fullscreenBtn.innerHTML = `<span>
 <svg id="iconFullscreenBtn" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="white">
 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -329,26 +392,14 @@ window.addEventListener("resize", () => {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
-  let needsAdjustment = false;
   let newX = parseFloat(chatPanel.style.left) || initialX || 0;
   let newY = parseFloat(chatPanel.style.top) || initialY || 0;
 
-  if (rect.right > viewportWidth) {
-    newX = viewportWidth - rect.width;
-    needsAdjustment = true;
-  }
-  if (rect.bottom > viewportHeight) {
-    newY = viewportHeight - rect.height;
-    needsAdjustment = true;
-  }
-  if (rect.left < 0) {
-    newX = 0;
-    needsAdjustment = true;
-  }
-  if (rect.top < 0) {
-    newY = 0;
-    needsAdjustment = true;
-  }
+  let needsAdjustment = false;
+  if (newX < 0) { newX = 0; needsAdjustment = true; }
+  if (newX + rect.width > viewportWidth) { newX = viewportWidth - rect.width; needsAdjustment = true; }
+  if (newY < 0) { newY = 0; needsAdjustment = true; }
+  if (newY + rect.height > viewportHeight) { newY = viewportHeight - rect.height; needsAdjustment = true; }
 
   if (needsAdjustment) {
     chatPanel.style.left = newX + "px";

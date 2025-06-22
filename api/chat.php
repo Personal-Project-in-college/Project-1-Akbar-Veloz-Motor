@@ -1,5 +1,7 @@
 <?php
-$DOMAIN = 'http://project-1-akbar-veloz-motor.com';
+$env = parse_ini_file(__DIR__ . '/../.env');
+
+$DOMAIN =  $env['BASE_DOMAIN'];
 
 
 if (session_status() == PHP_SESSION_NONE) {
@@ -38,7 +40,7 @@ switch ($action) {
         $recent_session_threshold = date('Y-m-d H:i:s', strtotime('-24 hour'));
 
         if ($session_id) {
-            $stmt = $pdo->prepare("SELECT cs.session_id FROM chat_sessions cs JOIN customers c ON cs.customer_id = c.id WHERE cs.session_id = ? AND cs.customer_id = ? AND cs.started_at >= ?");
+            $stmt = $pdo->prepare("SELECT cs.session_id FROM chat_sessions cs JOIN customers c ON cs.session_id = ? AND cs.customer_id = ? AND cs.started_at >= ?");
             $stmt->execute([$session_id, $customer_id, $recent_session_threshold]);
             if ($stmt->fetch()) {
                 $stmt_update_activity = $pdo->prepare("UPDATE chat_sessions SET status = 'pending', last_customer_activity = NOW(), customer_typing = FALSE WHERE session_id = ?");
@@ -196,10 +198,9 @@ switch ($action) {
             } catch (\PDOException $e) {
                 // Log error
             }
-        } elseif (isset($_SESSION['customer_id'])) {
+        }
+        if (isset($_SESSION['customer_id'])) {
             try {
-                $stmt_mark_read_customer = $pdo->prepare("UPDATE messages SET is_read_by_customer = TRUE WHERE chat_session_id = ? AND (sender_type = 'user' OR sender_type = 'bot') AND is_read_by_customer = FALSE");
-                $stmt_mark_read_customer->execute([$session_id]);
                 $stmt_update_activity = $pdo->prepare("UPDATE chat_sessions SET last_customer_activity = NOW() WHERE session_id = ?");
                 $stmt_update_activity->execute([$session_id]);
             } catch (\PDOException $e) {
@@ -208,9 +209,9 @@ switch ($action) {
         }
 
         try {
-            $stmt = $pdo->prepare("SELECT sender_type, message_text, timestamp FROM messages WHERE chat_session_id = ? ORDER BY timestamp ASC");
+            $stmt = $pdo->prepare("SELECT id, sender_type, message_text, timestamp FROM messages WHERE chat_session_id = ? ORDER BY timestamp ASC");
             $stmt->execute([$session_id]);
-            $messages = $stmt->fetchAll();
+            $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(['success' => true, 'messages' => $messages]);
         } catch (\PDOException $e) {
@@ -223,6 +224,7 @@ switch ($action) {
             exit();
         }
         $session_id = $_GET['session_id'] ?? '';
+        $is_chat_active_on_frontend = filter_var($_GET['is_chat_active'] ?? false, FILTER_VALIDATE_BOOLEAN); // Menerima status widget dari frontend
 
         if (empty($session_id)) {
             echo json_encode(['success' => false, 'message' => 'ID sesi tidak boleh kosong.']);
@@ -230,22 +232,28 @@ switch ($action) {
         }
 
         try {
+            $pdo->beginTransaction();
+
             $stmt_update_activity = $pdo->prepare("UPDATE chat_sessions SET last_customer_activity = NOW() WHERE session_id = ?");
             $stmt_update_activity->execute([$session_id]);
 
             $stmt = $pdo->prepare("SELECT id, sender_type, message_text, timestamp FROM messages WHERE chat_session_id = ? AND (sender_type = 'user' OR sender_type = 'bot') AND is_read_by_customer = FALSE ORDER BY timestamp ASC");
             $stmt->execute([$session_id]);
-            $new_messages = $stmt->fetchAll();
+            $new_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if (!empty($new_messages)) {
+            // TANDAI PESAN SEBAGAI SUDAH DIBACA HANYA JIKA CHAT WIDGET AKTIF DI FRONEND
+            if (!empty($new_messages) && $is_chat_active_on_frontend) {
                 $message_ids = array_column($new_messages, 'id');
                 $placeholders = implode(',', array_fill(0, count($message_ids), '?'));
                 $stmt_mark_read = $pdo->prepare("UPDATE messages SET is_read_by_customer = TRUE WHERE id IN ($placeholders)");
                 $stmt_mark_read->execute($message_ids);
             }
 
+            $pdo->commit();
+
             echo json_encode(['success' => true, 'new_messages' => $new_messages]);
         } catch (\PDOException $e) {
+            $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => 'Gagal mengambil pesan baru: ' . $e->getMessage()]);
         }
         break;
@@ -283,6 +291,60 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Gagal menandai pesan sudah dibaca: ' . $e->getMessage()]);
         }
         break;
+
+    case 'mark_as_read_customer':
+        if (!checkCustomerAuth($pdo)) {
+            exit();
+        }
+        $session_id = $input['session_id'] ?? '';
+        if (empty($session_id)) {
+            echo json_encode(['success' => false, 'message' => 'ID sesi tidak boleh kosong.']);
+            exit();
+        }
+        try {
+            $stmt = $pdo->prepare("UPDATE messages SET is_read_by_customer = TRUE WHERE chat_session_id = ? AND (sender_type = 'user' OR sender_type = 'bot') AND is_read_by_customer = FALSE");
+            $stmt->execute([$session_id]);
+            echo json_encode(['success' => true, 'message' => 'Pesan ditandai sudah dibaca oleh customer.']);
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Gagal menandai pesan sudah dibaca: ' . $e->getMessage()]);
+        }
+        break;
+
+    case 'get_unread_count':
+        if (!checkCustomerAuth($pdo)) {
+            exit();
+        }
+        $customer_id = $_SESSION['customer_id'];
+        $session_id = $_GET['session_id'] ?? '';
+
+        try {
+            $unread_count = 0;
+            if (!empty($session_id)) {
+                $stmt = $pdo->prepare("SELECT COUNT(id) FROM messages WHERE chat_session_id = ? AND (sender_type = 'user' OR sender_type = 'bot') AND is_read_by_customer = FALSE");
+                $stmt->execute([$session_id]);
+                $unread_count = $stmt->fetchColumn();
+            } else {
+                $recent_session_threshold = date('Y-m-d H:i:s', strtotime('-24 hour'));
+
+                $stmt = $pdo->prepare("
+                    SELECT COUNT(m.id)
+                    FROM messages m
+                    JOIN chat_sessions cs ON m.chat_session_id = cs.session_id
+                    WHERE cs.customer_id = ?
+                    AND (m.sender_type = 'user' OR m.sender_type = 'bot')
+                    AND m.is_read_by_customer = FALSE
+                    AND cs.started_at >= ?
+                ");
+                $stmt->execute([$customer_id, $recent_session_threshold]);
+                $unread_count = $stmt->fetchColumn();
+            }
+
+            echo json_encode(['success' => true, 'unread_count' => $unread_count]);
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Gagal mengambil jumlah pesan belum dibaca: ' . $e->getMessage()]);
+        }
+        break;
+
 
     case 'get_chat_sessions':
         try {
@@ -659,7 +721,6 @@ switch ($action) {
             exit();
         }
 
-        // Cek dulu apakah sudah ada order dengan vehicle_id dan status 'proced'
         $checkVehicleIdInOrders = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE vehicle_id = ? AND status = 'proced'");
         $checkVehicleIdInOrders->execute([$vehicle_id]);
         $alreadyExists = $checkVehicleIdInOrders->fetchColumn();
@@ -724,12 +785,9 @@ switch ($action) {
             $getPriceVehicle->execute([$vehicle_id]);
             $vehicle_price = $getPriceVehicle->fetchColumn();
 
-            // Langsung buat record transaksi dengan status 'pending' agar validasi berfungsi
             $insertTransaction = $pdo->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, grand_total, payment_type, payment_method, status, created_at) VALUES (?, ?, 0, 0, 'tunai', 'cash', 'pending', NOW())");
             $insertTransaction->execute([$order_id, $vehicle_price]);
 
-            // Opsional: Perbarui status kendaraan menjadi 'transaction' atau 'on_loan' jika sudah dibayar sebagian/lunas
-            // Anda mungkin ingin logika ini lebih kompleks di masa depan (misal: hanya update setelah pembayaran berhasil)
             $stmt_update_vehicle_status = $pdo->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?");
             $stmt_update_vehicle_status->execute([$vehicle_id]);
 

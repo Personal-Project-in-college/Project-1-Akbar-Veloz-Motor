@@ -11,13 +11,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const itemDiv = document.createElement('div');
         itemDiv.classList.add('wishlist-item');
 
+        
         itemDiv.innerHTML = `
             <img src="${item.image}" alt="${item.name}">
             <div class="item-info">
                 <h3>${item.name}</h3>
                 <p>${item.price}</p>
                 <div class="item-actions">
-                    <a href="detail.html" class="btn-secondary">Lihat Detail</a>
+                    <a href="detail.php?id=${item.id}" class="btn-secondary">Lihat Detail</a>
                     <button class="remove-btn" data-name="${item.name}">
                         <i class="fas fa-trash"></i> Hapus
                     </button>

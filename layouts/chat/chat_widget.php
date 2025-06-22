@@ -6,6 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 $is_customer_logged_in_for_chat = isset($_SESSION['customer_id']) && $_SESSION['customer_id'] > 0;
 $chat_session_id_from_php = $_SESSION['chat_session_id'] ?? '';
 ?>
+
 <link rel="stylesheet" href="./layouts/chat/css/style.css">
 
 <div class="chat-button" id="chatButton">
@@ -20,6 +21,7 @@ $chat_session_id_from_php = $_SESSION['chat_session_id'] ?? '';
       </g>
     </g>
   </svg>
+  <span class="notification-badge" id="chatNotificationBadge">0</span> </div>
 </div>
 
 <div class="chat-panel" id="chatPanel">

@@ -1123,7 +1123,7 @@ footer {
 
 .avm-modal-prev,
 .avm-modal-next {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: transparent;
   color: white;
   border: none;
   width: 40px;
@@ -1139,7 +1139,7 @@ footer {
 
 .avm-modal-prev:hover,
 .avm-modal-next:hover {
-  background-color: var(--secondary-color);
+  color: var(--secondary-color);
 }
 
 .avm-modal-zoom {
@@ -1464,7 +1464,7 @@ footer {
 }
 
 .banner-nav button {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: transparent;
   color: white;
   border: none;
   width: 40px;
@@ -1476,7 +1476,7 @@ footer {
 }
 
 .banner-nav button:hover {
-  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--secondary-color);
 }
 
 .banner-indicators {
@@ -1933,6 +1933,10 @@ footer {
   box-shadow: 0 0 0 2px rgba(255, 109, 0, 0.2);
 }
 
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 .datepicker-icon {
   position: absolute;
   top: 50%;
@@ -2239,6 +2243,15 @@ h2 {
   }
 
   /* index.php */
+  .banner-indicators {
+    gap: 6px;
+  }
+
+  .banner-indicator {
+    height: 8px;
+    width: 8px;
+  }
+
   .call-card {
     width: 50px;
     height: 50px;
@@ -2427,6 +2440,8 @@ h2 {
   .wishlist {
     margin: 15px 0px;
   }
+
+ 
 }
 
 /* Responsive Adjustments */
@@ -2820,7 +2835,7 @@ container {
 }
 
 .filter-toggle-button i {
-  margin-right: 8px;
+  margin-right: 4px;
 }
 
 .filter-sidebar {

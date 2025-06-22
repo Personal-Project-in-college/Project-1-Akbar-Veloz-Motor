@@ -27,6 +27,7 @@ window.addEventListener("storage", function(event) {
 });
 
 function saveToWishlist(button) {
+    
     const vehicle = {
         id: button.dataset.id,
         name: button.dataset.name,
@@ -38,7 +39,11 @@ function saveToWishlist(button) {
     let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
     const existingIndex = wishlist.findIndex((item) => item.id === vehicle.id);
 
+    console.log(existingIndex);
+    
+
     if (existingIndex === -1) {
+        
         wishlist.push(vehicle);
         showToast(`${vehicle.name} ditambahkan ke wishlist`);
     } else {

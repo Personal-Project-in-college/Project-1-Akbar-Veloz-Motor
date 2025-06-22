@@ -269,7 +269,6 @@ function selectVehicle(vehicleId, containerId) {
     negotiationState.selectedVehicle
   );
 
-{/* <p class="description-card">${vehicle.description}</p> */}
 
   const messageHtml = `
 <strong>Anda memilih ${vehicle.brand_name} ${vehicle.model_name}</strong>
