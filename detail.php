@@ -184,7 +184,7 @@ $base_image_url = './storage/';
 
               <div class="avm-action-buttons">
                 <div class="avm-wrap-btn">
-                  <button type="button" class="avm-btn-primary" onclick="window.location='contact-us.php?purpose=test_drive'">
+                  <a href="contact-us.php?vehicle_id=<?= $vehicle['id'] ?>&type_order=test_driver" class="avm-btn-primary">
                     <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -193,7 +193,7 @@ $base_image_url = './storage/';
                       </g>
                     </svg>
                     Tes Drive
-                  </button>
+                  </a>
                   <button type="button" class="avm-btn-primary" onclick="whatsapp()">
                     <svg width="25px" height="25px" viewBox="0 0 16.00 16.00" xmlns="http://www.w3.org/2000/svg" stroke-width="0.00016">
                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>

@@ -4,11 +4,22 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 $is_logged_in = isset($_SESSION['customer_id']) && $_SESSION['customer_id'] > 0;
-
 $current_page = basename($_SERVER['PHP_SELF']);
-
 $show_search_bar_on_pages = ['index.php', ''];
+
+$pesananAktif = null;
+
+if ($is_logged_in) {
+  require 'config/koneksi.php';
+  $customer_id = $_SESSION['customer_id'];
+
+  $cekPesanan = $koneksi->prepare("SELECT id FROM orders WHERE customer_id = ? AND status = 'proced' LIMIT 1");
+  $cekPesanan->execute([$customer_id]);
+  $pesananAktif = $cekPesanan->fetch(PDO::FETCH_ASSOC);
+}
+
 ?>
+
 
 <header>
   <div class="container">
@@ -34,7 +45,7 @@ $show_search_bar_on_pages = ['index.php', ''];
             <div id="searchResultsDropdown" class="search-suggestions-dropdown"></div>
           </div>
         <?php
-        } 
+        }
         ?>
         <li><a href="index.php">Home</a></li>
         <li>
@@ -46,7 +57,12 @@ $show_search_bar_on_pages = ['index.php', ''];
             </span>
           </a>
         </li>
-        <li><a href="contact-us.php">Hubungi kami</a></li>
+        <?php if ($pesananAktif): ?>
+          <li><a href="detail-pesanan.php?id=<?= $pesananAktif['id'] ?>">Pesanan</a></li>
+        <?php else: ?>
+          <li><a href="contact-us.php">Hubungi Kami</a></li>
+        <?php endif; ?>
+
         <li>
           <?php if ($is_logged_in): ?>
             <a href="logout.php" id="logoutLink" class="auth-link">Logout

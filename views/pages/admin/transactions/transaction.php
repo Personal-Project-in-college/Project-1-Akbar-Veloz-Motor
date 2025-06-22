@@ -12,7 +12,7 @@ if (!$id) {
     exit;
 }
 
-$query = $koneksi->prepare("SELECT transaction.*, o.type_order, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, vm.name AS vehicle_model_name FROM transactions transaction JOIN orders o ON transaction.order_id = o.id JOIN customers c ON o.customer_id = c.id JOIN vehicles v ON o.vehicle_id = v.id JOIN vehicle_models vm ON v.vehicle_model_id = vm.id WHERE transaction.order_id = ? AND transaction.deleted_at IS NULL");
+$query = $koneksi->prepare("SELECT transaction.*, o.type_order, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, v.lowest_price AS lowest_price, vm.name AS vehicle_model_name FROM transactions transaction JOIN orders o ON transaction.order_id = o.id JOIN customers c ON o.customer_id = c.id JOIN vehicles v ON o.vehicle_id = v.id JOIN vehicle_models vm ON v.vehicle_model_id = vm.id WHERE transaction.order_id = ? AND transaction.deleted_at IS NULL");
 $query->execute([$id]);
 $transaction = $query->fetch(PDO::FETCH_ASSOC);
 
@@ -22,7 +22,7 @@ if (!$transaction) {
     exit;
 }
 
-$vehicleQuery = $koneksi->prepare("SELECT v.*, vm.name as model_name FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id WHERE v.id = ?");
+$vehicleQuery = $koneksi->prepare("SELECT vehicles.*, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicles JOIN vehicle_models ON vehicles.vehicle_model_id = vehicle_models.id JOIN brands ON vehicle_models.brand_id = brands.id WHERE vehicles.id = ?");
 $vehicleQuery->execute([$transaction['vehicle_id']]);
 $vehicle = $vehicleQuery->fetch(PDO::FETCH_ASSOC);
 
@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $_SESSION['success_message'] = "Transaksi berhasil diperbarui.";
-            header("Location: checkout.php?id=" . $order_id);
+            header("Location: transaction.php?id=" . $order_id);
             exit;
         } catch (PDOException $e) {
             $_SESSION['danger_message'] = "Gagal menyimpan transaksi: " . $e->getMessage();
@@ -188,6 +188,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     }
+}
+
+$filePath = $transaction['payment_proof'];
+
+function translate_enum($field, $value) {
+    $map = [
+        'vehicle_type' => [
+            'motorcycle' => 'Motor',
+            'car' => 'Mobil',
+        ],
+        'type_fuel' => [
+            'gasoline' => 'Bensin',
+            'electric' => 'Listrik',
+            'hybrid' => 'Hybrid',
+        ],
+    ];
+    return $map[$field][$value] ?? $value;
+}
+
+function hitung_umur_kendaraan($tanggal) {
+    $tahunProduksi = date('Y', strtotime($tanggal));
+    $tahunSekarang = date('Y');
+    return $tahunSekarang - $tahunProduksi;
 }
 
 $banks = [
@@ -243,8 +266,16 @@ include '../layout/sidebar.php';
                         </td>
                     </tr>
                     <tr>
+                        <th class="w-25">Merek</th>
+                        <td><?= htmlspecialchars($vehicle['brand_name']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Model</th>
+                        <td><?= htmlspecialchars($vehicle['model_name']) ?></td>
+                    </tr>
+                    <tr>
                         <th class="w-25">Tipe</th>
-                        <td><?= htmlspecialchars($vehicle['type_vehicle']) ?></td>
+                        <td><?= translate_enum('vehicle_type', $vehicle['type_vehicle']) ?></td>
                     </tr>
                     <tr>
                         <th class="w-25">Warna</th>
@@ -252,7 +283,7 @@ include '../layout/sidebar.php';
                     </tr>
                     <tr>
                         <th class="w-25">Tahun Produksi</th>
-                        <td><?= htmlspecialchars($vehicle['production_year']) ?></td>
+                        <td><?= htmlspecialchars($vehicle['production_year']) ?> <br><small class="text-muted"><?= hitung_umur_kendaraan($vehicle['production_year']) ?> Tahun lalu</small></td>
                     </tr>
                     <tr>
                         <th class="w-25">STNK Deadline</th>
@@ -260,7 +291,7 @@ include '../layout/sidebar.php';
                     </tr>
                     <tr>
                         <th class="w-25">Bahan Bakar</th>
-                        <td><?= htmlspecialchars($vehicle['type_fuel']) ?></td>
+                        <td><?= translate_enum('type_fuel', $vehicle['type_fuel']) ?></td>
                     </tr>
                     <tr>
                         <th class="w-25">CC Engine</th>
@@ -309,35 +340,44 @@ include '../layout/sidebar.php';
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="mb-4">Negosiasi</h5>
-
-                    <?php if (!empty($transaction['deal_negotiation'])): ?>
-                        <!-- ✅ Jika sudah ada negosiasi, tampilkan tabel -->
-                        <table class="table">
-                            <tr>
-                                <th class="w-25">Harga Kendaraan</th>
-                                <td><?= number_format($transaction['vehicle_price'], 0, ',', '.') ?></td>
-                            </tr>
+                    <table class="table mb-3">
+                        <tr>
+                            <th class="w-25">Harga Kendaraan</th>
+                            <td>Rp <?= number_format($transaction['vehicle_price'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Harga Terendah</th>
+                            <td>Rp <?= number_format($transaction['lowest_price'], 0, ',', '.') ?></td>
+                        </tr>
+                        <?php if (!empty($transaction['deal_negotiation'])): ?>
+                            <!-- ✅ Tampilkan data deal -->
                             <tr>
                                 <th class="w-25">Deal Negosiasi</th>
-                                <td><?= number_format($transaction['deal_negotiation'], 0, ',', '.') ?></td>
+                                <td>Rp. <?= number_format($transaction['deal_negotiation'], 0, ',', '.') ?></td>
                             </tr>
-                        </table>
+                        <?php endif; ?>
+                    </table>
 
-                    <?php else: ?>
-                        <!-- ❌ Jika belum ada negosiasi, tampilkan form -->
-                        <form method="POST" action="" enctype="multipart/form-data">
+                    <!-- ✅ Tombol Edit jika deal sudah ada -->
+                    <?php if (!empty($transaction['deal_negotiation']) && $transaction['status'] !== 'cancelled' && $transaction['status'] !== 'paid' && $transaction['status'] !== 'dp_paid'): ?>
+                        <button id="editDealBtn" onclick="showEditDealForm()" class="btn btn-dark text-white">Edit Deal</button>
+                    <?php endif; ?>
+
+
+                    <!-- ✅ Form Edit (disembunyikan dulu) -->
+                    <div id="editDealForm" style="display: <?= empty($transaction['deal_negotiation']) ? 'block' : 'none' ?>;">
+                        <form method="POST" action="" onsubmit="return validateDealNegotiation(<?= $transaction['lowest_price'] ?>)">
                             <input type="hidden" name="order_id" value="<?= $transaction['order_id'] ?>">
                             <div class="mb-3">
-                                <label>Harga Kendaraan</label>
-                                <input type="text" class="form-control" readonly value="<?= number_format($transaction['vehicle_price'], 0, ',', '.') ?>">
-                            </div>
-                            <div class="mb-3">
                                 <label>Deal Negosiasi<span class="text-danger">*</span></label>
-                                <input type="number" name="deal_negotiation" class="form-control" required>
+                                <input type="number" id="dealInput" name="deal_negotiation" class="form-control" value="<?= $transaction['deal_negotiation'] ?>" required>
                             </div>
-                            <button type="submit" name="submit_deal" class="btn btn-primary">Simpan</button>
+                            <button type="submit" name="submit_deal" class="btn btn-primary">
+                                <?= empty($transaction['deal_negotiation']) ? 'Simpan' : 'Update' ?>
+                            </button>
                         </form>
-                    <?php endif; ?>
+                    </div>
+
                 </div>
             </div>
         <?php endif; ?>
@@ -357,16 +397,18 @@ include '../layout/sidebar.php';
                                 <td><?= $transaction['payment_type'] ?></td>
                             </tr>
 
-                            <!-- Jika Cicilan Tampilkan -->
-                            <tr>
-                                <th class="w-25">Uang DP</th>
-                                <td><?= $transaction['down_payment'] ?></td>
-                            </tr>
-                            <tr>
-                                <th class="w-25">Sisa Pembayaran</th>
-                                <td><?= $transaction['remaining_amount'] ?></td>
-                            </tr>
-                            <!-- End Cicilan Tampilkan -->
+                            <?php if (!empty($transaction['down_payment'] && $transaction['remaining_amount'])): ?>
+                                <!-- Jika Cicilan Tampilkan -->
+                                <tr>
+                                    <th class="w-25">Uang DP</th>
+                                    <td>Rp <?= number_format($transaction['down_payment'], 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <th class="w-25">Sisa Pembayaran</th>
+                                    <td>Rp <?= number_format($transaction['remaining_amount'], 0, ',', '.') ?></td>
+                                </tr>
+                                <!-- End Cicilan Tampilkan -->
+                            <?php endif; ?>
 
                             <tr>
                                 <th class="w-25">Metode Pembayaran</th>
@@ -389,14 +431,14 @@ include '../layout/sidebar.php';
                             <?php if (!empty($transaction['payment_proof'])): ?>
                                 <tr>
                                     <th class="w-25">Bukti Pembayaran</th>
-                                    <td><?= $transaction['payment_proof'] ?></td>
+                                    <td><a href="../../../../<?= $filePath ?>" target="_blank">Lihat Bukti</a></td>
                                 </tr>
                             <?php endif; ?>
                         </table>
 
                     <?php endif; ?>
 
-                    <?php if (!in_array($transaction['status'], ['paid', 'dp_paid'])): ?>
+                    <?php if (!in_array($transaction['status'], ['paid', 'dp_paid', 'cancelled'])): ?>
                         <form method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="order_id" value="<?= $transaction['order_id'] ?>">
 
@@ -493,9 +535,13 @@ include '../layout/sidebar.php';
                                     <td><input type="file" name="payment_proof" accept="image/*" class="form-control" required></td>
                                 </tr>
                             </table>
-                            <a href="partner.php" class="mt-3 btn btn-danger text-white">Batalkan Transaksi</a>
+                            <a href="cancel_transaction.php?id=<?= $transaction['id'] ?>" class="mt-3 btn btn-danger text-white">Batalkan Transaksi</a>
                             <button type="submit" class="mt-3 mx-2 btn btn-primary">Simpan</button>
                         </form>
+                    <?php elseif ($transaction['status'] === 'cancelled'): ?>
+                        <div>
+                            <p class="text-danger">Pesanan Dibatalkan</p>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -677,6 +723,26 @@ include '../layout/sidebar.php';
                     });
             });
         </script>
+
+        <script>
+            function showEditDealForm() {
+                document.getElementById('editDealForm').style.display = 'block';
+                document.getElementById('editDealBtn').style.display = 'none';
+            }
+
+            function validateDealNegotiation(lowestPrice) {
+                const input = document.getElementById('dealInput');
+                const value = parseInt(input.value);
+                if (value < lowestPrice) {
+                    alert("Nilai negoisasi tidak boleh lebih rendah dari harga terendah!");
+                    input.value = '';
+                    input.focus();
+                    return false;
+                }
+                return true;
+            }
+        </script>
+
     </div>
 </div>
 

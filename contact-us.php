@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Jakarta');
 require_once 'config/koneksi.php';
 if (session_status() == PHP_SESSION_NONE) {
   session_start();
@@ -11,6 +12,8 @@ if (!isset($_SESSION['customer_id']) || empty($_SESSION['customer_id'])) {
   exit();
 }
 
+$selected_vehicle = $_GET['vehicle_id'] ?? '';
+$selected_order_type = $_GET['type_order'] ?? '';
 
 // Load data customer
 $customer_id = $_SESSION['customer_id'];
@@ -49,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'vehicle_id' => $_POST['vehicle'],
     'type_order' => $_POST['type_order'],
     'type_arrival' => $_POST['type_arrival'],
-    'order_date' => $_POST['order_date'] ?? date('Y-m-d H:i:s')
+    'order_date' => ($_POST['type_order'] === 'transaction' || empty($_POST['order_date']))
+      ? date('Y-m-d H:i:s')
+      : $_POST['order_date'],
   ];
 
   header("Location: preview-detail-pesanan.php?preview=true");
@@ -122,7 +127,7 @@ $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
               <select class="modern-select" id="vehicle" name="vehicle" required>
                 <option value="">-- Pilih Kendaraan --</option>
                 <?php foreach ($vehicles as $vehicle): ?>
-                  <option value="<?= $vehicle['id'] ?>">
+                  <option value="<?= $vehicle['id'] ?>" <?= $vehicle['id'] === $selected_vehicle ? 'selected' : '' ?>>
                     <?= $vehicle['id'] ?> | <?= htmlspecialchars($vehicle['model_name']) ?>
                   </option>
                 <?php endforeach; ?>
@@ -132,8 +137,8 @@ $vehicles = $vehiclesQuery->fetchAll(PDO::FETCH_ASSOC);
             <div class="select-wrapper">
               <select class="modern-select" id="purpose" name="type_order" required>
                 <option value="">-- Tentukan tujuan --</option>
-                <option value="test_driver">Coba Kendaraan</option>
-                <option value="transaction">Transaksi</option>
+                <option value="test_driver" <?= $selected_order_type === 'test_driver' ? 'selected' : '' ?>>Coba Kendaraan</option>
+                <option value="transaction" <?= $selected_order_type === 'transaction' ? 'selected' : '' ?>>Transaksi</option>
               </select>
             </div>
 

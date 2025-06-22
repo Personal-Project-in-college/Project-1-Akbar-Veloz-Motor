@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../../../../config/koneksi.php'; // Pastikan path ke file koneksi sudah benar
+include '../../../../helpers/sendTransactionFinishEmailCustomer.php';
 
 // Ambil order_id dari URL
 $order_id = isset($_GET['id']) ? $_GET['id'] : null;
@@ -11,6 +12,52 @@ if (!$order_id) {
 
 try {
     // Query baru sesuai dengan struktur relasi yang benar
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $stmt = $koneksi->prepare("SELECT t.id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, t.down_payment, t.remaining_amount, t.payment_method, t.status, c.name AS customer_name, c.email AS customer_email, o.vehicle_id, vm.name AS model, b.name AS brand FROM transactions t
+                JOIN orders o ON t.order_id = o.id
+                JOIN customers c ON o.customer_id = c.id
+                JOIN vehicles v ON o.vehicle_id = v.id
+                JOIN vehicle_models vm ON v.vehicle_model_id = vm.id
+                JOIN brands b ON vm.brand_id = b.id
+                WHERE t.id = ?");
+            $stmt->execute([$id]);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($data) {
+                $url = "http://project-1-akbar-veloz-motor.com/detail-transaksi.php?id={$data['id']}";
+                sendTransactionFinishEmailCustomer(
+                    $data['customer_email'],
+                    $data['customer_name'],
+                    $data['vehicle_id'],
+                    $data['brand'],
+                    $data['model'],
+                    $data['id'],
+                    $data['vehicle_price'],
+                    $data['deal_negotiation'],
+                    $data['grand_total'],
+                    $data['payment_type'],
+                    $data['down_payment'],
+                    $data['remaining_amount'],
+                    $data['payment_method'],
+                    $data['status'],
+                    $url
+                );
+                $successMessage = "Email berhasil dikirim ke customer.";
+                $_SESSION['success_message'] = "Email berhasil dikirim ke customer <strong>" . htmlspecialchars($data['customer_name']) . "</strong>.";
+                header("Location: transactions_report.php");
+                exit;
+            } else {
+                $errorMessage = "Data transaksi tidak ditemukan.";
+                $_SESSION['danger_message'] = "Data transaksi tidak ditemukan.";
+                header("Location: transactions_report.php");
+                exit;
+            }
+        }
+    }
+
     $stmt = $koneksi->prepare("SELECT t.order_id, t.vehicle_price, t.deal_negotiation, t.grand_total, t.payment_type, t.down_payment, t.remaining_amount, t.payment_method, t.status, t.payment_gateway_ref, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, c.address AS customer_address, v.id AS vehicle_id, v.type_vehicle AS vehicle_type, v.color AS vehicle_color, v.production_year, v.stnk_deadline, v.type_fuel, v.cc_engine, u.name AS user_name FROM transactions t LEFT JOIN orders o ON t.order_id = o.id LEFT JOIN customers c ON o.customer_id = c.id LEFT JOIN vehicles v ON o.vehicle_id = v.id LEFT JOIN users u ON t.user_id = u.id WHERE t.id = ?");
     $stmt->execute([$order_id]);
     $data = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -151,6 +198,10 @@ include '../layout/sidebar.php';
         background-color: #28a745;
     }
 
+    .status-badge.dp_paid {
+        background-color: #28a745;
+    }
+
     .status-badge.cancelled {
         background-color: #dc3545;
     }
@@ -237,12 +288,18 @@ include '../layout/sidebar.php';
                 <h3>Aksi Lanjutan</h3>
                 <div class="wrap-btn">
                     <button class="btn btn-dark" onclick="window.print()">Cetak Struk</button>
-                    <button class="btn btn-primary" onclick="alert('Fitur kirim email belum diimplementasi')">Kirim Email</button>
+                    <form method="POST" onsubmit="return confirm('Kirim email ke customer sekarang?')">
+                        <div class="wrap-btn">
+                            <button class="btn btn-primary" type="submit" name="send_email">Kirim Email</button>
+                        </div>
                 </div>
+                </form>
 
             </div>
 
         </div>
+
+    </div>
     </div>
     <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
     <script src="../assets/vendors/chart.js/chart.umd.js"></script>
