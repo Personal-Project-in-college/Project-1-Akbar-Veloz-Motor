@@ -117,7 +117,7 @@ $chat_session_id_from_php = $_SESSION['chat_session_id'] ?? '';
   <div class="chat-input">
     <input
       type="text"
-      placeholder="Punya ide baru, atau saran? Ketik disini!"
+      placeholder="Punya pertanyaan, atau saran? Ketik disini!"
       id="chatInput" />
     <button id="sendButton">
       <svg
