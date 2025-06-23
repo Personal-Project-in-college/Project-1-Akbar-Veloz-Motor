@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Jakarta');
 if (isset($_SESSION['customer_id'])) {
     header('Location: index.php');
     exit();
@@ -31,23 +32,23 @@ if (isset($_SESSION['customer_id'])) {
                     <div id="auth-message" class="auth-message" style="display: none; margin: 20px 0px"></div>
 
                     <form id="registerForm">
-                        <div class="inputGroup-auth">
+                        <div class="inputGroup">
                             <input type="name" id="name" name="name" required />
                             <label for="name">Nama</label>
                         </div>
-              
-                        <div class="inputGroup-auth">
+
+                        <div class="inputGroup">
                             <input type="email" id="email" name="email" required />
                             <label for="email">Email</label>
                         </div>
 
-                        <div class="inputGroup-auth">
+                        <div class="inputGroup">
                             <input type="password" id="password" name="password" required />
                             <label for="password">Password</label>
                             <i class="fa fa-eye-slash toggle-password" id="togglePassword"></i>
                         </div>
 
-                        <div class="inputGroup-auth">
+                        <div class="inputGroup">
                             <input type="password" id="confirmPassword" name="confirmPassword" required />
                             <label for="confirmPassword">Konfirmasi Password</label>
                             <i class="fa fa-eye-slash toggle-password" id="toggleConfirmPassword"></i>
@@ -59,7 +60,7 @@ if (isset($_SESSION['customer_id'])) {
                     <div class="divider"><span class="divider-text">ATAU</span></div>
 
                     <div class="social-login">
-                         <button class="btn-login btn-social btn-google" id="btn-google">
+                        <button class="btn-login btn-social btn-google" id="btn-google">
                             <span><img src="./assets/icons/google-icon.png" alt=""> </span> Daftar dengan Google
                         </button>
                         <button class="btn-login btn-social btn-facebook" id="btn-facebook">
@@ -125,10 +126,11 @@ if (isset($_SESSION['customer_id'])) {
             // Event listener untuk form registrasi
             registerForm.addEventListener("submit", async function(e) {
                 e.preventDefault();
-                
+
                 // Mengambil nilai dari form
                 const email = document.getElementById("email").value;
                 const password = document.getElementById("password").value;
+                const name = document.getElementById("name").value;
                 const confirmPassword = document.getElementById("confirmPassword").value;
 
                 // Validasi password di sisi klien
@@ -146,6 +148,7 @@ if (isset($_SESSION['customer_id'])) {
                         },
                         body: JSON.stringify({
                             action: 'register',
+                            name: name,
                             email: email,
                             password: password
                         })
@@ -154,18 +157,20 @@ if (isset($_SESSION['customer_id'])) {
                     const data = await response.json();
 
                     if (data.success) {
-                        showMessage('success', data.message + ' Anda akan diarahkan ke halaman login.');
-                        setTimeout(() => {
-                            window.location.href = 'login.php'; // Redirect ke halaman login
-                        }, 2000);
+                        showMessage('success', data.message);
+                        if (data.redirect) {
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 2000);
+                        }
                     } else {
                         showMessage('error', data.message);
                     }
-                } catch (err) {
-                     showMessage('error', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
+                }catch (err) {
+                    showMessage('error', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
                 }
             });
-            
+
             // Handle Google Login/Register
             googleBtn.addEventListener('click', () => {
                 window.location.href = './api/auth.php?action=google_login';

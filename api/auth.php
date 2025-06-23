@@ -1,7 +1,11 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Jakarta');
 include_once 'db_connect.php';
 include '../helpers/functionGenerateSlug.php';
+require '../helpers/sendOTPEmailCustomer.php';
+require '../helpers/functionGenerateAndStoreOTP.php';
+require '../helpers/sendSuccessRegisterEmailCustomer.php';
 
 use App\GoogleOAuth;
 
@@ -23,10 +27,7 @@ switch ($action) {
         $username = $input['username'] ?? null;
         $name = $input['name'] ?? $username;
 
-        if (empty($name)) {
-            $name = $email;
-        }
-
+        if (empty($name)) $name = $email;
         if (empty($email) || empty($password)) {
             echo json_encode(['success' => false, 'message' => 'Email dan password tidak boleh kosong.']);
             exit();
@@ -37,19 +38,140 @@ switch ($action) {
         try {
             $stmt = $pdo->prepare("INSERT INTO customers (username, email, password, google_id, facebook_id, name, is_logged_in, registration_method) VALUES (?, ?, ?, ?, ?, ?, FALSE, 'manual')");
             if ($stmt->execute([$username, $email, $hashed_password, null, null, $name])) {
-                echo json_encode(['success' => true, 'message' => 'Pendaftaran berhasil! Silakan login.']);
+                $customer_id = $pdo->lastInsertId(); // Ganti ini
+                $otp = rand(10000, 99999);
+                storeCustomerOTP($customer_id, $otp);
+                sendOTPEmailCustomer($email, $name, $password, $otp);
+                $_SESSION['pending_email'] = $email;
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Pendaftaran berhasil! Silakan masukkan OTP.',
+                    'redirect' => 'verify-otp.php?email=' . urlencode($email)
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Gagal mendaftar. Email mungkin sudah terdaftar.']);
             }
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
                 echo json_encode(['success' => false, 'message' => 'Email ini sudah terdaftar.']);
             } else {
-                error_log("Register database error: " . $e->getMessage());
                 echo json_encode(['success' => false, 'message' => 'Kesalahan database: ' . $e->getMessage()]);
             }
         }
         break;
+
+    case 'verify_otp':
+        $otp_code = $input['otp'] ?? '';
+        $email = $_SESSION['pending_email'] ?? null;
+
+        if (!$email || !$otp_code) {
+            echo json_encode(['success' => false, 'message' => 'Data tidak lengkap.']);
+            exit();
+        }
+
+        $stmt = $pdo->prepare("SELECT id, name FROM customers WHERE email = ?");
+        $stmt->execute([$email]);
+        $customer = $stmt->fetch();
+
+        if ($customer) {
+            $customer_id = $customer['id'];
+            $stmt = $pdo->prepare("SELECT * FROM customer_otps WHERE customer_id = ? AND otp_code = ? AND expired_at >= NOW()");
+            $stmt->execute([$customer_id, $otp_code]);
+            $otp = $stmt->fetch();
+
+            if ($otp) {
+                // OTP valid
+                $update = $pdo->prepare("UPDATE customers SET email_verified_at = NOW() WHERE id = ?");
+                $update->execute([$customer_id]);
+
+                $delete = $pdo->prepare("DELETE FROM customer_otps WHERE customer_id = ?");
+                $delete->execute([$customer_id]);
+
+                unset($_SESSION['pending_email']);
+
+                $plainPassword = '*****'; // opsional, kalau kamu simpan password di session bisa pakai yang asli
+                sendEmailAfterVerified($email, $customer['name'] ?? 'Customer', $plainPassword);
+
+                echo json_encode(['success' => true, 'message' => 'Verifikasi berhasil! Silakan login.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Kode OTP salah atau sudah kadaluarsa.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Email tidak ditemukan.']);
+        }
+        break;
+
+    case 'resend_otp':
+        $email = $_SESSION['pending_email'] ?? null;
+
+        if (!$email) {
+            echo json_encode(['success' => false, 'message' => 'Email belum tersedia dalam sesi.']);
+            exit();
+        }
+
+        $stmt = $pdo->prepare("SELECT id, name FROM customers WHERE email = ?");
+        $stmt->execute([$email]);
+        $customer = $stmt->fetch();
+
+        if (!$customer) {
+            echo json_encode(['success' => false, 'message' => 'Customer tidak ditemukan.']);
+            exit();
+        }
+
+        $customer_id = $customer['id'];
+        $name = $customer['name'];
+
+        $stmt = $pdo->prepare("SELECT resend_count, last_sent_at FROM customer_otps WHERE customer_id = ?");
+        $stmt->execute([$customer_id]);
+        $otpData = $stmt->fetch();
+
+        if ($otpData) {
+            $resend_count = (int)$otpData['resend_count'];
+            $last_sent_at = strtotime($otpData['last_sent_at']);
+            $now = time();
+
+            if ($resend_count >= 3) {
+                echo json_encode(['success' => false, 'message' => 'Maksimal pengiriman ulang OTP telah tercapai.']);
+                exit();
+            }
+
+            if ($now - $last_sent_at < 60) {
+                echo json_encode(['success' => false, 'message' => 'Tunggu 1 menit sebelum mengirim ulang OTP.']);
+                exit();
+            }
+        }
+
+        $otp = rand(10000, 99999);
+        storeCustomerOTP($customer_id, $otp);
+        sendOTPEmailCustomer($email, $name, '*****', $otp); // password disembunyikan kalau resend
+        echo json_encode(['success' => true, 'message' => 'OTP baru telah dikirim ke email kamu.']);
+        break;
+
+    case 'check_otp_status':
+        $email = $_SESSION['pending_email'] ?? null;
+        if (!$email) {
+            echo json_encode(['success' => false, 'message' => 'Email tidak ditemukan dalam sesi.']);
+            exit();
+        }
+
+        $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = ?");
+        $stmt->execute([$email]);
+        $customer = $stmt->fetch();
+
+        if ($customer) {
+            $customer_id = $customer['id'];
+            $stmt = $pdo->prepare("SELECT resend_count FROM customer_otps WHERE customer_id = ? ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$customer_id]);
+            $otpData = $stmt->fetch();
+
+            $resend_count = $otpData ? (int)$otpData['resend_count'] : 0;
+            echo json_encode(['success' => true, 'resend_count' => $resend_count]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Customer tidak ditemukan.']);
+        }
+        break;
+
+
 
     case 'login':
         $email = $input['email'] ?? '';
@@ -61,11 +183,16 @@ switch ($action) {
         }
 
         try {
-            $stmt = $pdo->prepare("SELECT id, username, email, password, google_id, facebook_id, name FROM customers WHERE email = ?");
+            $stmt = $pdo->prepare("SELECT id, username, email, password, name, email_verified_at FROM customers WHERE email = ?");
             $stmt->execute([$email]);
             $customer = $stmt->fetch();
 
             if ($customer && password_verify($password, $customer['password'])) {
+                if (is_null($customer['email_verified_at'])) {
+                    echo json_encode(['success' => false, 'message' => 'Akun belum diverifikasi. Aktifkan akun sekarang.']);
+                    exit();
+                }
+
                 $_SESSION['customer_id'] = $customer['id'];
                 $_SESSION['customer_email'] = $customer['email'];
                 $_SESSION['customer_username'] = $customer['username'] ?? $customer['name'];
@@ -74,23 +201,18 @@ switch ($action) {
                 $stmt_update_customer_login->execute([$customer['id']]);
                 error_log("Regular Login: Customer ID " . $customer['id'] . " is_logged_in set to TRUE.");
 
-                $redirectUrl = 'index.php';
-                if (isset($_SESSION['redirect_to'])) {
-                    $redirectUrl = $_SESSION['redirect_to'];
-                    unset($_SESSION['redirect_to']);
-                }
-                
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Login berhasil!',
-                    'redirect' => $redirectUrl 
-                ]);
+                $redirectUrl = $_SESSION['redirect_to'] ?? 'index.php';
+                unset($_SESSION['redirect_to']);
 
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Login berhasil!',
+                    'redirect' => $redirectUrl
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Email atau password salah.']);
             }
-        } catch (\PDOException $e) {
-            error_log("Login database error: " . $e->getMessage());
+        } catch (PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Kesalahan database: ' . $e->getMessage()]);
         }
         break;
@@ -109,7 +231,7 @@ switch ($action) {
             $redirectUrl = $_SESSION['redirect_to'];
             unset($_SESSION['redirect_to']);
         }
-    
+
         error_log("Google Callback: Initiated. Method: " . $_SERVER['REQUEST_METHOD'] . ", Code received: " . ($_GET['code'] ?? 'N/A'));
 
         $googleOAuth = new GoogleOAuth();
@@ -148,10 +270,9 @@ switch ($action) {
                     } else {
                         error_log("Google Callback: FAILED to update is_logged_in for existing Google customer " . $customer['id'] . ". Error Info: " . json_encode($stmt_update_customer_login->errorInfo()));
                     }
-                    
+
                     header('Location: ' . $redirectUrl);
                     exit();
-
                 } else {
                     error_log("Google Callback: Customer not found by google_id. Checking by email: " . $email);
                     $stmt = $pdo->prepare("SELECT id, username, email, name FROM customers WHERE email = ?");
@@ -166,7 +287,7 @@ switch ($action) {
                             $_SESSION['customer_email'] = $existingCustomerByEmail['email'];
                             $_SESSION['customer_username'] = $existingCustomerByEmail['username'] ?? $existingCustomerByEmail['name'];
                             error_log("Google Callback: is_logged_in set to TRUE for linked customer: " . $existingCustomerByEmail['id']);
-                            
+
                             header('Location: ' . $redirectUrl);
                             exit();
                         } else {
@@ -219,7 +340,6 @@ switch ($action) {
                     ORDER BY started_at DESC LIMIT 1
                 ");
                 $stmt_update_session_on_logout->execute([$_SESSION['customer_id']]);
-
             } catch (\PDOException $e) {
                 error_log("Error updating customer status on logout: " . $e->getMessage());
             }
