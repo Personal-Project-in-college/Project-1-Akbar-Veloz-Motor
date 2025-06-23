@@ -303,7 +303,9 @@
   position: relative;
   align-self: flex-start;
   width: 80%;
-  margin-left: 15px;
+  margin-left: 6px;
+  background-color: red;
+  justify-content: center;
 }
 
 .offer-input input {
@@ -582,3 +584,4 @@
     color: #666;
     text-align: center;
 }
+

@@ -163,7 +163,7 @@ function createOfferInput(containerId) {
   const inputContainer = document.createElement("div");
   inputContainer.className = "offer-input";
   inputContainer.innerHTML = `
-<input type="text" id="offerInput" placeholder="Masukkan nominal penawaran">
+<input type="text" id="offerInput" placeholder="nominal penawaran">
 <button id="submitOffer">Ajukan Penawaran</button>
 `;
 

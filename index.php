@@ -245,21 +245,20 @@ function render_vehicle_card($vehicle)
       </div>
 
       <div id="Mobil" class="tabcontent">
-        <div class="grid-container" id="mobil-container">
-          <?php if (isset($db_error)) { ?>
-            <p class='msg-info-query'><?php echo $db_error; ?></p>
-          <?php } elseif (empty($cars)) { ?>
-            <p class='msg-info-query'>Saat ini belum ada mobil yang tersedia.</p>
-          <?php } else {
-            $count = 0;
-            foreach ($cars as $vehicle) {
+        <?php if (isset($db_error)) { ?>
+          <p class='msg-info-query'><?php echo $db_error; ?></p>
+        <?php } elseif (empty($cars)) { ?>
+          <p class='msg-info-query'>Saat ini belum ada mobil yang tersedia.</p>
+        <?php } else {
+          $count = 0; ?>
+          <div class="grid-container" id="mobil-container">
+            <?php foreach ($cars as $vehicle) {
               if ($count >= 8) break;
               render_vehicle_card($vehicle);
               $count++;
-            }
-          }
-          ?>
-        </div>
+            }      ?>
+          </div>
+        <?php   }?>
       </div>
       <div class="show-all-btn-container">
         <a href="search.php?type_vehicle=" class="btn-primary">Tampilkan Semua</a>

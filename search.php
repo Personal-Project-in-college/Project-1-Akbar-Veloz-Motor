@@ -171,8 +171,7 @@ try {
             $stmt->bindParam($key, $val, PDO::PARAM_INT);
         } else if (strpos($key, 'price') !== false || strpos($key, 'kilometer') !== false || strpos($key, 'cc') !== false) {
             $stmt->bindParam($key, $val, PDO::PARAM_STR);
-        }
-        else {
+        } else {
             $stmt->bindParam($key, $val);
         }
     }
@@ -190,7 +189,6 @@ try {
     unset($vehicle);
 
     $has_more_data = ($offset + count($vehicles) < $total_results);
-
 } catch (PDOException $e) {
     error_log('Database Error: ' . $e->getMessage());
     $db_error = "Gagal memuat data dari server. Silakan coba lagi nanti.";
@@ -242,7 +240,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
         echo "<p class='error-message msg-info-query'>$db_error</p>";
     } elseif (empty($vehicles)) {
         if ($offset === 0 && $total_results === 0) {
-            echo "<p class='no-results msg-info-query'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
+            echo "";
         } else {
             echo "<p class='msg-info-query'>Tidak ada kendaraan lagi yang ditemukan.</p>";
         }
@@ -365,7 +363,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
                         if (isset($db_error)) {
                             echo "<p class='error-message msg-info-query'>$db_error</p>";
                         } elseif (empty($vehicles) && $offset === 0) {
-                            echo "<p class='no-results msg-info-query'>Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.</p>";
+                            echo "";
                         } else {
                             foreach ($vehicles as $vehicle) {
                                 render_vehicle_card($vehicle);
@@ -373,11 +371,14 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
                         }
                         ?>
                     </div>
-                    <div id="loading-indicator" style="display:none; text-align:center; padding: 20px;">
-                        <div class="loader-ring"></div>
-                        <p>Memuat lebih banyak...</p>
+                    <div id="loading-indicator" style="display: none;">
+                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;  width: 100%; padding: 20px; gap : 10px; ">
+                            <div class="loader-ring"></div>
+                            <p style="color: var(--pure-gray);">Memuat lebih banyak...</p>
+                        </div>
+
                     </div>
-                    <div id="no-more-data" style="display:none; text-align:center; padding: 20px; color: gray;"></div>
+                    <div id="no-more-data" ></div>
                 </div>
             </div>
         </section>
@@ -390,6 +391,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
 
     <script src="./js/global.js"></script>
     <script src="./js/script.js"></script>
+    <script src="./js/search.js"></script>
     <script>
         const initialOffset = <?php echo $initial_load_limit; ?>;
         const loadMoreLimit = <?php echo $load_more_limit; ?>;
@@ -468,8 +470,8 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
                 noMoreDataIndicator.style.display = 'block';
                 noMoreDataIndicator.textContent = "Tidak ada kendaraan yang ditemukan sesuai kriteria pencarian Anda.";
             } else if (!hasMoreData && totalResults > 0) {
-                 noMoreDataIndicator.style.display = 'block';
-                 noMoreDataIndicator.textContent = "Semua data telah dimuat.";
+                noMoreDataIndicator.style.display = 'block';
+                noMoreDataIndicator.textContent = "Semua data telah dimuat.";
             }
             if (resultsContainer.offsetHeight < window.innerHeight && hasMoreData && totalResults > initialOffset) {
                 loadMoreVehicles();
