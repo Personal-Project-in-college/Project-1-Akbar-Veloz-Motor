@@ -112,6 +112,26 @@ if (isset($_SESSION['customer_id'])) {
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
 
+
+                // ✋ Validasi email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showMessage('error', 'Format email tidak valid.');
+                    return;
+                }
+
+                // ✋ Validasi password
+                if (password.length < 8) {
+                    showMessage('error', 'Password minimal 8 karakter.');
+                    return;
+                }
+
+                // 🔄 Ubah tombol jadi loading
+                const loginBtn = document.getElementById("loginBtn");
+                loginBtn.disabled = true;
+                const originalText = loginBtn.textContent;
+                loginBtn.textContent = 'Memproses...';
+
                 try {
                     const response = await fetch('./api/auth.php', {
                         method: 'POST',
@@ -127,25 +147,59 @@ if (isset($_SESSION['customer_id'])) {
 
                     const data = await response.json();
 
+                    // Cek status login limit jika sebelumnya pernah gagal
+                    (async function checkLoginStatus() {
+                        try {
+                            const response = await fetch('./api/auth.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    action: 'check_login_status'
+                                })
+                            });
+
+                            const data = await response.json();
+
+                            if (!data.success && data.remaining) {
+                                loginBtn.disabled = true;
+                                let remaining = data.remaining;
+                                const originalText = loginBtn.textContent;
+
+                                const interval = setInterval(() => {
+                                    if (remaining <= 0) {
+                                        clearInterval(interval);
+                                        loginBtn.disabled = false;
+                                        loginBtn.textContent = originalText;
+                                    } else {
+                                        loginBtn.textContent = `Tunggu ${remaining} detik...`;
+                                        showMessage('error', `Terlalu banyak percobaan gagal. Coba lagi dalam ${remaining} detik.`);
+                                        remaining--;
+                                    }
+                                }, 1000);
+                            }
+                        } catch (error) {
+                            console.warn("Gagal cek status login limit:", error);
+                        }
+                    })();
+
+
                     if (data.success) {
                         showMessage('success', data.message);
                         setTimeout(() => {
                             window.location.href = data.redirect || 'index.php';
-                        }, 1500);
+                        }, 2000);
                     } else {
                         showMessage('error', data.message);
                     }
                 } catch (err) {
                     showMessage('error', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
+                } finally {
+                    // 🔁 Reset tombol kembali normal
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = originalText;
                 }
-            });
-
-            googleLoginBtn.addEventListener('click', () => {
-                window.location.href = './api/auth.php?action=google_login';
-            });
-
-            facebookLoginBtn.addEventListener('click', () => {
-                alert('Fitur ini akan segera dikembangkan!');
             });
         });
     </script>

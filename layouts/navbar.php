@@ -10,7 +10,7 @@ $show_search_bar_on_pages = ['index.php', ''];
 $pesananAktif = null;
 
 if ($is_logged_in) {
-  require 'config/koneksi.php';
+  require_once 'config/koneksi.php';
   $customer_id = $_SESSION['customer_id'];
 
   $cekPesanan = $koneksi->prepare("SELECT id FROM orders WHERE customer_id = ? AND status = 'proced' LIMIT 1");

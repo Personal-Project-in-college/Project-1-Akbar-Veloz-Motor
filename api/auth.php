@@ -174,12 +174,48 @@ switch ($action) {
 
 
     case 'login':
+        // Inisialisasi session jika belum ada
+        if (!isset($_SESSION['login_attempts'])) {
+            $_SESSION['login_attempts'] = 0;
+            $_SESSION['last_attempt_time'] = null;
+        }
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
 
         if (empty($email) || empty($password)) {
             echo json_encode(['success' => false, 'message' => 'Email dan password tidak boleh kosong.']);
             exit();
+        }
+        // Blokir jika gagal 5x dalam 5 menit
+        $stmt = $pdo->prepare("SELECT id, username, email, password, name, email_verified_at, login_attempts, last_attempt_at FROM customers WHERE email = ?");
+        $stmt->execute([$email]);
+        $customer = $stmt->fetch();
+
+        if (!$customer) {
+            echo json_encode(['success' => false, 'message' => 'Akun tidak ditemukan.']);
+            exit();
+        }
+
+
+        if ($customer) {
+            if ($customer['login_attempts'] >= 5) {
+                $last = strtotime($customer['last_attempt_at']);
+                $now = time();
+                $diff = $now - $last;
+
+                if ($diff < 300) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Terlalu banyak percobaan login gagal. Coba lagi dalam ' . (300 - $diff) . ' detik.',
+                        'remaining' => 300 - $diff
+                    ]);
+                    exit();
+                } else {
+                    // reset kalau sudah lewat 5 menit
+                    $stmt = $pdo->prepare("UPDATE customers SET login_attempts = 0, last_attempt_at = NULL WHERE id = ?");
+                    $stmt->execute([$customer['id']]);
+                }
+            }
         }
 
         try {
@@ -197,25 +233,55 @@ switch ($action) {
                 $_SESSION['customer_email'] = $customer['email'];
                 $_SESSION['customer_username'] = $customer['username'] ?? $customer['name'];
 
-                $stmt_update_customer_login = $pdo->prepare("UPDATE customers SET is_logged_in = TRUE WHERE id = ?");
+                $stmt_update_customer_login = $pdo->prepare("UPDATE customers SET login_attempts = 0, last_attempt_at = NULL, is_logged_in = TRUE WHERE id = ?");
                 $stmt_update_customer_login->execute([$customer['id']]);
                 error_log("Regular Login: Customer ID " . $customer['id'] . " is_logged_in set to TRUE.");
+
 
                 $redirectUrl = $_SESSION['redirect_to'] ?? 'index.php';
                 unset($_SESSION['redirect_to']);
 
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Login berhasil!',
-                    'redirect' => $redirectUrl
-                ]);
+                echo json_encode(['success' => true, 'message' => 'Login berhasil!', 'redirect' => $redirectUrl]);
             } else {
+                $stmt = $pdo->prepare("UPDATE customers SET login_attempts = login_attempts + 1, last_attempt_at = NOW() WHERE id = ?");
+                $stmt->execute([$customer['id']]);
+                $_SESSION['pending_login_email'] = $email;
                 echo json_encode(['success' => false, 'message' => 'Email atau password salah.']);
             }
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Kesalahan database: ' . $e->getMessage()]);
         }
         break;
+
+    case 'check_login_status':
+        $email = $_SESSION['pending_login_email'] ?? null;
+
+        if (!$email) {
+            echo json_encode(['success' => true]);
+            exit();
+        }
+
+        $stmt = $pdo->prepare("SELECT login_attempts, last_attempt_at FROM customers WHERE email = ?");
+        $stmt->execute([$email]);
+        $data = $stmt->fetch();
+
+        if ($data && $data['login_attempts'] >= 5) {
+            $last = strtotime($data['last_attempt_at']);
+            $now = time();
+            $diff = $now - $last;
+
+            if ($diff < 300) {
+                echo json_encode([
+                    'success' => false,
+                    'remaining' => 300 - $diff
+                ]);
+                exit();
+            }
+        }
+
+        echo json_encode(['success' => true]);
+        break;
+
 
     case 'google_login':
         error_log("Google Login: Redirecting to Google auth URL.");
