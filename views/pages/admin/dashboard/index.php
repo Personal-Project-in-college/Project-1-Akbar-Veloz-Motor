@@ -1,8 +1,46 @@
 <?php
 session_start();
 // 🔎 Melakukan Pengecekan Apakah Sudah Login atau Belum
+include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
+
+$date_today = date('Y-m-d');
+$month_now = date('Y-m');
+
+// 1. Total Penghasilan Harian
+$stmt = $koneksi->prepare("
+    SELECT SUM(t.grand_total - v.lowest_price) AS profit_today
+    FROM transactions t
+    JOIN orders o ON t.order_id = o.id
+    JOIN vehicles v ON o.vehicle_id = v.id
+    WHERE DATE(t.created_at) = ?
+");
+$stmt->execute([$date_today]);
+$daily_profit = $stmt->fetchColumn() ?? 0;
+
+// 2. Total Kendaraan (status ≠ 'sold')
+$stmt = $koneksi->query("SELECT COUNT(*) FROM vehicles WHERE status != 'sold'");
+$vehicle_count = $stmt->fetchColumn();
+
+// 3. Penjualan Bulanan
+$stmt = $koneksi->prepare("
+    SELECT SUM(t.grand_total - v.lowest_price) AS monthly_profit
+    FROM transactions t
+    JOIN orders o ON t.order_id = o.id
+    JOIN vehicles v ON o.vehicle_id = v.id
+    WHERE DATE_FORMAT(t.created_at, '%Y-%m') = ?
+");
+$stmt->execute([$month_now]);
+$monthly_profit = $stmt->fetchColumn() ?? 0;
+
+// 4. Total Order Bulanan (status = 'finished')
+$stmt = $koneksi->prepare("
+    SELECT COUNT(*) FROM orders
+    WHERE status = 'finished' AND DATE_FORMAT(created_at, '%Y-%m') = ?
+");
+$stmt->execute([$month_now]);
+$monthly_finished_orders = $stmt->fetchColumn() ?? 0;
 
 
 include '../layout/header.php';
@@ -14,157 +52,15 @@ include '../layout/sidebar.php';
 <!-- Main Content -->
 <div class="main-panel">
     <div class="content-wrapper">
-        <h3 class="mb-4">Partner Representative</h3>
-        <!-- Partner Representative table -->
-        <!-- <div class="row">
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card" style="border-radius: 15px; overflow: hidden;">
-                    <div class="card-body">
-                        <table class="table table-striped" style="border-radius: 15px; overflow: hidden;" id="productTable">
-                            <thead>
-                                <tr>
-                                    <th>Profile Image</th>
-                                    <th>Nama</th>
-                                    <th>Status</th>
-                                    <th>Vehicle Handled</th>
-                                    <th>Average Sales</th>
-                                    <th>Options</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <img src="../assets/images/jamal.png" style="width: 50px; height: 50px; border-radius: 50%;"
-                                            alt="Profile Image">
-                                    </td>
-                                    <td>Epi Halimah</td>
-                                    <td><span class="badge bg-success">Available</span></td>
-                                    <td>Oppressor MK</td>
-                                    <td>1</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="mdi mdi-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <img src="../assets/images/zidan.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
-                                            alt="Profile Image">
-                                    </td>
-                                    <td>Moch Zidan Sudrajat</td>
-                                    <td><span class="badge bg-warning">Busy</span></td>
-                                    <td>Honda Vario</td>
-                                    <td>2</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="mdi mdi-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <img src="../assets/images/goku.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
-                                            alt="Profile Image">
-                                    </td>
-                                    <td>Zacki Syaeful B</td>
-                                    <td><span class="badge bg-warning">Busy</span></td>
-                                    <td>Honda Vario</td>
-                                    <td>2</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="mdi mdi-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <img src="../assets/images/Diaz.jpeg" style="width: 50px; height: 50px; border-radius: 50%;"
-                                            alt="Profile Image">
-                                    </td>
-                                    <td>M. Dhiyul</td>
-                                    <td><span class="badge bg-success">Available</span></td>
-                                    <td>Honda Vario</td>
-                                    <td>2</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="mdi mdi-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <img src="../assets/images/Farhan.jpg" style="width: 50px; height: 50px; border-radius: 50%;"
-                                            alt="Profile Image">
-                                    </td>
-                                    <td>Farhan Ginting</td>
-                                    <td><span class="badge bg-warning">Busy</span></td>
-                                    <td>Honda Vario</td>
-                                    <td>2</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-link p-0" title="Options" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="mdi mdi-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Available">Set Available</a></li>
-                                                <li><a class="dropdown-item change-status" href="#" data-status="Busy">Set Busy</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div> -->
-        <!-- end of Partner Representative table -->
-        <!-- Info Boxes -->
-        <!-- <div class="row mb-4">
+        <div class="row mb-4">
             <div class="col-md-3 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body text-center">
                         <div class="icon mb-2">
                             <i class="mdi mdi-cash-multiple"></i>
                         </div>
-                        <h5>Total Penghasilan</h5>
-                        <p>3.5k</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="icon mb-2">
-                            <i class="mdi mdi-cube-outline"></i>
-                        </div>
-                        <h5>Total Penjualan</h5>
-                        <p>3 Unit</p>
+                        <h5>Total Penghasilan Harian</h5>
+                        <p>Rp <?= number_format($daily_profit, 0, ',', '.') ?></p>
                     </div>
                 </div>
             </div>
@@ -175,7 +71,7 @@ include '../layout/sidebar.php';
                             <i class="mdi mdi-chart-line"></i>
                         </div>
                         <h5>Penjualan Bulanan</h5>
-                        <p>Rp. 11123131</p>
+                        <p>Rp <?= number_format($monthly_profit, 0, ',', '.') ?></p>
                     </div>
                 </div>
             </div>
@@ -185,12 +81,52 @@ include '../layout/sidebar.php';
                         <div class="icon mb-2">
                             <i class="mdi mdi-cash-minus"></i>
                         </div>
-                        <h5>Pengeluaran Bulanan</h5>
-                        <p>-Rp. 123131</p>
+                        <h5>Total Pesanan Bulanan</h5>
+                        <p><?= $monthly_finished_orders ?> Pesanan Selesai</p>
                     </div>
                 </div>
             </div>
-        </div> -->
+            <div class="col-md-3 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="icon mb-2">
+                            <i class="mdi mdi-cube-outline"></i>
+                        </div>
+                        <h5>Total Kendaraan</h5>
+                        <p><?= $vehicle_count ?> Unit</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partner Representative table -->
+        <h3 class="mb-4">Transaksi Terbaru</h3>
+        <div class="row">
+            <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal Pesan</th>
+                                    <th>Kendaraan</th>
+                                    <th>Customer</th>
+                                    <th>Total Pembayaran</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end of Partner Representative table-->
+
 
         <!-- <div style="display: flex; flex-direction: row; gap:0px 20px;">
             <div class="row" style="width: 80%;">
@@ -253,10 +189,10 @@ include '../layout/sidebar.php';
 
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('brandTableBody');
+        const tableBody = document.getElementById('transactionTableBody');
 
-        function loadBrands(keyword = '') {
-            fetch(`ajaxBrandList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadBrands() {
+            fetch(`ajaxTransactionList.php`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
@@ -265,11 +201,6 @@ include '../layout/sidebar.php';
 
         // Load pertama
         loadBrands();
-
-        // Saat ketik di search
-        searchInput.addEventListener('keyup', function() {
-            loadBrands(this.value);
-        });
     </script>
 
     <script>
@@ -321,7 +252,7 @@ include '../layout/sidebar.php';
         }
 
         function loadBrands(keyword = '') {
-            fetch(`ajaxBrandList.php?keyword=${encodeURIComponent(keyword)}`)
+            fetch(`ajaxTransactionList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
@@ -332,10 +263,6 @@ include '../layout/sidebar.php';
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
             loadBrands();
-
-            searchInput.addEventListener('keyup', function() {
-                loadBrands(this.value);
-            });
         });
     </script>
 
