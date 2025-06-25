@@ -201,6 +201,15 @@ if (isset($_SESSION['customer_id'])) {
                     loginBtn.textContent = originalText;
                 }
             });
+            // Handle Google Login/Register
+            googleLoginBtn.addEventListener('click', () => {
+                window.location.href = './api/auth.php?action=google_login';
+            });
+
+            // Facebook Login (placeholder for future)
+            facebookLoginBtn.addEventListener('click', () => {
+                alert('Fitur ini akan segera dikembangkan!');
+            });
         });
     </script>
 </body>
