@@ -54,26 +54,25 @@ setInterval(async () => {
     try {
       const isChatPanelCurrentlyActive = chatPanel.classList.contains("active");
       const response = await fetch(
-        `./api/chat.php?action=get_new_messages&session_id=${chatSessionId}&is_chat_active=${isChatPanelCurrentlyActive}`
+        `./api/chat.php?action=get_new_messages_customer&session_id=${chatSessionId}&is_chat_active=${isChatPanelCurrentlyActive}`
       );
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.new_messages.length > 0) {
         data.new_messages.forEach((msg) => {
           if (!displayedMessageIds.has(msg.id)) {
+            // Selalu tambahkan pesan ke KEDUA kontainer
             appendMessage(msg.sender_type, msg.message_text, chatBody.id);
-            if (isFullScreen) {
-              appendMessage(msg.sender_type, msg.message_text, fullPageChatBody.id);
-            }
+            appendMessage(msg.sender_type, msg.message_text, fullPageChatBody.id);
+
             displayedMessageIds.add(msg.id);
             showChatNotification("Pesan Baru dari SiVeloz", msg.message_text);
           }
         });
 
-        if (data.new_messages.length > 0) {
-          attachPromoCardListeners();
-          console.log("Pesan baru diterima dan ditambahkan:", data.new_messages.length);
-        }
+        // Selalu lampirkan listener setelah ada pesan baru
+        attachPromoCardListeners();
+        console.log("Pesan baru diterima dan ditambahkan:", data.new_messages.length);
       }
     } catch (error) {
       console.error("Kesalahan polling untuk pesan baru:", error);
@@ -108,13 +107,13 @@ async function fetchVehiclesChat() {
       console.error("Gagal mengambil kendaraan:", data.message);
       const errorMessage = "Gagal memuat daftar kendaraan. Silakan coba lagi nanti.";
       appendMessage("bot", errorMessage, chatBody.id);
-      if (isFullScreen) appendMessage("bot", errorMessage, fullPageChatBody.id);
+      appendMessage("bot", errorMessage, fullPageChatBody.id);
     }
   } catch (error) {
     console.error("Kesalahan jaringan saat mengambil kendaraan:", error);
     const errorMessage = "Terjadi kesalahan jaringan saat memuat daftar kendaraan.";
     appendMessage("bot", errorMessage, chatBody.id);
-    if (isFullScreen) appendMessage("bot", errorMessage, fullPageChatBody.id);
+    appendMessage("bot", errorMessage, fullPageChatBody.id);
   }
 }
 
@@ -123,7 +122,9 @@ async function sendChatMessageToBackend(message, senderType) {
   try {
     const response = await fetch("./api/chat.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         action: "send_message",
         message: message,
@@ -138,7 +139,10 @@ async function sendChatMessageToBackend(message, senderType) {
     return data;
   } catch (error) {
     console.error("Kesalahan saat mengirim pesan ke backend:", error);
-    return { success: false, message: "Kesalahan jaringan" };
+    return {
+      success: false,
+      message: "Kesalahan jaringan"
+    };
   }
 }
 
@@ -151,7 +155,9 @@ async function sendTypingStatus(isTyping) {
     try {
       await fetch("./api/chat.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           action: "update_typing_status",
           session_id: chatSessionId,
@@ -177,7 +183,9 @@ async function getOrCreateChatSession() {
     try {
       const response = await fetch("./api/chat.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           action: "check_session",
           session_id: chatSessionId,
@@ -200,7 +208,9 @@ async function getOrCreateChatSession() {
     try {
       const response = await fetch("./api/chat.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           action: "get_or_create_session",
         }),
@@ -260,7 +270,6 @@ async function loadChatHistory() {
 
       chatBody.innerHTML = initialBotMessagesHTML;
       fullPageChatBody.innerHTML = initialBotMessagesHTML;
-      attachPromoCardListeners();
 
       data.messages.forEach((msg) => {
         const staticMessages = [
@@ -287,14 +296,13 @@ async function loadChatHistory() {
             displayedMessageIds.add(msg.id);
           }
           appendMessage(msg.sender_type, msg.message_text, chatBody.id);
-          if (isFullScreen) {
-            appendMessage(msg.sender_type, msg.message_text, fullPageChatBody.id);
-          }
-          attachNegotiationListeners(chatBody.id);
-          if (isFullScreen) attachNegotiationListeners(fullPageChatBody.id);
+          appendMessage(msg.sender_type, msg.message_text, fullPageChatBody.id);
         }
       });
+      
+      attachPromoCardListeners();
       console.log("Riwayat chat dimuat untuk sesi:", chatSessionId);
+
     } else {
       console.error("Gagal memuat riwayat chat:", data.message);
     }
@@ -343,16 +351,19 @@ async function getOpponentTypingStatus() {
     const data = await response.json();
 
     if (data.success) {
+      const currentChatBody = isFullScreen ? fullPageChatBody : chatBody;
+      const otherChatBody = isFullScreen ? chatBody : fullPageChatBody;
+
       if (data.is_typing) {
         adminStatusElement.textContent = "Mengetik...";
         adminStatusElement.classList.add("typing");
         adminStatusElement.classList.remove("offline", "online");
-        addTypingIndicatorBubble(chatBody.id, "user");
-        if (isFullScreen) addTypingIndicatorBubble(fullPageChatBody.id, "user");
+        addTypingIndicatorBubble(currentChatBody.id, "user");
+        addTypingIndicatorBubble(otherChatBody.id, "user");
       } else {
-        removeTypingIndicatorBubble(chatBody.id);
-        if (isFullScreen) removeTypingIndicatorBubble(fullPageChatBody.id);
-        updateAdminStatus();
+        removeTypingIndicatorBubble(currentChatBody.id);
+        removeTypingIndicatorBubble(otherChatBody.id);
+        updateAdminStatus(); // Revert to online/offline status
         adminStatusElement.classList.remove("typing");
       }
     } else {

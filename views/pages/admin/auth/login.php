@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <main class="container">
         <div class="image-container">
-            <img src="../assets/images/login.png" alt="Akbar Veloz Motor">
+            <img src="../assets/images/login2.jpeg" alt="Akbar Veloz Motor">
         </div>
         <div class="form-container">
             <h1>AKBAR VELOZ MOTOR</h1>

@@ -1,8 +1,7 @@
 <?php
 $env = parse_ini_file(__DIR__ . '/../.env');
 
-$DOMAIN =  $env['BASE_DOMAIN'];
-
+$DOMAIN = $env['BASE_DOMAIN'];
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -27,6 +26,46 @@ function checkCustomerAuth($pdo)
         return false;
     }
     return true;
+}
+
+function callGeminiAPI($apiKey, $prompt)
+{
+    // $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+    $data = [
+        'contents' => [
+            [
+                'parts' => [
+                    [
+                        'text' => $prompt
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpcode != 200) {
+        return null;
+    }
+
+    $result = json_decode($response, true);
+
+    if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+        return $result['candidates'][0]['content']['parts'][0]['text'];
+    }
+
+    return null;
 }
 
 switch ($action) {
@@ -148,29 +187,13 @@ switch ($action) {
             $sender_id = $_SESSION['user_id'] ?? 0;
             $is_read_by_user = 1;
             $is_read_by_customer = 0;
-
             try {
                 $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'open', user_id = ?, closed_at = NULL WHERE session_id = ? AND (status = 'pending' OR user_id IS NULL)");
                 $stmt_update_session->execute([$sender_id, $session_id]);
             } catch (\PDOException $e) {
-                // Ignore error if updating session fails for admin
-            }
-        } elseif ($sender_type === 'bot') {
-            if (isset($_SESSION['customer_id'])) {
-                $sender_id = $_SESSION['customer_id'];
-                $is_read_by_customer = 1;
-                $is_read_by_user = 0;
-            } else if (isset($_SESSION['user_id'])) {
-                $sender_id = $_SESSION['user_id'];
-                $is_read_by_user = 1;
-                $is_read_by_customer = 0;
-            } else {
-                $sender_id = 0;
-                $is_read_by_user = 0;
-                $is_read_by_customer = 0;
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Tipe pengirim tidak valid atau tidak diizinkan.']);
+            echo json_encode(['success' => false, 'message' => 'Tipe pengirim tidak valid.']);
             exit();
         }
 
@@ -178,11 +201,136 @@ switch ($action) {
             $stmt = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$session_id, $sender_id, $sender_type, $message_text, (int)$is_read_by_user, (int)$is_read_by_customer]);
 
-            echo json_encode(['success' => true, 'message' => 'Pesan berhasil dikirim.']);
+            $ai_response = null;
+            $ai_responses = [];
+
+            if ($sender_type === 'customer') {
+                if (trim($message_text) === 'Motor dengan Budget Murah!') {
+                    echo json_encode(['success' => true, 'message' => 'Pesan pemicu negosiasi diterima.']);
+                    exit();
+                }
+
+                $activity_threshold_seconds = 60;
+                $activity_threshold_time = date('Y-m-d H:i:s', time() - $activity_threshold_seconds);
+                $stmt_admin = $pdo->prepare("SELECT COUNT(*) FROM users WHERE is_online = TRUE AND last_activity >= ?");
+                $stmt_admin->execute([$activity_threshold_time]);
+                $is_admin_available = $stmt_admin->fetchColumn() > 0;
+
+                if (!$is_admin_available) {
+                    $gemini_api_key = $env["GEMINI_API_KEY"];
+
+                    $stmt_history = $pdo->prepare("SELECT sender_type, message_text FROM messages WHERE chat_session_id = ? ORDER BY timestamp DESC LIMIT 5");
+                    $stmt_history->execute([$session_id]);
+                    $history = $stmt_history->fetchAll(PDO::FETCH_ASSOC);
+                    $chat_history_for_prompt = "";
+                    foreach (array_reverse($history) as $msg) {
+                        $role = ($msg['sender_type'] === 'customer') ? "user" : "model";
+                        $chat_history_for_prompt .= "{$role}: {$msg['message_text']}\n";
+                    }
+
+                    $db_context = "";
+                    $keywords = ['tersedia', 'ada', 'harga', 'termurah', 'termahal', 'dijual'];
+                    $found_keyword = false;
+                    foreach ($keywords as $keyword) {
+                        if (stripos($message_text, $keyword) !== false) {
+                            $found_keyword = true;
+                            break;
+                        }
+                    }
+
+                    if ($found_keyword) {
+                        $query = "SELECT v.id, vm.name AS model_name, b.name AS brand_name, v.price_displayed, v.status, v.production_year FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id JOIN brands b ON vm.brand_id = b.id WHERE v.status = 'available' ORDER BY v.price_displayed ASC LIMIT 5";
+                        if (stripos($message_text, 'termahal') !== false) {
+                            $query = str_replace('ASC', 'DESC', $query);
+                        }
+                        $stmt_vehicles = $pdo->query($query);
+                        $vehicles_data = $stmt_vehicles->fetchAll(PDO::FETCH_ASSOC);
+                        if ($vehicles_data) {
+                            $db_context = "Berikut adalah data relevan dari database: " . json_encode($vehicles_data);
+                        }
+                    }
+
+                    $prompt = "Kamu adalah 'SiVeloz', asisten AI customer service untuk dealer kendaraan 'Akbar Veloz Motor'. Jawab dengan ramah, informatif, dan dalam Bahasa Indonesia.
+                    ---
+
+                    Aturan dan Pengetahuanmu:
+
+                    1. Response jangan ada simbol * atau jangan berupa bintang
+                    2. Nama kamu adalah SiVeloz.
+                    3. Jawab dengan ramah jika orang menyapa 'pagi', 'siang' 'sore' atau yang lainnya, jawab sesuai waktu orang tersebut menyapa jika 'siang ' berarti jawab juga siang.
+                    4. Cara Pemesanan Test Drive/Transaksi: Jelaskan ada dua cara. Melalui halaman 'Hubungi Kami' di website ATAU langsung lewat chat ini untuk memulai negosiasi.
+                    5. Jika pengguna menyebut kata 'negosiasi', 'menawar', atau 'budget', maka kamu tidak perlu memperkenalkan diri lagi cukup  balas dua bagian:
+                    a. Pertama tuliskan: Untuk melakukan negosiasi klik opsi Motor dengan Budget Murah!
+                    b. Lalu di baris baru berikutnya, tuliskan hanya: [TRIGGER_NEGOTIATION]
+                    6. Query Database: Kamu bisa menjawab pertanyaan tentang ketersediaan atau harga kendaraan berdasarkan data yang diberikan.
+                    7. Jika tidak tahu jawabannya, katakan 'Maaf, untuk pertanyaan tersebut, silakan tunggu balasan dari admin kami ya.'
+
+                    ---
+
+                    Konteks Data dari Database (jika ada):
+
+                    {$db_context}
+
+                    ---
+
+                    Riwayat Percakapan Terakhir:
+
+                    {$chat_history_for_prompt}
+
+                    ---
+
+                    Pertanyaan Pengguna Sekarang:
+
+                    user: {$message_text}
+
+                    ---
+
+                    Jawabanmu (sebagai SiVeloz):
+
+                    model: ";
+
+                    $gemini_response = callGeminiAPI($gemini_api_key, $prompt);
+
+                    if ($gemini_response) {
+                        $responses = explode('[TRIGGER_NEGOTIATION]', $gemini_response);
+
+                        $message_clean = trim($responses[0]);
+
+                        if (!empty($message_clean)) {
+                            $stmt_ai_text = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, 0, 1)");
+                            $stmt_ai_text->execute([$session_id, $sender_id, htmlspecialchars($message_clean)]);
+                            $ai_responses[] = [
+                                'message_text' => htmlspecialchars($message_clean),
+                                'sender_type' => 'bot'
+                            ];
+                        }
+
+                        if (count($responses) > 1 || str_contains($gemini_response, '[TRIGGER_NEGOTIATION]')) {
+                            $trigger_response = '<strong>Cari motor sesuai budget?</strong><div class="promo-card" data-target="budget"><h4>Motor dengan Budget Murah!</h4><p>Temukan motor sesuai budget Anda</p></div>';
+
+                            $stmt_trigger = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, 0, 1)");
+                            $stmt_trigger->execute([$session_id, $sender_id, $trigger_response]);
+
+                            $ai_responses[] = [
+                                'message_text' => $trigger_response,
+                                'sender_type' => 'bot'
+                            ];
+                        }
+                    }
+                }
+            }
+
+            $response_data = ['success' => true, 'message' => 'Pesan berhasil dikirim.'];
+            if (!empty($ai_responses)) {
+                $response_data['ai_messages'] = $ai_responses;
+            }
+
+            echo json_encode($response_data);
         } catch (\PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Gagal mengirim pesan: ' . $e->getMessage()]);
         }
         break;
+
 
     case 'get_history':
         $session_id = $_GET['session_id'] ?? '';
@@ -196,7 +344,6 @@ switch ($action) {
                 $stmt_mark_read_user = $pdo->prepare("UPDATE messages SET is_read_by_user = TRUE WHERE chat_session_id = ? AND (sender_type = 'customer' OR sender_type = 'bot') AND is_read_by_user = FALSE");
                 $stmt_mark_read_user->execute([$session_id]);
             } catch (\PDOException $e) {
-                // Log error
             }
         }
         if (isset($_SESSION['customer_id'])) {
@@ -204,7 +351,6 @@ switch ($action) {
                 $stmt_update_activity = $pdo->prepare("UPDATE chat_sessions SET last_customer_activity = NOW() WHERE session_id = ?");
                 $stmt_update_activity->execute([$session_id]);
             } catch (\PDOException $e) {
-                // Log error
             }
         }
 
@@ -219,12 +365,12 @@ switch ($action) {
         }
         break;
 
-    case 'get_new_messages':
+    case 'get_new_messages_customer':
         if (!checkCustomerAuth($pdo)) {
             exit();
         }
         $session_id = $_GET['session_id'] ?? '';
-        $is_chat_active_on_frontend = filter_var($_GET['is_chat_active'] ?? false, FILTER_VALIDATE_BOOLEAN); // Menerima status widget dari frontend
+        $is_chat_active_on_frontend = filter_var($_GET['is_chat_active'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if (empty($session_id)) {
             echo json_encode(['success' => false, 'message' => 'ID sesi tidak boleh kosong.']);
@@ -241,7 +387,6 @@ switch ($action) {
             $stmt->execute([$session_id]);
             $new_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // TANDAI PESAN SEBAGAI SUDAH DIBACA HANYA JIKA CHAT WIDGET AKTIF DI FRONEND
             if (!empty($new_messages) && $is_chat_active_on_frontend) {
                 $message_ids = array_column($new_messages, 'id');
                 $placeholders = implode(',', array_fill(0, count($message_ids), '?'));
@@ -344,7 +489,6 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Gagal mengambil jumlah pesan belum dibaca: ' . $e->getMessage()]);
         }
         break;
-
 
     case 'get_chat_sessions':
         try {

@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '89161044532e983717c20f35bb15ce06bd5f827a',
+        'reference' => 'b8626bad005442104a4ba3acbf7fcfefc3f145ba',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '89161044532e983717c20f35bb15ce06bd5f827a',
+            'reference' => 'b8626bad005442104a4ba3acbf7fcfefc3f145ba',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -56,8 +56,8 @@
             'dev_requirement' => false,
         ),
         'google/apiclient-services' => array(
-            'pretty_version' => 'v0.398.0',
-            'version' => '0.398.0.0',
+            'pretty_version' => 'v0.401.0',
+            'version' => '0.401.0.0',
             'reference' => '8366037e450b62ffc1c5489459f207640acca2b4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../google/apiclient-services',
@@ -218,9 +218,9 @@
             'dev_requirement' => false,
         ),
         'phpoffice/phpspreadsheet' => array(
-            'pretty_version' => '4.3.1',
-            'version' => '4.3.1.0',
-            'reference' => 'd0ac70d610fb62ccad38c2696569ae1ad42acc70',
+            'pretty_version' => '4.4.0',
+            'version' => '4.4.0.0',
+            'reference' => '747ccd1b443e85e0cfc0d52acf50e4d15ef959eb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpoffice/phpspreadsheet',
             'aliases' => array(),
@@ -236,9 +236,9 @@
             'dev_requirement' => false,
         ),
         'phpseclib/phpseclib' => array(
-            'pretty_version' => '3.0.43',
-            'version' => '3.0.43.0',
-            'reference' => '709ec107af3cb2f385b9617be72af8cf62441d02',
+            'pretty_version' => '3.0.46',
+            'version' => '3.0.46.0',
+            'reference' => '56483a7de62a6c2a6635e42e93b8a9e25d4f0ec6',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpseclib/phpseclib',
             'aliases' => array(),
@@ -341,9 +341,9 @@
             'dev_requirement' => false,
         ),
         'ramsey/uuid' => array(
-            'pretty_version' => '4.8.1',
-            'version' => '4.8.1.0',
-            'reference' => 'fdf4dd4e2ff1813111bd0ad58d7a1ddbb5b56c28',
+            'pretty_version' => '4.9.0',
+            'version' => '4.9.0.0',
+            'reference' => '4e0e23cc785f0724a0e838279a9eb03f28b092a0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../ramsey/uuid',
             'aliases' => array(),
@@ -352,7 +352,7 @@
         'rhumsaa/uuid' => array(
             'dev_requirement' => false,
             'replaced' => array(
-                0 => '4.8.1',
+                0 => '4.9.0',
             ),
         ),
         'setasign/fpdi' => array(

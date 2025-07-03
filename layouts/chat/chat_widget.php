@@ -27,7 +27,7 @@ $chat_session_id_from_php = $_SESSION['chat_session_id'] ?? '';
 <div class="chat-panel" id="chatPanel">
   <div class="chat-header" id="chatHeader">
     <div class="chat-header-left">
-      <img src="./assets/images/profile-picture/the-winner.jpeg" alt="SiVeloz" />
+      <img src="./assets/images/profile-picture/image2.png" alt="SiVeloz" />
       <div>
         <h3>SiVeloz</h3>
         <p class="admin-status" id="adminStatus">Memuat status...</p>
