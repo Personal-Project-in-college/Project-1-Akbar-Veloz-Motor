@@ -58,36 +58,85 @@ $staffList = $staffQuery->fetchAll(PDO::FETCH_ASSOC);
 // Kondisi apakah user_id sudah terisi (test driver sudah dilayani)
 $alreadyAssigned = !empty($test_driver['user_id']);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['assign_user'])) {
-        // Simpan petugas
-        $user_id = $_POST['user_id'];
-        $updateStaff = $koneksi->prepare("UPDATE test_drivers SET user_id = ?, updated_at = NOW() WHERE id = ?");
-        $updateStaff->execute([$user_id, $test_driver['id']]);
-        $_SESSION['success_message'] = "Petugas telah ditugaskan.";
-        header("Location: ../orders/orders.php");
-        exit;
-    } else {
-        // Simpan hasil dan status
-        $status = trim($_POST['status']);
-        $result_note = trim($_POST['result_note']);
+// Kondisi apakah test_driver sudah selesai
+$finishTestDriver = $test_driver['status'] == 'finish';
 
-        $updateQuery = $koneksi->prepare("UPDATE test_drivers SET status = ?, result_note = ?, updated_at = NOW() WHERE id = ?");
-        $updateQuery->execute([$status, $result_note, $test_driver['id']]);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_user'])) {
+    // Simpan petugas
+    $user_id = $_POST['user_id'];
+    $updateStaff = $koneksi->prepare("UPDATE test_drivers SET user_id = ?, updated_at = NOW() WHERE id = ?");
+    $updateStaff->execute([$user_id, $test_driver['id']]);
+    $_SESSION['success_message'] = "Petugas telah ditugaskan.";
+    header("Location: ../orders/orders.php");
+    exit;
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'], $_POST['result_note'])) {
+    // Simpan hasil dan status test drive
+    $status = trim($_POST['status']);
+    $result_note = trim($_POST['result_note']);
 
-        if ($status === 'cancelled' || $status === 'finish') {
-            $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
-            $updateOrder->execute([$test_driver['order_id']]);
+    $updateQuery = $koneksi->prepare("UPDATE test_drivers SET status = ?, result_note = ?, updated_at = NOW() WHERE id = ?");
+    $updateQuery->execute([$status, $result_note, $test_driver['id']]);
 
-            $updateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'available', updated_at = NOW() WHERE id = ?");
-            $updateVehicle->execute([$test_driver['vehicle_id']]);
+    if ($status === 'cancelled' || $status === 'finish') {
+        $updateOrder = $koneksi->prepare("UPDATE orders SET status = 'finished', updated_at = NOW() WHERE id = ?");
+        $updateOrder->execute([$test_driver['order_id']]);
+
+        $updateVehicle = $koneksi->prepare("UPDATE vehicles SET status = 'available', updated_at = NOW() WHERE id = ?");
+        $updateVehicle->execute([$test_driver['vehicle_id']]);
+    }
+
+    $_SESSION['success_message'] = "Pesanan <strong>{$test_driver['customer_name']}</strong> telah diselesaikan.";
+    header("Location: ../orders/orders.php");
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_transaction_order'])) {
+    try {
+        $koneksi->beginTransaction();
+
+        // Ambil data dari order sebelumnya (yang test drive)
+        $old_order_id = $test_driver['order_id'];
+        $stmt = $koneksi->prepare("SELECT customer_id, vehicle_id, type_arrival, address FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.id = ?");
+        $stmt->execute([$old_order_id]);
+        $oldOrder = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$oldOrder) {
+            throw new Exception("Data order asal tidak ditemukan.");
         }
 
-        $_SESSION['success_message'] = "Pesanan <strong>{$test_driver['customer_name']}</strong> telah diselesaikan.";
+        // Buat order baru dengan type_order = 'transaction'
+        $insertOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, negotiated_price, is_read, created_at) VALUES (?, ?, 'transaction', ?, NOW(), 0, 0, NOW())");
+        $insertOrder->execute([
+            $oldOrder['customer_id'],
+            $oldOrder['vehicle_id'],
+            $oldOrder['type_arrival']
+        ]);
+        $new_order_id = $koneksi->lastInsertId();
+
+        // Ambil harga kendaraan
+        $stmt = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
+        $stmt->execute([$oldOrder['vehicle_id']]);
+        $price = $stmt->fetchColumn();
+
+        // Insert transaksi
+        $user_id = $_SESSION['user_id'];
+        $insertTransaction = $koneksi->prepare("INSERT INTO transactions (order_id, user_id, vehicle_price, deal_negotiation, payment_type, payment_method, status, created_at) VALUES (?, ?, ?, 0, 'tunai', 'cash', 'pending', NOW())");
+        $insertTransaction->execute([$new_order_id, $user_id, $price]);
+
+        // Update status kendaraan
+        $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?")->execute([$oldOrder['vehicle_id']]);
+
+        $koneksi->commit();
+
+        $_SESSION['success_message'] = "Transaksi baru berhasil dibuat.";
         header("Location: ../orders/orders.php");
         exit;
+    } catch (Exception $e) {
+        $koneksi->rollBack();
+        $_SESSION['danger_message'] = "Gagal membuat transaksi: " . $e->getMessage();
     }
 }
+
 // Mapping ke Bahasa Indonesia
 $translateTypeVehicle = [
     'motorcycle' => 'Motor',
@@ -223,7 +272,7 @@ include '../layout/sidebar.php';
 
 
         <?php if ($alreadyAssigned): ?>
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="mb-4">Edit Hasil Coba Kendaraan</h5>
                     <form method="POST">
@@ -243,6 +292,17 @@ include '../layout/sidebar.php';
 
                         <button type="submit" class="btn btn-primary">Simpan</button>
                         <a href="../orders/orders.php" class="btn btn-secondary mx-2 text-white">Kembali</a>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($finishTestDriver): ?>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-4">Lanjut Transaksi Kendaraan</h5>
+                    <form method="POST">
+                        <button type="submit" class="btn btn-primary" name="create_transaction_order">Buat Pesanan Transaksi</button>
                     </form>
                 </div>
             </div>
