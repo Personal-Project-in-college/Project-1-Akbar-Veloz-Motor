@@ -141,6 +141,7 @@ $endDate = $_GET['end_date'] ?? '';
                 .then(html => {
                     tableBody.innerHTML = html;
                     bindDeleteEvents();
+                    bindMarkAsPaidEvents();
                 });
         }
 
@@ -176,6 +177,32 @@ $endDate = $_GET['end_date'] ?? '';
                 });
             });
         }
+
+        function bindMarkAsPaidEvents() {
+            document.querySelectorAll('form.mark-paid-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (!confirm("Yakin ingin tandai transaksi ini sebagai lunas?")) return;
+
+                    const formData = new FormData(this);
+
+                    fetch('markAsPaid.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadTransactions(); // reload table
+                                showAlert(data.message, 'success');
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                        });
+                });
+            });
+        }
+
 
         function showAlert(message, type = 'success') {
             const alertDiv = document.createElement('div');

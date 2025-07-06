@@ -60,12 +60,20 @@ if ($transactions) {
         echo "<td>{$row['payment_type']}</td>
                 <td>{$row['payment_method']}</td>
                 <td>{$row['status']}</td>
-                <td style='display: flex; align-items: center; gap: 8px;'>
-                    <a href='detail.php?id={$row['id']}' title='Detail' class='btn btn-secondary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
+                <td style='display: flex; align-items: center; gap: 8px;'>";
+        if ($row['status'] === 'dp_paid') {
+            echo "
+                <form method='POST' class='mark-paid-form'>
+                    <input type='hidden' name='transaction_id' value='{$row['id']}'>
+                    <button type='submit' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;' title='Tandai Lunas'>
+                        <i class='mdi mdi-check-circle'></i>
+                    </button>
+                </form>";
+        }
+        echo "<a href='detail.php?id={$row['id']}' title='Detail' class='btn btn-secondary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white'>
                         <i class='mdi mdi-text-box'></i>
-                    </a>
-                </td>
-            </tr>";
+                    </a>";
+        echo "</td>";
     }
 } else {
     echo "<tr><td colspan='8' class='text-center text-danger'>Data tidak ditemukan.</td></tr>";
