@@ -54,7 +54,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <a href="create.php" class="btn btn-primary">Tambah</a>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Customer ...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Pesanan (Nama, Kendaraan, Tanggal)...">
             </div>
         </div>
 
@@ -70,7 +70,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overflow-auto">
                         <table class="table table-striped">
                             <thead>
                                 <tr>

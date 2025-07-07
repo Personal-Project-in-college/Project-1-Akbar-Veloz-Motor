@@ -35,10 +35,10 @@ $getOrderQuery = $koneksi->prepare("
     JOIN customers AS c ON o.customer_id = c.id 
     JOIN vehicles AS v ON o.vehicle_id = v.id 
     JOIN vehicle_models AS vm ON v.vehicle_model_id = vm.id 
-    WHERE o.deleted_at IS NULL AND c.name LIKE ? 
+    WHERE o.deleted_at IS NULL AND (c.name LIKE ? OR v.id LIKE ? OR o.created_at LIKE ?)
     ORDER BY o.created_at DESC
 ");
-$getOrderQuery->execute([$keyword]);
+$getOrderQuery->execute([$keyword, $keyword, $keyword]);
 $data = $getOrderQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

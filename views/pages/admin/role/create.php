@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $insertBrandQuery = $koneksi->prepare("INSERT INTO roles (name, created_at) VALUES (?, NOW())");
         $insertBrandQuery->execute([$name]);
 
-        $_SESSION['success_message'] = "User <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Jabatan <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
         header("Location: role.php");
         exit;
     }

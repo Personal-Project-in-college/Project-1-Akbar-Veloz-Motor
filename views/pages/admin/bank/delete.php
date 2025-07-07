@@ -1,6 +1,5 @@
 <?php
 include '../../../../config/koneksi.php';
-include '../../../../cronjob/autoCancelOrders.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 include '../layout/header.php';
@@ -14,20 +13,6 @@ $activePage = basename($_SERVER['PHP_SELF']);
         transition: opacity 0.5s ease-out;
         opacity: 1;
     }
-
-    .alert .close-btn {
-        float: right;
-        font-size: 1.2rem;
-        font-weight: bold;
-        line-height: 1;
-        color: inherit;
-        background: none;
-        border: none;
-        padding: 0;
-        margin-left: 10px;
-        cursor: pointer;
-    }
-
 
     #floating-alert-container .alert {
         animation: slideInLeft 0.3s ease-out;
@@ -44,24 +29,39 @@ $activePage = basename($_SERVER['PHP_SELF']);
             opacity: 1;
         }
     }
+
+    /* Animasi baru untuk modal */
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        transform: scale(0.8);
+        /* Mulai dari ukuran 80% */
+        opacity: 0;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+        /* Kembali ke ukuran normal */
+        opacity: 1;
+    }
 </style>
 
 <div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <h3 class="mb-4">Data Pesanan Terhapus</h3>
+        <h3 class="mb-4">Data Bank Terhapus</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <a href="create.php" class="btn btn-primary">Tambah</a>
+
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Nama Customer ...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Bank Terhapus(Nama Bank, Nomor, Nama)...">
             </div>
         </div>
 
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <a class="nav-link text-primary <?= ($activePage == 'orders.php') ? 'active' : '' ?>" href="orders.php">Data Aktif</a>
+                <a class="nav-link text-primary <?= ($activePage == 'bank.php') ? 'active' : '' ?>" href="bank.php">Data Aktif</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-primary <?= ($activePage == 'delete.php') ? 'active' : '' ?>" href="delete.php">Data Terhapus</a>
@@ -76,17 +76,16 @@ $activePage = basename($_SERVER['PHP_SELF']);
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Nama Customer</th>
-                                    <th>Kendaraan</th>
-                                    <th>Tanggal Pesan</th>
-                                    <th>Tipe Pesanan</th>
-                                    <th>Status Pesanan</th>
+                                    <th>Nama Bank</th>
+                                    <th>Nomor Akun</th>
+                                    <th>Nama Akun</th>
+                                    <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="deletedOrderTableBody">
+                            <tbody id="deletedBankTableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center">Memuat data...</td>
+                                    <td colspan="6" class="text-center">Memuat data...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -95,25 +94,43 @@ $activePage = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
 
+        <!-- Modal Konfirmasi Hapus Permanen -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow rounded-4 border-0">
+                    <div class="modal-body text-center p-5">
+                        <div class="mb-3">
+                            <i class="mdi mdi-alert-circle-outline text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-danger mb-3" id="confirmDeleteModalLabel">Hapus Bank Secara Permanen?</h5>
+                        <p class="mb-4 fs-6 text-muted">Tindakan ini <strong>tidak bisa dibatalkan</strong>.<br>Pastikan kamu sudah yakin.</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="button" class="btn btn-dark rounded-pill px-4 text-white" data-bs-dismiss="modal">Batal</button>
+                            <button id="confirmDestroyBtn" type="button" class="btn btn-danger rounded-pill px-4 text-white">Ya, Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <?php include '../layout/footer.php'; ?>
     </div>
+
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('deletedOrderTableBody');
+        const tableBody = document.getElementById('deletedBankTableBody');
 
-        function loadDeletedBranches(keyword = '') {
-            fetch(`ajaxOrdersDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadDeletedBanks(keyword = '') {
+            fetch(`ajaxBankDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    hideExpiredRestoreButtons(); // ⬅ tambahkan ini
                 });
         }
 
-        loadDeletedBranches();
+        loadDeletedBanks();
 
         searchInput.addEventListener('keyup', function() {
-            loadDeletedBranches(this.value);
+            loadDeletedBanks(this.value);
         });
     </script>
 
@@ -133,7 +150,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadDeletedBranches(); // reload tabel
+                                loadDeletedBanks(); // reload tabel
                                 showAlert(data.message, 'success'); // custom alert function
                             } else {
                                 showAlert(data.message, 'success');
@@ -165,23 +182,22 @@ $activePage = basename($_SERVER['PHP_SELF']);
             }, 2000);
         }
 
-        function loadDeletedBranches(keyword = '') {
-            fetch(`ajaxOrdersDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadDeletedBanks(keyword = '') {
+            fetch(`ajaxBankDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
                     bindRestoreEvents(); // PENTING!
                     bindDestroyEvents(); // PENTING!
-                    hideExpiredRestoreButtons(); // ⬅ tambahkan ini
                 });
         }
 
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedBranches();
+            loadDeletedBanks();
 
             searchInput.addEventListener('keyup', function() {
-                loadDeletedBranches(this.value);
+                loadDeletedBanks(this.value);
             });
         });
     </script>
@@ -202,7 +218,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadDeletedBranches(); // reload tabel
+                                loadDeletedBanks(); // reload tabel
                                 showAlert(data.message, 'danger'); // custom alert function
                             } else {
                                 showAlert(data.message, 'danger');
@@ -234,48 +250,70 @@ $activePage = basename($_SERVER['PHP_SELF']);
             }, 2000);
         }
 
-        function loadDeletedBranches(keyword = '') {
-            fetch(`ajaxOrdersDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
+        function loadDeletedBanks(keyword = '') {
+            fetch(`ajaxBankDeletedList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
                     bindDestroyEvents(); // PENTING!
                     bindRestoreEvents(); // PENTING!
-                    hideExpiredRestoreButtons(); // ⬅ tambahkan ini
                 });
         }
 
         // Event awal
         document.addEventListener('DOMContentLoaded', () => {
-            loadDeletedBranches();
+            loadDeletedBanks();
 
             searchInput.addEventListener('keyup', function() {
-                loadDeletedBranches(this.value);
+                loadDeletedBanks(this.value);
             });
         });
-    </script>
 
-    <script>
-        function hideExpiredRestoreButtons() {
-            const buttons = document.querySelectorAll('.restore-btn');
+        // Modal Bootstrap instance
+        let deleteModal;
+        let selectedDestroyId = null;
 
-            buttons.forEach(btn => {
-                const deletedAtStr = btn.dataset.deletedAt;
-                const deletedAt = new Date(deletedAtStr.replace(' ', 'T')); // biar aman
-                const now = new Date();
-                const elapsedSeconds = (now - deletedAt) / 1000;
-                const remaining = 300 - elapsedSeconds; // 5 menit = 300 detik
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (modalEl) {
+                deleteModal = new bootstrap.Modal(modalEl);
+            }
 
-                if (remaining <= 0) {
-                    btn.remove(); // expired langsung hapus
-                } else {
-                    // Set timeout supaya tombol hilang tepat di detik 300
-                    setTimeout(() => {
-                        btn.remove();
-                    }, remaining * 1000);
-                }
+            // Event tombol konfirmasi hapus
+            const confirmDestroyBtn = document.getElementById('confirmDestroyBtn');
+            if (confirmDestroyBtn) {
+                confirmDestroyBtn.addEventListener('click', () => {
+                    if (!selectedDestroyId) return;
+                    fetch('destroy.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(selectedDestroyId)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedBanks(); // reload tabel
+                                showAlert(data.message, 'danger');
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                            deleteModal.hide();
+                            selectedDestroyId = null;
+                        });
+                });
+            }
+        });
+
+        // Override tombol hapus → tampilkan modal
+        function bindDestroyEvents() {
+            document.querySelectorAll('.destroy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectedDestroyId = this.dataset.id;
+                    deleteModal.show();
+                });
             });
         }
     </script>
-
 </div>

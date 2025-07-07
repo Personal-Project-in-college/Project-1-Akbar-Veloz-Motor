@@ -22,7 +22,7 @@ $getVehicleLoanQuery = $koneksi->prepare("SELECT
     partners.email AS partner_email,
     vehicles.id AS vehicle_id,
     vehicles.type_vehicle,
-    vehicles.color,
+    vehicles.color AS vehicle_color,
     vehicles.status AS vehicle_status,
     vehicle_models.name AS model_name,
     brands.name AS brand_name,
@@ -54,6 +54,20 @@ $statuses = [
     'returned' => 'Dikembalikan',
 ];
 
+function formatIndoDate($dateStr)
+{
+    $formatter = new IntlDateFormatter(
+        'id_ID',
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE,
+        'Asia/Jakarta',
+        IntlDateFormatter::GREGORIAN,
+        "EEEE, dd MMMM yyyy"
+    );
+    $timestamp = strtotime($dateStr);
+    return $formatter->format($timestamp);
+}
+
 include '../layout/header.php';
 include '../layout/sidebar.php';
 ?>
@@ -82,19 +96,19 @@ include '../layout/sidebar.php';
                         </tr>
                         <tr>
                             <th class="w-25">Waktu Pinjam</th>
-                            <td><?= $vehicle['loan_date'] ?></td>
+                            <td><?= formatIndoDate($vehicle['loan_date']) ?></td>
                         </tr>
                         <tr>
                             <th class="w-25">Waktu Kembali</th>
-                            <td><?= $vehicle['return_date'] ?></td>
+                            <td><?= formatIndoDate($vehicle['return_date']) ?></td>
                         </tr>
                         <tr>
                             <th class="w-25">Catatan</th>
-                            <td class="text-wrap"><?= $vehicle['note'] ?></td>
+                            <td class="text-wrap"><?= $vehicle['note'] ?? '-' ?></td>
                         </tr>
                         <tr>
                             <th class="w-25">Status</th>
-                            <td class="text-wrap"><?= $vehicle['status'] ?></td>
+                            <td class="text-wrap"><?= $statuses[$vehicle['status']] ?? '-' ?></td>
                         </tr>
                     </table>
                 </div>
@@ -122,12 +136,12 @@ include '../layout/sidebar.php';
                     <hr class="my-3">
                     <div class="row mb-3">
                         <div class="col-12 col-md-3 mb-3"><strong>Waktu Pinjam</strong></div>
-                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['loan_date']) ?></div>
+                        <div class="col-12 col-md-9 text-small"><?= formatIndoDate($vehicle['loan_date']) ?></div>
                     </div>
                     <hr class="my-3">
                     <div class="row mb-3">
                         <div class="col-12 col-md-3 mb-3"><strong>Waktu Kembali</strong></div>
-                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['return_date']) ?></div>
+                        <div class="col-12 col-md-9 text-small"><?= formatIndoDate($vehicle['return_date']) ?></div>
                     </div>
                     <hr class="my-3">
                     <div class="row">
@@ -137,7 +151,7 @@ include '../layout/sidebar.php';
                     <hr class="my-3">
                     <div class="row mb-3">
                         <div class="col-12 col-md-3 mb-3"><strong>Status</strong></div>
-                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['status']) ?></div>
+                        <div class="col-12 col-md-9 text-small"><?= $statuses[$vehicle['status']] ?? '-' ?></div>
                     </div>
                 </div>
             </div>
@@ -189,15 +203,15 @@ include '../layout/sidebar.php';
                     <table class="table">
                         <tr>
                             <th class="w-25">Kode</th>
-                            <td><?= htmlspecialchars($vehicle['id']) ?></td>
+                            <td><?= htmlspecialchars($vehicle['vehicle_id']) ?></td>
                         </tr>
                         <tr>
                             <th class="w-25">Tipe</th>
-                            <td><?= $types[$vehicle['type_vehicle']] ?? '-' ?> <i class="<?= getVehicleIcon($vehicle['type_vehicle']) ?>"></i></td>
+                            <td><?= $types[$vehicle['type_vehicle']] ?? '-' ?></td>
                         </tr>
                         <tr>
                             <th class="w-25">Warna</th>
-                            <td><?= htmlspecialchars($vehicle['color']) ?></td>
+                            <td><?= htmlspecialchars($vehicle['vehicle_color']) ?></td>
                         </tr>
                         <tr>
                             <th class="w-25">Status</th>
@@ -213,13 +227,19 @@ include '../layout/sidebar.php';
                     <h5 class="mb-4 text-center">Informasi Kendaraan</h5>
                     <div class="row mb-3">
                         <div class="col-12 col-md-3 mb-3"><strong>Kode</strong></div>
-                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['id']) ?></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['vehicle_id']) ?></div>
                     </div>
 
                     <hr class="my-3">
                     <div class="row mb-3">
                         <div class="col-12 col-md-3 mb-3"><strong>Tipe</strong></div>
-                        <div class="col-12 col-md-9 text-small"><?= $types[$vehicle['type_vehicle']] ?? '-' ?> <i class="<?= getVehicleIcon($vehicle['type_vehicle']) ?>"></i></div>
+                        <div class="col-12 col-md-9 text-small"><?= $types[$vehicle['type_vehicle']] ?? '-' ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Color</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['vehicle_color']) ?></div>
                     </div>
 
                     <hr class="my-3">

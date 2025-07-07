@@ -10,6 +10,7 @@
 include '../../../../helpers/functionSidebarActive.php';
 include_once '../../../../helpers/functionCheckRole.php';
 
+$isBankActive = isSidebarMenuActive('bank');
 $isBrandActive = isSidebarMenuActive('brand');
 $isBranchActive = isSidebarMenuActive('branch');
 $isCustomerActive = isSidebarMenuActive('customer');
@@ -19,7 +20,7 @@ $isVehicleModelActive = isSidebarMenuActive('vehicle_model');
 $isVehicleLoanActive = isSidebarMenuActive('vehicle_loans');
 $isRoleActive = isSidebarMenuActive('role');
 $isUserActive = isSidebarMenuActive('users');
-$isManageActive = isSubMenuActive(['brand', 'branch', 'customer', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
+$isManageActive = isSubMenuActive(['bank' , 'brand', 'branch', 'customer', 'partner', 'vehicles', 'vehicle_model', 'vehicle_loans', 'role', 'users']);
 
 $isChatActive = isSidebarMenuActive('chat');
 $isOrderActive = isSidebarMenuActive('orders');
@@ -54,6 +55,7 @@ $isReportsActive = isSubMenuActive(['transactions_report']);
       </a>
       <div class="collapse <?= $isManageActive ? 'show' : '' ?>" id="collapseManage">
         <ul class="nav flex-column sub-menu">
+          <li class="nav-item"><a class="nav-link <?= $isBankActive ? 'active' : '' ?>" href="../bank/bank.php">Bank</a></li>
           <li class="nav-item"><a class="nav-link <?= $isBranchActive ? 'active' : '' ?>" href="../branch/branch.php">Cabang</a></li>
           <?php if (hasAnyRole(['Owner'])) : ?>
             <li class="nav-item"><a class="nav-link <?= $isRoleActive ? 'active' : '' ?>" href="../role/role.php">Jabatan</a></li>

@@ -3,14 +3,10 @@ include '../../../../config/koneksi.php';
 include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 include '../../../../helpers/functionCheckRole.php';
-
 include '../layout/header.php';
 include '../layout/sidebar.php';
 
 $activePage = basename($_SERVER['PHP_SELF']);
-
-$startDate = $_GET['start_date'] ?? '';
-$endDate = $_GET['end_date'] ?? '';
 ?>
 
 <style>
@@ -32,6 +28,7 @@ $endDate = $_GET['end_date'] ?? '';
         cursor: pointer;
     }
 
+
     #floating-alert-container .alert {
         animation: slideInLeft 0.3s ease-out;
     }
@@ -50,47 +47,26 @@ $endDate = $_GET['end_date'] ?? '';
 </style>
 
 <div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
+
 <div class="main-panel">
     <div class="content-wrapper">
-        <h3 class="mb-4">Data Transaksi</h3>
+        <h3 class="mb-4">Data Bank</h3>
 
         <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
             <?php if (hasAnyRole(['Owner'])) : ?>
                 <a href="create.php" class="btn btn-primary">Tambah</a>
             <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Transaksi (Customer, Kendaraan)...">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Bank (Nama Bank, Nomor, Nama)...">
             </div>
         </div>
 
-        <form method="GET" class="mb-3 mt-4 d-flex flex-wrap align-items-end gap-2">
-            <div>
-                <label>Dari Tanggal:</label>
-                <input type="date" name="start_date" class="form-control" value="<?= $startDate ?>">
-            </div>
-            <div>
-                <label>Sampai Tanggal:</label>
-                <input type="date" name="end_date" class="form-control" value="<?= $endDate ?>">
-            </div>
-            <div>
-                <button type="submit" class="btn btn-dark">Filter</button>
-                <a href="transactions_report.php" class="btn btn-secondary text-white">Reset</a>
-            </div>
-            <div>
-                <a href="export_excel.php?start_date=<?= $startDate ?>&end_date=<?= $endDate ?>" class="btn btn-success text-white">Export Excel</a>
-            </div>
-            <div>
-                <a href="export_pdf.php?start_date=<?= $startDate ?>&end_date=<?= $endDate ?>" class="btn btn-danger text-white">Export PDF</a>
-            </div>
-        </form>
-
-
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <a class="nav-link text-primary <?= ($activePage == 'transactions_report.php') ? 'active' : '' ?>" href="transactions_report.php">Transaksi Selesai</a>
+                <a class="nav-link text-primary <?= ($activePage == 'bank.php') ? 'active' : '' ?>" href="bank.php">Data Aktif</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-primary <?= ($activePage == 'delete.php') ? 'active' : '' ?>" href="delete.php">Transaksi Dibatalkan</a>
+                <a class="nav-link text-primary <?= ($activePage == 'delete.php') ? 'active' : '' ?>" href="delete.php">Data Terhapus</a>
             </li>
         </ul>
 
@@ -101,19 +77,17 @@ $endDate = $_GET['end_date'] ?? '';
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Tanggal Pesan</th>
-                                    <th>Kendaraan</th>
-                                    <th>Customer</th>
-                                    <th>Total Pembayaran</th>
-                                    <th>Jenis Pembayaran</th>
-                                    <th>Metode Pembayaran</th>
+                                    <th>No</th>
+                                    <th>Nama Bank</th>
+                                    <th>Nomor Akun</th>
+                                    <th>Nama Akun</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="transactionTableBody">
+                            <tbody id="bankTableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center">Memuat data...</td>
+                                    <td colspan="6" class="text-center">Memuat data...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -121,38 +95,32 @@ $endDate = $_GET['end_date'] ?? '';
                 </div>
             </div>
         </div>
+
         <?php include '../layout/footer.php'; ?>
     </div>
 
     <script>
         const searchInput = document.getElementById('search-input');
-        const tableBody = document.getElementById('transactionTableBody');
-        const startDate = "<?= $startDate ?>";
-        const endDate = "<?= $endDate ?>";
+        const tableBody = document.getElementById('bankTableBody');
 
-        function loadTransactions(keyword = '') {
-            const params = new URLSearchParams({
-                keyword,
-                start_date: startDate,
-                end_date: endDate
-            });
-            fetch(`ajaxTransactionList.php?${params.toString()}`)
+        function loadBanks(keyword = '') {
+            fetch(`ajaxBankList.php?keyword=${encodeURIComponent(keyword)}`)
                 .then(res => res.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    bindDeleteEvents();
-                    bindMarkAsPaidEvents();
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTransactions();
+        // Load pertama
+        loadBanks();
 
-            searchInput.addEventListener('keyup', function() {
-                loadTransactions(this.value);
-            });
+        // Saat ketik di search
+        searchInput.addEventListener('keyup', function() {
+            loadBanks(this.value);
         });
+    </script>
 
+    <script>
         function bindDeleteEvents() {
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -168,8 +136,8 @@ $endDate = $_GET['end_date'] ?? '';
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                loadTransactions();
-                                showAlert(data.message, 'danger');
+                                loadBanks(); // reload tabel
+                                showAlert(data.message, 'danger'); // custom alert function
                             } else {
                                 showAlert(data.message, 'danger');
                             }
@@ -177,42 +145,46 @@ $endDate = $_GET['end_date'] ?? '';
                 });
             });
         }
-
-        function bindMarkAsPaidEvents() {
-            document.querySelectorAll('form.mark-paid-form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    if (!confirm("Yakin ingin tandai transaksi ini sebagai lunas?")) return;
-
-                    const formData = new FormData(this);
-
-                    fetch('markAsPaid.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                loadTransactions(); // reload table
-                                showAlert(data.message, 'success');
-                            } else {
-                                showAlert(data.message, 'danger');
-                            }
-                        });
-                });
-            });
-        }
-
 
         function showAlert(message, type = 'success') {
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+            // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
+            alertDiv;
+
             const container = document.getElementById('floating-alert-container');
             container.appendChild(alertDiv);
-            setTimeout(() => alertDiv.style.opacity = '0', 1500);
-            setTimeout(() => alertDiv.remove(), 2000);
+
+            // Fade out mulai di detik ke-4.5
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+            }, 1500);
+
+            // Remove dari DOM di detik ke-5
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 2000);
         }
+
+        function loadBanks(keyword = '') {
+            fetch(`ajaxBankList.php?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    bindDeleteEvents(); // PENTING!
+                });
+        }
+
+        // Event awal
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBanks();
+
+            searchInput.addEventListener('keyup', function() {
+                loadBanks(this.value);
+            });
+        });
     </script>
 
     <?php if (isset($_SESSION['success_message'])): ?>
@@ -232,3 +204,4 @@ $endDate = $_GET['end_date'] ?? '';
         </script>
         <?php unset($_SESSION['danger_message']); ?>
     <?php endif; ?>
+</div>

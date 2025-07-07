@@ -213,11 +213,10 @@ function hitung_umur_kendaraan($tanggal) {
     return $tahunSekarang - $tahunProduksi;
 }
 
-$banks = [
-    ["name" => "Bank BCA", "number" => "1234567890"],
-    ["name" => "Bank Mandiri", "number" => "9876543210"],
-    ["name" => "Bank BRI", "number" => "1122334455"]
-];
+$banks = [];
+$getBanksQuery = $koneksi->query("SELECT bank_name AS name, account_number AS number FROM banks WHERE deleted_at IS NULL AND is_active = 1 ORDER BY bank_name ASC");
+$banks = $getBanksQuery->fetchAll(PDO::FETCH_ASSOC);
+
 
 include '../layout/header.php';
 include '../layout/sidebar.php';
