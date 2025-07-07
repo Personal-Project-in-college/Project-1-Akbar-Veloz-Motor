@@ -4,8 +4,8 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$getDeleteVehicleLoanQuery = $koneksi->prepare("SELECT vehicle_loans.*, partners.name AS partner_name, users.name AS user_name FROM vehicle_loans LEFT JOIN partners ON vehicle_loans.partner_id = partners.id LEFT JOIN users ON vehicle_loans.user_id = users.id WHERE (vehicle_loans.deleted_at IS NOT NULL OR vehicle_loans.deleted_by_partner_at IS NOT NULL) AND partners.name LIKE ? ORDER BY deleted_at DESC");
-$getDeleteVehicleLoanQuery->execute([$keyword]);
+$getDeleteVehicleLoanQuery = $koneksi->prepare("SELECT vehicle_loans.*, partners.name AS partner_name, users.name AS user_name FROM vehicle_loans LEFT JOIN partners ON vehicle_loans.partner_id = partners.id LEFT JOIN users ON vehicle_loans.user_id = users.id WHERE (vehicle_loans.deleted_at IS NOT NULL OR vehicle_loans.deleted_by_partner_at IS NOT NULL) AND (vehicle_loans.vehicle_id LIKE ? OR partners.name LIKE ?) ORDER BY deleted_at DESC");
+$getDeleteVehicleLoanQuery->execute([$keyword, $keyword]);
 $data = $getDeleteVehicleLoanQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

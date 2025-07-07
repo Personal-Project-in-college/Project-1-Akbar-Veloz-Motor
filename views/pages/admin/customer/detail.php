@@ -8,25 +8,36 @@ include '../../../../helpers/functionResizeImageKtp.php';
 
 checkLogin();
 
-$id = $_GET['id'] ?? null;
+$slug = $_GET['slug'] ?? null;
 
-if (!$id) {
-    $_SESSION['error'] = "ID partner tidak valid.";
-    header("Location: partner.php");
+if (!$slug) {
+    $_SESSION['error'] = "Slug pelanggan tidak valid.";
+    header("Location: customer.php");
     exit;
 }
 
 // Ambil data lama
-$getPartnerQuery = $koneksi->prepare("SELECT * FROM partners WHERE id = ?");
-$getPartnerQuery->execute([$id]);
-$partner = $getPartnerQuery->fetch(PDO::FETCH_ASSOC);
+$getCustomerQuery = $koneksi->prepare("SELECT * FROM customers WHERE slug = ?");
+$getCustomerQuery->execute([$slug]);
+$customer = $getCustomerQuery->fetch(PDO::FETCH_ASSOC);
 
-if (!$partner) {
-    $_SESSION['danger_message'] = "<strong>Error: </strong> Data partner tidak ditemukan.";
-    header("Location: partner.php");
+if (!$customer) {
+    $_SESSION['danger_message'] = "<strong>Error: </strong> Data pelanggan tidak ditemukan.";
+    header("Location: customers.php");
     exit;
 }
 
+$phone = $customer['phone'] ?: '-';
+$waNumber = '62' . ltrim($phone, '0');
+$waLink = "https://wa.me/{$waNumber}";
+
+$isLoggedIn = $customer['is_logged_in'] == '1'
+    ? '<span class="badge bg-success">Online</span>'
+    : '<span class="badge bg-secondary">Offline</span>';
+
+$isBanned = $customer['is_banned'] == '1'
+    ? '<span class="badge bg-danger">Diblokir</span>'
+    : '<span class="badge bg-primary">Aktif</span>';
 
 // HTML FORM
 include '../layout/header.php';
@@ -35,106 +46,95 @@ include '../layout/sidebar.php';
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <h3 class="mb-4">Edit Partner</h3>
-        <div class="card">
+        <h3 class="mb-4">Detail Pelanggan</h3>
+
+        <!-- Desktop View -->
+        <div class="card d-none d-sm-block">
             <div class="card-body">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="name" name="name" value="<?= htmlspecialchars($partner['name']) ?>" disabled>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="nik" class="form-label">NIK</label>
-                        <input type="text" class="form-control" id="nik" name="nik" value="<?= htmlspecialchars($partner['nik']) ?>" disabled>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">No Telepon</label>
-                        <input type="text" class="form-control" id="phone" name="phone" value="<?= htmlspecialchars($partner['phone']) ?>" disabled>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Aktif</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($partner['email']) ?>" disabled>
-                    </div>
-
-                    <style>
-                        .fullscreen-img {
-                            width: 150px;
-                            cursor: zoom-in;
-                            transition: 0.3s;
-                        }
-
-                        .fullscreen-overlay {
-                            display: none;
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            width: 100vw;
-                            height: 100vh;
-                            background-color: rgba(0, 0, 0, 0.9);
-                            justify-content: center;
-                            align-items: center;
-                            z-index: 9999;
-                        }
-
-                        .fullscreen-overlay img {
-                            max-width: 90%;
-                            max-height: 90%;
-                            object-fit: contain;
-                            cursor: zoom-out;
-                        }
-                    </style>
-
-                    <div class="mb-3">
-                        <label class="form-label">Dokumen Gambar</label>
-                        <div class="d-flex gap-4">
-                            <?php if ($partner['ktp_scan']) : ?>
-                                <div class="text-center">
-                                    <img src="../../../../storage/<?= $partner['ktp_scan'] ?>" class="fullscreen-img" onclick="openFullscreen(this)">
-                                    <p class="mt-2 mb-0">Scan KTP</p>
-                                </div>
+                <h5 class="mb-4">Informasi Pelanggan</h5>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Nama</th>
+                        <td><?= htmlspecialchars($customer['name']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Status</th>
+                        <td><?= $isLoggedIn ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Akses</th>
+                        <td><?= $isBanned ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">No Telepon</th>
+                        <td>
+                            <?php if ($customer['phone']): ?>
+                                <a href="<?= $waLink ?>" target="_blank" class="text-success">
+                                    <?= htmlspecialchars($phone) ?> <i class="mdi mdi-whatsapp"></i>
+                                </a>
+                            <?php else: ?>
+                                -
                             <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Email</th>
+                        <td><?= htmlspecialchars($customer['email']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Metode Daftar</th>
+                        <td class="text-capitalize"><?= htmlspecialchars($customer['registration_method']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Alamat</th>
+                        <td class="text-wrap"><?= htmlspecialchars($customer['address']) ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
-                            <?php if ($partner['photo']) : ?>
-                                <div class="text-center">
-                                    <img src="../../../../storage/<?= $partner['photo'] ?>" class="fullscreen-img" onclick="openFullscreen(this)">
-                                    <p class="mt-2 mb-0">Foto Partner</p>
-                                </div>
-                            <?php endif; ?>
-                        </div>
+        <!-- Mobile View -->
+        <div class="card mb-4 d-block d-sm-none">
+            <div class="card-body">
+                <h5 class="mb-4 text-center">Informasi Pelanggan</h5>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Nama</strong></div>
+                    <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($customer['name']) ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Status</strong></div>
+                    <div class="col-12 col-md-9 text-small"><?= $isLoggedIn ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Akses</strong></div>
+                    <div class="col-12 col-md-9 text-small"><?= $isBanned ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>No Telepon</strong></div>
+                    <div class="col-12 col-md-9 text-small">
+                        <?php if ($customer['phone']): ?>
+                            <a href="<?= $waLink ?>" target="_blank" class="text-success">
+                                <?= htmlspecialchars($phone) ?> <i class="mdi mdi-whatsapp"></i>
+                            </a>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
                     </div>
-
-                    <div id="fullscreenOverlay" class="fullscreen-overlay" onclick="closeFullscreen()">
-                        <img id="fullscreenImage" src="" alt="Full Image">
-                    </div>
-
-                    <script>
-                        function openFullscreen(imgElement) {
-                            const overlay = document.getElementById('fullscreenOverlay');
-                            const fullscreenImg = document.getElementById('fullscreenImage');
-                            fullscreenImg.src = imgElement.src;
-                            overlay.style.display = 'flex';
-                        }
-
-                        function closeFullscreen() {
-                            const overlay = document.getElementById('fullscreenOverlay');
-                            overlay.style.display = 'none';
-                            document.getElementById('fullscreenImage').src = '';
-                        }
-                    </script>
-
-                    <div class="mb-3">
-                        <label for="address_ktp" class="form-label">Alamat KTP</label>
-                        <textarea disabled class="form-control" name="address_ktp" rows="5"><?= htmlspecialchars($partner['address_ktp']) ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="address_domicile" class="form-label">Alamat Saat Ini</label>
-                        <textarea disabled class="form-control" name="address_domicile" rows="5"><?= htmlspecialchars($partner['address_domicile']) ?></textarea>
-                    </div>
-                </form>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Metode Daftar</strong></div>
+                    <div class="col-12 col-md-9 text-small text-capitalize"><?= htmlspecialchars($customer['registration_method']) ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row">
+                    <div class="col-12 col-md-3 mb-3"><strong>Alamat</strong></div>
+                    <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($customer['address']) ?></div>
+                </div>
             </div>
         </div>
     </div>

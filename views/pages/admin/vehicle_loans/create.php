@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateVehicleStatusQuery = $koneksi->prepare("UPDATE vehicles SET status = 'on_loan' WHERE id = ?");
         $updateVehicleStatusQuery->execute([$vehicles_id]);
 
-        $_SESSION['success_message'] = "Peminjaman kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Peminjaman kendaraan <strong>" . htmlspecialchars($vehicles_id) . "</strong> berhasil ditambahkan.";
         header('Location: vehicle_loans.php');
         exit;
     }

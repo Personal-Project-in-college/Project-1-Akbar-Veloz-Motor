@@ -27,6 +27,9 @@ if (!$partner) {
     exit;
 }
 
+$phone = $partner['phone'];
+$waNumber = '62' . ltrim($phone, '0');
+$waLink = "https://wa.me/{$waNumber}";
 
 // HTML FORM
 include '../layout/header.php';
@@ -35,106 +38,127 @@ include '../layout/sidebar.php';
 
 <div class="main-panel">
     <div class="content-wrapper">
-        <h3 class="mb-4">Edit Partner</h3>
-        <div class="card">
+        <h3 class="mb-4">Detail Partner</h3>
+
+        <!-- Desktop View -->
+        <div class="card d-none d-sm-block">
             <div class="card-body">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="name" name="name" value="<?= htmlspecialchars($partner['name']) ?>" disabled>
+                <h5 class="mb-4">Informasi Partner</h5>
+                <table class="table">
+                    <tr>
+                        <th class="w-25">Nama</th>
+                        <td><?= htmlspecialchars($partner['name']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">NIK</th>
+                        <td><?= htmlspecialchars($partner['nik']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">No Telepon</th>
+                        <td><a href="<?= $waLink ?>" target="_blank" class="text-success">
+                                <?= htmlspecialchars($phone) ?> <i class="mdi mdi-whatsapp"></i>
+                            </a></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Email</th>
+                        <td>
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=<?= htmlspecialchars($partner['email']) ?>"
+                                target="_blank"
+                                class="text-primary text-decoration-none">
+                                <?= htmlspecialchars($partner['email']) ?> <i class="mdi mdi-email-outline"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Photo KTP</th>
+                        <td>
+                            <a href="../../../../storage/<?= $partner['ktp_scan'] ?>" target="_blank" class="btn btn-outline-primary btn-sm">
+                                Lihat Foto KTP <i class="mdi mdi-open-in-new"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Photo</th>
+                        <td>
+                            <a href="../../../../storage/<?= $partner['photo'] ?>" target="_blank" class="btn btn-outline-primary btn-sm">
+                                Lihat Foto Partner <i class="mdi mdi-open-in-new"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Alamat KTP</th>
+                        <td class="text-wrap"><?= htmlspecialchars($partner['address_ktp']) ?></td>
+                    </tr>
+                    <tr>
+                        <th class="w-25">Alamat Saat Ini</th>
+                        <td class="text-wrap"><?= htmlspecialchars($partner['address_domicile']) ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="card mb-4 d-block d-sm-none">
+            <div class="card-body">
+                <h5 class="mb-4 text-center">Informasi Partner</h5>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Nama</strong></div>
+                    <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($partner['name']) ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>NIK</strong></div>
+                    <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($partner['nik']) ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>No Telepon</strong></div>
+                    <a href="<?= $waLink ?>" target="_blank" class="text-success text-small">
+                        <?= htmlspecialchars($phone) ?> <i class="mdi mdi-whatsapp"></i>
+                    </a>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Email</strong></div>
+                    <div class="col-12 col-md-9 text-small">
+                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=<?= htmlspecialchars($partner['email']) ?>"
+                            target="_blank"
+                            class="text-primary text-decoration-none">
+                            <?= htmlspecialchars($partner['email']) ?> <i class="mdi mdi-email-outline"></i>
+                        </a>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="nik" class="form-label">NIK</label>
-                        <input type="text" class="form-control" id="nik" name="nik" value="<?= htmlspecialchars($partner['nik']) ?>" disabled>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Photo KTP</strong></div>
+                    <div class="col-12 col-md-9 text-small d-flex justify-content-center">
+                        <img src="../../../../storage/<?= $partner['ktp_scan'] ?>"
+                            alt="Foto KTP"
+                            class="img-fluid rounded shadow-sm"
+                            style="max-width: 60%; height: auto;">
                     </div>
-
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">No Telepon</label>
-                        <input type="text" class="form-control" id="phone" name="phone" value="<?= htmlspecialchars($partner['phone']) ?>" disabled>
+                </div>
+                <hr class="my-3">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Photo</strong></div>
+                    <div class="col-12 col-md-9 text-small d-flex justify-content-center">
+                        <img src="../../../../storage/<?= $partner['photo'] ?>"
+                            alt="Foto Partner"
+                            class="img-fluid rounded shadow-sm"
+                            style="max-width: 60%; height: auto;">
                     </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Aktif</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($partner['email']) ?>" disabled>
-                    </div>
-
-                    <style>
-                        .fullscreen-img {
-                            width: 150px;
-                            cursor: zoom-in;
-                            transition: 0.3s;
-                        }
-
-                        .fullscreen-overlay {
-                            display: none;
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            width: 100vw;
-                            height: 100vh;
-                            background-color: rgba(0, 0, 0, 0.9);
-                            justify-content: center;
-                            align-items: center;
-                            z-index: 9999;
-                        }
-
-                        .fullscreen-overlay img {
-                            max-width: 90%;
-                            max-height: 90%;
-                            object-fit: contain;
-                            cursor: zoom-out;
-                        }
-                    </style>
-
-                    <div class="mb-3">
-                        <label class="form-label">Dokumen Gambar</label>
-                        <div class="d-flex gap-4">
-                            <?php if ($partner['ktp_scan']) : ?>
-                                <div class="text-center">
-                                    <img src="../../../../storage/<?= $partner['ktp_scan'] ?>" class="fullscreen-img" onclick="openFullscreen(this)">
-                                    <p class="mt-2 mb-0">Scan KTP</p>
-                                </div>
-                            <?php endif; ?>
-
-                            <?php if ($partner['photo']) : ?>
-                                <div class="text-center">
-                                    <img src="../../../../storage/<?= $partner['photo'] ?>" class="fullscreen-img" onclick="openFullscreen(this)">
-                                    <p class="mt-2 mb-0">Foto Partner</p>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <div id="fullscreenOverlay" class="fullscreen-overlay" onclick="closeFullscreen()">
-                        <img id="fullscreenImage" src="" alt="Full Image">
-                    </div>
-
-                    <script>
-                        function openFullscreen(imgElement) {
-                            const overlay = document.getElementById('fullscreenOverlay');
-                            const fullscreenImg = document.getElementById('fullscreenImage');
-                            fullscreenImg.src = imgElement.src;
-                            overlay.style.display = 'flex';
-                        }
-
-                        function closeFullscreen() {
-                            const overlay = document.getElementById('fullscreenOverlay');
-                            overlay.style.display = 'none';
-                            document.getElementById('fullscreenImage').src = '';
-                        }
-                    </script>
-
-                    <div class="mb-3">
-                        <label for="address_ktp" class="form-label">Alamat KTP</label>
-                        <textarea disabled class="form-control" name="address_ktp" rows="5"><?= htmlspecialchars($partner['address_ktp']) ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="address_domicile" class="form-label">Alamat Saat Ini</label>
-                        <textarea disabled class="form-control" name="address_domicile" rows="5"><?= htmlspecialchars($partner['address_domicile']) ?></textarea>
-                    </div>
-                </form>
+                </div>
+                <hr class="my-3">
+                <div class="row">
+                    <div class="col-12 col-md-3 mb-3"><strong>Alamat KTP</strong></div>
+                    <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($partner['address_ktp']) ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row">
+                    <div class="col-12 col-md-3 mb-3"><strong>Alamat Saat Ini</strong></div>
+                    <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($partner['address_domicile']) ?></div>
+                </div>
             </div>
         </div>
     </div>

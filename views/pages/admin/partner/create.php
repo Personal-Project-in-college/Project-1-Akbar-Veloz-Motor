@@ -5,6 +5,8 @@ include '../../../../helpers/functionCheckLogin.php';
 checkLogin();
 include '../../../../helpers/functionCheckRole.php';
 include '../../../../helpers/functionGenerateSlug.php';
+include '../../../../helpers/functionResizeImage.php';
+include '../../../../helpers/functionResizeImageKTP.php';
 
 $error = '';
 $nameError = '';
