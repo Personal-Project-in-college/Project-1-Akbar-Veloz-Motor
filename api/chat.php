@@ -160,235 +160,232 @@ switch ($action) {
         break;
 
 
-  case 'send_message':
-    $message_text = $input['message'] ?? '';
-    $session_id = $input['session_id'] ?? '';
-    $sender_type = $input['sender_type'] ?? '';
+    case 'send_message':
+        $message_text = $input['message'] ?? '';
+        $session_id = $input['session_id'] ?? '';
+        $sender_type = $input['sender_type'] ?? '';
 
-    if (empty($message_text) || empty($session_id) || empty($sender_type)) {
-        echo json_encode(['success' => false, 'message' => 'Pesan, ID sesi, atau tipe pengirim tidak boleh kosong.']);
-        exit();
-    }
-
-    $sender_id = null;
-    $is_read_by_user = 0;
-    $is_read_by_customer = 0;
-
-    if ($sender_type === 'customer') {
-        if (!checkCustomerAuth($pdo)) {
+        if (empty($message_text) || empty($session_id) || empty($sender_type)) {
+            echo json_encode(['success' => false, 'message' => 'Pesan, ID sesi, atau tipe pengirim tidak boleh kosong.']);
             exit();
         }
-        $sender_id = $_SESSION['customer_id'];
-        $is_read_by_user = 0;
-        $is_read_by_customer = 1;
 
-        $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'pending', last_customer_activity = NOW() WHERE session_id = ? AND status != 'closed'");
-        $stmt_update_session->execute([$session_id]);
-    } elseif ($sender_type === 'user') {
-        $sender_id = $_SESSION['user_id'] ?? 0;
-        $is_read_by_user = 1;
+        $sender_id = null;
+        $is_read_by_user = 0;
         $is_read_by_customer = 0;
 
-        try {
-            $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'open', user_id = ?, closed_at = NULL WHERE session_id = ? AND (status = 'pending' OR user_id IS NULL)");
-            $stmt_update_session->execute([$sender_id, $session_id]);
-        } catch (\PDOException $e) {
-            // Handle exception if needed
-        }
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Tipe pengirim tidak valid.']);
-        exit();
-    }
-
-    try {
-        $stmt = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
-        // Menggunakan htmlspecialchars untuk pesan yang dikirim pengguna agar aman disimpan
-        $stmt->execute([$session_id, $sender_id, $sender_type, htmlspecialchars($message_text), (int)$is_read_by_user, (int)$is_read_by_customer]);
-
-        $ai_response = null;
-        $ai_responses = [];
-
         if ($sender_type === 'customer') {
-
-            if (trim($message_text) === 'Motor dengan Budget Murah!') {
-                echo json_encode(['success' => true, 'message' => 'Pesan pemicu negosiasi diterima.']);
+            if (!checkCustomerAuth($pdo)) {
                 exit();
             }
+            $sender_id = $_SESSION['customer_id'];
+            $is_read_by_user = 0;
+            $is_read_by_customer = 1;
 
-            $activity_threshold_seconds = 60;
-            $activity_threshold_time = date('Y-m-d H:i:s', time() - $activity_threshold_seconds);
-            $stmt_admin = $pdo->prepare("SELECT COUNT(*) FROM users WHERE is_online = TRUE AND last_activity >= ?");
-            $stmt_admin->execute([$activity_threshold_time]);
-            $is_admin_available = $stmt_admin->fetchColumn() > 0;
+            $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'pending', last_customer_activity = NOW() WHERE session_id = ? AND status != 'closed'");
+            $stmt_update_session->execute([$session_id]);
+        } elseif ($sender_type === 'user') {
+            $sender_id = $_SESSION['user_id'] ?? 0;
+            $is_read_by_user = 1;
+            $is_read_by_customer = 0;
 
-            if (!$is_admin_available) {
-                $gemini_api_key = $env["GEMINI_API_KEY"];
+            try {
+                $stmt_update_session = $pdo->prepare("UPDATE chat_sessions SET status = 'open', user_id = ?, closed_at = NULL WHERE session_id = ? AND (status = 'pending' OR user_id IS NULL)");
+                $stmt_update_session->execute([$sender_id, $session_id]);
+            } catch (\PDOException $e) {
+                // Handle exception if needed
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Tipe pengirim tidak valid.']);
+            exit();
+        }
 
-                $stmt_history = $pdo->prepare("SELECT sender_type, message_text FROM messages WHERE chat_session_id = ? ORDER BY timestamp DESC LIMIT 5");
-                $stmt_history->execute([$session_id]);
-                $history = $stmt_history->fetchAll(PDO::FETCH_ASSOC);
-                $chat_history_for_prompt = "";
-                foreach (array_reverse($history) as $msg) {
-                    // Pastikan riwayat percakapan tidak ter-escape HTML jika memang ada HTML yang disengaja sebelumnya
-                    $role = ($msg['sender_type'] === 'customer') ? "user" : "model";
-                    $chat_history_for_prompt .= "{$role}: {$msg['message_text']}\n";
+        try {
+            $stmt = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
+            // Menggunakan htmlspecialchars untuk pesan yang dikirim pengguna agar aman disimpan
+            $stmt->execute([$session_id, $sender_id, $sender_type, htmlspecialchars($message_text), (int)$is_read_by_user, (int)$is_read_by_customer]);
+
+            $ai_response = null;
+            $ai_responses = [];
+
+            if ($sender_type === 'customer') {
+
+                if (trim($message_text) === 'Motor dengan Budget Murah!') {
+                    echo json_encode(['success' => true, 'message' => 'Pesan pemicu negosiasi diterima.']);
+                    exit();
                 }
 
-                $db_context = "";
+                $activity_threshold_seconds = 60;
+                $activity_threshold_time = date('Y-m-d H:i:s', time() - $activity_threshold_seconds);
+                $stmt_admin = $pdo->prepare("SELECT COUNT(*) FROM users WHERE is_online = TRUE AND last_activity >= ?");
+                $stmt_admin->execute([$activity_threshold_time]);
+                $is_admin_available = $stmt_admin->fetchColumn() > 0;
 
-                // ==== Cek Keyword kendaraan ====
-                $keywords = ['tersedia', 'ada', 'harga', 'termurah', 'termahal', 'dijual', 'rekomendasi', 'kendaraan', 'akhir tahun'];
-                $found_keyword = false;
-                foreach ($keywords as $keyword) {
-                    if (stripos($message_text, $keyword) !== false) {
-                        $found_keyword = true;
-                        break;
-                    }
-                }
+                if (!$is_admin_available) {
+                    $gemini_api_key = $env["GEMINI_API_KEY"];
 
-                if ($found_keyword) {
-                    $query = "SELECT v.id, vm.name AS model_name, b.name AS brand_name, v.price_displayed, v.status, v.production_year FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id JOIN brands b ON vm.brand_id = b.id WHERE v.status = 'available' ORDER BY v.price_displayed ASC LIMIT 5";
-                    if (stripos($message_text, 'termahal') !== false) {
-                        $query = str_replace('ASC', 'DESC', $query);
-                    }
-                    $stmt_vehicles = $pdo->query($query);
-                    $vehicles_data = $stmt_vehicles->fetchAll(PDO::FETCH_ASSOC);
-                    if ($vehicles_data) {
-                        $db_context .= "Berikut adalah data kendaraan dari database: " . json_encode($vehicles_data);
-                    }
-                }
-
-                // ==== Cek Keyword pembayaran ====
-                $payment_keywords = ['pembayaran', 'bayar', 'transfer', 'metode', 'cicilan', 'tunai'];
-                $found_payment = false;
-                foreach ($payment_keywords as $keyword) {
-                    if (stripos($message_text, $keyword) !== false) {
-                        $found_payment = true;
-                        break;
-                    }
-                }
-
-                if ($found_payment) {
-                    $stmt_banks = $pdo->query("SELECT bank_name, account_number, account_name FROM banks WHERE is_active = 1");
-                    $banks_data = $stmt_banks->fetchAll(PDO::FETCH_ASSOC);
-                    if ($banks_data) {
-                        $db_context .= "\nBerikut data bank untuk metode transfer: " . json_encode($banks_data) . ".";
-                    }
-                }
-
-                $prompt = "Kamu adalah 'SiVeloz', asisten AI customer service untuk dealer kendaraan 'Akbar Veloz Motor'. Jawab dengan ramah, informatif, dan dalam Bahasa Indonesia.
-
----
-
-Aturan dan Pengetahuanmu:
-
-1.  Jawaban tidak boleh mengandung simbol bintang (*). Selalu gunakan tag HTML `<ul><li>...</li></ul>` untuk daftar atau paragraf rapi. Jangan gunakan simbol bullet point non-HTML.
-2.  Nama kamu adalah SiVeloz.
-3.  Jika disapa 'pagi', 'siang', 'sore', balas dengan ramah sesuai waktu.
-4.  Pemesanan Test Drive/Transaksi bisa dilakukan melalui:
-    <ul>
-        <li>Form di halaman 'Hubungi Kami' di website</li>
-        <li>Atau langsung lewat chat ini dengan melakukan negosiasi terlebih dahulu.</li>
-    </ul>
-5.  Jika pengguna menyebut kata 'negosiasi', 'menawar', atau 'budget':
-    - Balas dengan dua bagian:
-        1. Tuliskan: Untuk melakukan negosiasi klik opsi Motor dengan Budget Murah!
-        2. Baris baru: [TRIGGER_NEGOTIATION]
-6.  Jawab pertanyaan kendaraan menggunakan data dari database jika tersedia.
-7.  Jika pengguna menanyakan terkait Rekomendasi Kendaraan Akhir Tahun, rekomendasikan kendaraan yang cocok. Sajikan informasi dalam format daftar menggunakan tag HTML `<ul>` dan `<li>`. Contoh:
-    <ul>
-        <li>[Nama Kendaraan 1]: [Deskripsi/Harga]</li>
-        <li>[Nama Kendaraan 2]: [Deskripsi/Harga]</li>
-    </ul>
-8.  Jika ditanya cara pembayaran, jelaskan:
-    Tersedia 2 cara: lunas dan cicilan.
-    Metode pembayaran: tunai, Midtrans, dan transfer bank.
-    Jika transfer bank, tampilkan daftar bank aktif dari database dalam format daftar menggunakan tag HTML `<ul>` dan `<li>`:
-    <ul>
-        <li>Nama Bank: [Nama Bank]<br>Nomor Rekening: [Nomor Rekening]<br>Atas Nama: [Atas Nama]</li>
-        <li>Nama Bank: [Nama Bank Lain]<br>Nomor Rekening: [Nomor Rekening Lain]<br>Atas Nama: [Atas Nama Lain]</li>
-    </ul>
-9.  Jika ditanya lokasi showroom, jawab:
-    Kami memiliki 2 cabang:
-    <ul>
-        <li>Cabang utama berada di lokasi Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec. Pagaden Barat, Kab. Subang 41252 <a href='https://www.google.com/maps/@-6.4628592,107.7643725,3a,90y,13.15h,84.51t/data=!3m7!1e1!3m5!1sHrNH-CcwovEzFNZ4uIS6Cg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D5.489226069246428%26panoid%3DHrNH-CcwovEzFNZ4uIS6Cg%26yaw%3D13.148024439918533!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D' target='_blank'>Lihat di Google Maps</a></li>
-        <li>Cabang kedua berada di lokasi Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec. Pagaden Barat, Kab. Subang 41252 <a href='https://www.google.com/maps/@-6.4551631,107.8118004,3a,75y,45.3h,78.35t/data=!3m7!1e1!3m5!1s8CGjmLx-pEK_phI4QiPApA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D11.650000000000006%26panoid%3D8CGjmLx-pEK_phI4QiPApA%26yaw%3D45.3!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D' target='_blank'>Lihat di Google Maps</a></li>
-    </ul>
-10. Jika kamu tidak tahu jawabannya, cukup katakan: 'Maaf, untuk pertanyaan tersebut, silakan tunggu balasan dari admin kami ya.'
-
----
-
-Konteks Data dari Database (jika ada):
-
-{$db_context}
-
----
-
-Riwayat Percakapan Terakhir:
-
-{$chat_history_for_prompt}
-
----
-
-Pertanyaan Pengguna Sekarang:
-
-user: {$message_text}
-
----
-
-Jawabanmu (sebagai SiVeloz):
-
-model: ";
-
-                $gemini_response = callGeminiAPI($gemini_api_key, $prompt);
-
-                if ($gemini_response) {
-                    $responses = explode('[TRIGGER_NEGOTIATION]', $gemini_response);
-                    $message_clean = trim($responses[0]);
-
-                    // Perbaikan: Hanya htmlspecialchars jika bukan tag HTML yang disengaja
-                    // Ini adalah contoh sederhana, untuk produksi disarankan menggunakan pustaka sanitasi HTML yang lebih robust.
-                    // Menambahkan pengecekan untuk <ul> dan <li>
-                    $final_message_text = $message_clean;
-                    if (!preg_match('/<a\s+href=.*?>.*?<\/a>/i', $message_clean) && !preg_match('/<ul.*?>.*?<\/ul>/is', $message_clean) && !preg_match('/<ol.*?>.*?<\/ol>/is', $message_clean)) {
-                        $final_message_text = htmlspecialchars($message_clean);
+                    $stmt_history = $pdo->prepare("SELECT sender_type, message_text FROM messages WHERE chat_session_id = ? ORDER BY timestamp DESC LIMIT 5");
+                    $stmt_history->execute([$session_id]);
+                    $history = $stmt_history->fetchAll(PDO::FETCH_ASSOC);
+                    $chat_history_for_prompt = "";
+                    foreach (array_reverse($history) as $msg) {
+                        // Pastikan riwayat percakapan tidak ter-escape HTML jika memang ada HTML yang disengaja sebelumnya
+                        $role = ($msg['sender_type'] === 'customer') ? "user" : "model";
+                        $chat_history_for_prompt .= "{$role}: {$msg['message_text']}\n";
                     }
 
+                    $db_context = "";
 
-                    if (!empty($final_message_text)) {
-                        $stmt_ai_text = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, 0, 1)");
-                        $stmt_ai_text->execute([$session_id, $sender_id, $final_message_text]);
-                        $ai_responses[] = [
-                            'message_text' => $final_message_text,
-                            'sender_type' => 'bot'
-                        ];
+                    //  Cek Keyword kendaraan 
+                    $keywords = ['tersedia', 'ada', 'harga', 'termurah', 'termahal', 'dijual', 'rekomendasi', 'kendaraan', 'akhir tahun'];
+                    $found_keyword = false;
+                    foreach ($keywords as $keyword) {
+                        if (stripos($message_text, $keyword) !== false) {
+                            $found_keyword = true;
+                            break;
+                        }
                     }
 
-                    if (count($responses) > 1 || str_contains($gemini_response, '[TRIGGER_NEGOTIATION]')) {
-                        $trigger_response = '<strong>Cari motor sesuai budget?</strong><div class="promo-card" data-target="budget"><h4>Motor dengan Budget Murah!</h4><p>Temukan motor sesuai budget Anda</p></div>';
+                    if ($found_keyword) {
+                        $query = "SELECT v.id, vm.name AS model_name, b.name AS brand_name, v.price_displayed, v.status, v.production_year FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id JOIN brands b ON vm.brand_id = b.id WHERE v.status = 'available' ORDER BY v.price_displayed ASC LIMIT 5";
+                        if (stripos($message_text, 'termahal') !== false) {
+                            $query = str_replace('ASC', 'DESC', $query);
+                        }
+                        $stmt_vehicles = $pdo->query($query);
+                        $vehicles_data = $stmt_vehicles->fetchAll(PDO::FETCH_ASSOC);
+                        if ($vehicles_data) {
+                            $db_context .= "Berikut adalah data kendaraan dari database: " . json_encode($vehicles_data);
+                        }
+                    }
 
-                        $stmt_trigger = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, 0, 1)");
-                        $stmt_trigger->execute([$session_id, $sender_id, $trigger_response]);
+                    // Cek Keyword pembayaran 
+                    $payment_keywords = ['pembayaran', 'bayar', 'transfer', 'metode', 'cicilan', 'tunai'];
+                    $found_payment = false;
+                    foreach ($payment_keywords as $keyword) {
+                        if (stripos($message_text, $keyword) !== false) {
+                            $found_payment = true;
+                            break;
+                        }
+                    }
 
-                        $ai_responses[] = [
-                            'message_text' => $trigger_response,
-                            'sender_type' => 'bot'
-                        ];
+                    if ($found_payment) {
+                        $stmt_banks = $pdo->query("SELECT bank_name, account_number, account_name FROM banks WHERE is_active = 1");
+                        $banks_data = $stmt_banks->fetchAll(PDO::FETCH_ASSOC);
+                        if ($banks_data) {
+                            $db_context .= "\nBerikut data bank untuk metode transfer: " . json_encode($banks_data) . ".";
+                        }
+                    }
+
+                    $prompt = "Kamu adalah 'SiVeloz', asisten AI customer service untuk dealer kendaraan 'Akbar Veloz Motor'. Jawab dengan ramah, informatif, dan dalam Bahasa Indonesia.
+
+                    ---
+
+                    Aturan dan Pengetahuanmu:
+
+                    1.  Jawaban tidak boleh mengandung simbol bintang (*). Selalu gunakan tag HTML `<ul><li>...</li></ul>` untuk daftar atau paragraf rapi. Jangan gunakan simbol bullet point non-HTML.
+                    2.  Nama kamu adalah SiVeloz.
+                    3.  Jika disapa 'pagi', 'siang', 'sore', balas dengan ramah sesuai waktu.
+                    4.  Pemesanan Test Drive/Transaksi bisa dilakukan melalui:
+                        <ul>
+                            <li>Form di halaman 'Hubungi Kami' di website</li>
+                            <li>Atau langsung lewat chat ini dengan melakukan negosiasi terlebih dahulu.</li>
+                        </ul>
+                    5.  Jika pengguna menyebut kata 'negosiasi', 'menawar', atau 'budget':
+                        - Balas dengan dua bagian:
+                            1. Tuliskan: Untuk melakukan negosiasi klik opsi Motor dengan Budget Murah!
+                            2. Baris baru: [TRIGGER_NEGOTIATION]
+                    6.  Jawab pertanyaan kendaraan menggunakan data dari database jika tersedia.
+                    7.  Jika pengguna menanyakan terkait Rekomendasi Kendaraan Akhir Tahun, rekomendasikan kendaraan yang cocok. Sajikan informasi dalam format daftar menggunakan tag HTML `<ul>` dan `<li>`. Contoh:
+                        <ul>
+                            <li>[Nama Kendaraan 1]: [Deskripsi/Harga]</li>
+                            <li>[Nama Kendaraan 2]: [Deskripsi/Harga]</li>
+                        </ul>
+                    8.  Jika ditanya cara pembayaran, jelaskan:
+                        Tersedia 2 cara: lunas dan cicilan.
+                        Metode pembayaran: tunai, Midtrans, dan transfer bank.
+                        Jika transfer bank, tampilkan daftar bank aktif dari database dalam format daftar menggunakan tag HTML `<ul>` dan `<li>`:
+                        <ul>
+                            <li>Nama Bank: [Nama Bank]<br>Nomor Rekening: [Nomor Rekening]<br>Atas Nama: [Atas Nama]</li>
+                            <li>Nama Bank: [Nama Bank Lain]<br>Nomor Rekening: [Nomor Rekening Lain]<br>Atas Nama: [Atas Nama Lain]</li>
+                        </ul>
+                    9.  Jika ditanya lokasi showroom, jawab:
+                        Kami memiliki 2 cabang:
+                        <ul>
+                            <li>Cabang utama berada di lokasi Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec. Pagaden Barat, Kab. Subang 41252 <a href='https://www.google.com/maps/@-6.4628592,107.7643725,3a,90y,13.15h,84.51t/data=!3m7!1e1!3m5!1sHrNH-CcwovEzFNZ4uIS6Cg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D5.489226069246428%26panoid%3DHrNH-CcwovEzFNZ4uIS6Cg%26yaw%3D13.148024439918533!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D' target='_blank'>Lihat di Google Maps</a></li>
+                            <li>Cabang kedua berada di lokasi Jl. Subang Pamanukan No.224, Pagaden, Kec. Pagaden, Kabupaten Subang, Jawa Barat 41252 <a href='https://www.google.com/maps/@-6.4551631,107.8118004,3a,75y,45.3h,78.35t/data=!3m7!1e1!3m5!1s8CGjmLx-pEK_phI4QiPApA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D11.650000000000006%26panoid%3D8CGjmLx-pEK_phI4QiPApA%26yaw%3D45.3!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D' target='_blank'>Lihat di Google Maps</a></li>
+                        </ul>
+                    10. Jika kamu tidak tahu jawabannya, cukup katakan: 'Maaf, untuk pertanyaan tersebut, silakan tunggu balasan dari admin kami ya.'
+
+                    ---
+
+                    Konteks Data dari Database (jika ada):
+
+                    {$db_context}
+
+                    ---
+
+                    Riwayat Percakapan Terakhir:
+
+                    {$chat_history_for_prompt}
+
+                    ---
+
+                    Pertanyaan Pengguna Sekarang:
+
+                    user: {$message_text}
+
+                    ---
+
+                    Jawabanmu (sebagai SiVeloz):
+
+                    model: ";
+
+                    $gemini_response = callGeminiAPI($gemini_api_key, $prompt);
+
+                    if ($gemini_response) {
+                        $responses = explode('[TRIGGER_NEGOTIATION]', $gemini_response);
+                        $message_clean = trim($responses[0]);
+
+                        $final_message_text = $message_clean;
+                        if (!preg_match('/<a\s+href=.*?>.*?<\/a>/i', $message_clean) && !preg_match('/<ul.*?>.*?<\/ul>/is', $message_clean) && !preg_match('/<ol.*?>.*?<\/ol>/is', $message_clean)) {
+                            $final_message_text = htmlspecialchars($message_clean);
+                        }
+
+
+                        if (!empty($final_message_text)) {
+                            $stmt_ai_text = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, 0, 1)");
+                            $stmt_ai_text->execute([$session_id, $sender_id, $final_message_text]);
+                            $ai_responses[] = [
+                                'message_text' => $final_message_text,
+                                'sender_type' => 'bot'
+                            ];
+                        }
+
+                        if (count($responses) > 1 || str_contains($gemini_response, '[TRIGGER_NEGOTIATION]')) {
+                            $trigger_response = '<strong>Cari motor sesuai budget?</strong><div class="promo-card" data-target="budget"><h4>Motor dengan Budget Murah!</h4><p>Temukan motor sesuai budget Anda</p></div>';
+
+                            $stmt_trigger = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, 0, 1)");
+                            $stmt_trigger->execute([$session_id, $sender_id, $trigger_response]);
+
+                            $ai_responses[] = [
+                                'message_text' => $trigger_response,
+                                'sender_type' => 'bot'
+                            ];
+                        }
                     }
                 }
             }
-        }
 
-        $response_data = ['success' => true, 'message' => 'Pesan berhasil dikirim.'];
-        if (!empty($ai_responses)) {
-            $response_data['ai_messages'] = $ai_responses;
-        }
+            $response_data = ['success' => true, 'message' => 'Pesan berhasil dikirim.'];
+            if (!empty($ai_responses)) {
+                $response_data['ai_messages'] = $ai_responses;
+            }
 
-        echo json_encode($response_data);
-    } catch (\PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Gagal mengirim pesan: ' . $e->getMessage()]);
-    }
-    break;
+            echo json_encode($response_data);
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Gagal mengirim pesan: ' . $e->getMessage()]);
+        }
+        break;
 
 
     case 'get_history':
@@ -826,89 +823,93 @@ model: ";
         }
         break;
 
-    case 'submit_negotiation_offer':
-        if (!checkCustomerAuth($pdo)) {
+  case 'submit_negotiation_offer':
+    if (!checkCustomerAuth($pdo)) {
+        exit();
+    }
+
+    $session_id = $input['session_id'] ?? '';
+    $vehicle_id = $input['vehicle_id'] ?? null;
+    $offer_amount = $input['offer_amount'] ?? null;
+    $customer_message_text = $input['customer_message_text'] ?? '';
+
+    $missing_fields = [];
+    if (empty($session_id)) $missing_fields[] = 'session_id';
+    if (empty($vehicle_id)) $missing_fields[] = 'vehicle_id';
+    if (!isset($offer_amount) || !is_numeric($offer_amount) || $offer_amount < 0) $missing_fields[] = 'offer_amount (invalid/missing)';
+    if (empty($customer_message_text)) $missing_fields[] = 'customer_message_text';
+
+    if (!empty($missing_fields)) {
+        echo json_encode(['success' => false, 'message' => 'Gagal memproses penawaran: Data negosiasi tidak lengkap.']);
+        exit();
+    }
+
+    try {
+        $stmt_vehicle = $pdo->prepare("
+            SELECT
+                v.price_displayed,
+                v.lowest_price,
+                vm.name AS vehicle_model_name,
+                b.name AS brand_name,
+                v.id AS vehicle_plate_id
+            FROM
+                vehicles v
+            JOIN
+                vehicle_models vm ON v.vehicle_model_id = vm.id
+            JOIN
+                brands b ON vm.brand_id = b.id
+            WHERE
+                v.id = ?
+        ");
+        $stmt_vehicle->execute([$vehicle_id]);
+        $vehicle = $stmt_vehicle->fetch(PDO::FETCH_ASSOC);
+
+        if (!$vehicle) {
+            echo json_encode(['success' => false, 'message' => 'Kendaraan tidak ditemukan.']);
             exit();
         }
 
-        $session_id = $input['session_id'] ?? '';
-        $vehicle_id = $input['vehicle_id'] ?? null;
-        $offer_amount = $input['offer_amount'] ?? null;
-        $customer_message_text = $input['customer_message_text'] ?? '';
+        $actual_price = $vehicle['price_displayed'];
+        $min_acceptable_price = $vehicle['lowest_price'];
 
-        $missing_fields = [];
-        if (empty($session_id)) $missing_fields[] = 'session_id';
-        if (empty($vehicle_id)) $missing_fields[] = 'vehicle_id';
-        if (!isset($offer_amount) || !is_numeric($offer_amount) || $offer_amount < 0) $missing_fields[] = 'offer_amount (invalid/missing)';
-        if (empty($customer_message_text)) $missing_fields[] = 'customer_message_text';
+        $customer_id = $_SESSION['customer_id'];
 
-        if (!empty($missing_fields)) {
-            echo json_encode(['success' => false, 'message' => 'Gagal memproses penawaran: Data negosiasi tidak lengkap.']);
-            exit();
+        $stmt_insert_customer_message = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt_insert_customer_message->execute([$session_id, $customer_id, 'customer', $customer_message_text, 0, 1]);
+
+
+        $response_message_customer_html = '';
+        $response_message_admin_text = '';
+        $full_vehicle_name = $vehicle['vehicle_plate_id'] . ' - ' . htmlspecialchars($vehicle['brand_name']) . ' ' . htmlspecialchars($vehicle['vehicle_model_name']);
+
+        if ($offer_amount >= $min_acceptable_price) {
+            // Simpan negotiated_price ke session
+            $_SESSION['negotiated_price_' . $vehicle_id] = $offer_amount; 
+            $_SESSION['last_negotiated_vehicle_id'] = $vehicle_id; 
+
+            $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '">Lanjut Transaksi</button>';
+            $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
+        } else {
+            $response_message_customer_html = '<strong>Penawaran DITOLAK</strong><p>Maaf, penawaran Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' terlalu rendah.</p><button class="negotiation-btn" data-action="tryAgain">Coba Lagi</button><button class="negotiation-btn" data-action="selectOtherVehicle">Pilih Kendaraan Lain</button>';
+            $response_message_admin_text = 'Penawaran DITOLAK untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Terlalu rendah.';
         }
 
-        try {
-            $stmt_vehicle = $pdo->prepare("
-                SELECT
-                    v.price_displayed,
-                    v.lowest_price,
-                    vm.name AS vehicle_model_name,
-                    b.name AS brand_name,
-                    v.id AS vehicle_plate_id
-                FROM
-                    vehicles v
-                JOIN
-                    vehicle_models vm ON v.vehicle_model_id = vm.id
-                JOIN
-                    brands b ON vm.brand_id = b.id
-                WHERE
-                    v.id = ?
-            ");
-            $stmt_vehicle->execute([$vehicle_id]);
-            $vehicle = $stmt_vehicle->fetch(PDO::FETCH_ASSOC);
+        $stmt_insert_bot_message_for_customer = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, ?, ?)");
+        $stmt_insert_bot_message_for_customer->execute([$session_id, $customer_id, $response_message_customer_html, 0, 1]);
 
-            if (!$vehicle) {
-                echo json_encode(['success' => false, 'message' => 'Kendaraan tidak ditemukan.']);
-                exit();
-            }
-
-            $actual_price = $vehicle['price_displayed'];
-            $min_acceptable_price = $vehicle['lowest_price'];
-
-            $customer_id = $_SESSION['customer_id'];
-
-            $stmt_insert_customer_message = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt_insert_customer_message->execute([$session_id, $customer_id, 'customer', $customer_message_text, 0, 1]);
+        $stmt_insert_bot_message_for_admin = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, ?, ?)");
+        $stmt_insert_bot_message_for_admin->execute([$session_id, $customer_id, $response_message_admin_text, 0, 0]);
 
 
-            $response_message_customer_html = '';
-            $response_message_admin_text = '';
-            $full_vehicle_name = $vehicle['vehicle_plate_id'] . ' - ' . htmlspecialchars($vehicle['brand_name']) . ' ' . htmlspecialchars($vehicle['vehicle_model_name']);
-
-            if ($offer_amount >= $min_acceptable_price) {
-                $response_message_customer_html = '<strong>Penawaran DITERIMA!</strong><p>Penawaran Anda Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' diterima.</p><button class="negotiation-btn" data-action="testDrive" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Test Drive</button><button class="negotiation-btn" data-action="continueTransaction" data-vehicle-id="' . htmlspecialchars($vehicle_id) . '" data-negotiated-price="' . htmlspecialchars($offer_amount) . '">Lanjut Transaksi</button>';
-                $response_message_admin_text = 'Penawaran DITERIMA untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Pelanggan diminta Klik "Lanjut Transaksi" atau "Lanjut Test Drive".';
-            } else {
-                $response_message_customer_html = '<strong>Penawaran DITOLAK</strong><p>Maaf, penawaran Rp' . number_format($offer_amount, 0, ',', '.') . ' untuk ' . $full_vehicle_name . ' terlalu rendah.</p><button class="negotiation-btn" data-action="tryAgain">Coba Lagi</button><button class="negotiation-btn" data-action="selectOtherVehicle">Pilih Kendaraan Lain</button>';
-                $response_message_admin_text = 'Penawaran DITOLAK untuk ' . $full_vehicle_name . '. Nominal: Rp' . number_format($offer_amount, 0, ',', '.') . '. Terlalu rendah.';
-            }
-
-            $stmt_insert_bot_message_for_customer = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, ?, ?)");
-            $stmt_insert_bot_message_for_customer->execute([$session_id, $customer_id, $response_message_customer_html, 0, 1]);
-
-            $stmt_insert_bot_message_for_admin = $pdo->prepare("INSERT INTO messages (chat_session_id, sender_id, sender_type, message_text, is_read_by_user, is_read_by_customer) VALUES (?, ?, 'bot', ?, ?, ?)");
-            $stmt_insert_bot_message_for_admin->execute([$session_id, $customer_id, $response_message_admin_text, 0, 0]);
-
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Penawaran berhasil diajukan.',
-                'customer_bot_response_html' => $response_message_customer_html
-            ]);
-        } catch (\PDOException $e) {
-            echo json_encode(['success' => false, 'message' => 'Gagal mengajukan penawaran: ' . $e->getMessage()]);
-        }
-        break;
+        echo json_encode([
+            'success' => true,
+            'message' => 'Penawaran berhasil diajukan.',
+            'customer_bot_response_html' => $response_message_customer_html
+        ]);
+    } catch (\PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Gagal mengajukan penawaran: ' . $e->getMessage()]);
+    }
+    break;
 
         // case 'create_test_drive_order':
         //     if (!checkCustomerAuth($pdo)) {

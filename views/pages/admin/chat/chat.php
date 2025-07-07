@@ -57,7 +57,7 @@ include '../layout/header.php';
             <div class="selectedChatView" id="selectedChatView" style="display: none; flex-direction: column; flex-grow: 1;">
                 <div class="chat-header">
                     <div class="chat-header-left">
-                        <img src="../../../../assets/images/profile-picture/the-winner.jpeg" alt="Customer Avatar" style="width:40px; height:40px; border-radius:50%; margin-right:10px;" />
+                        <img src="../../../../assets/images/profile-picture/image4.png" alt="Customer Avatar" style="width:40px; height:40px; border-radius:50%; margin-right:10px;" />
                         <div>
                             <h3 id="currentCustomerName" style="margin:0;"></h3>
                             <p style="margin:0;"><span id="currentChatStatus" class="user-status"></span></p>

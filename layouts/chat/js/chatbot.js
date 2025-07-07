@@ -152,9 +152,7 @@ function attachNegotiationListeners(containerId) {
           action === "testDrive" ? "test_driver" : "transaction";
         const url = `contact-us.php?vehicle_id=${encodeURIComponent(
           vehicleId
-        )}&type_order=${encodeURIComponent(
-          typeOrder
-        )}&negotiated_price=${encodeURIComponent(negotiatedPrice)}`;
+        )}&type_order=${encodeURIComponent(typeOrder)}`;
         window.location.href = url;
       } else if (action === "newNegotiation") {
         resetNegotiation();

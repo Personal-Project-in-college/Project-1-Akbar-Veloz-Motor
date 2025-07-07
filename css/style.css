@@ -1690,12 +1690,21 @@ footer {
 
 .testDriveForm {
   display: flex;
-  flex-direction: row;
-  gap: 20px;
+  flex-direction: column;
   padding: 20px ;
   background-color: var(--white-color);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+}
+
+.wrap-input-test-drive{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  max-height: max-content;
+  padding: 0px;
+  margin-bottom: -20px;
 }
 
 .testDrive-container {
@@ -1836,6 +1845,11 @@ footer {
   .testDriveForm {
     flex-direction: column;
   }
+  
+  .wrap-input-test-drive{
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
 
   .testDrive-container {
     width: 100%;
@@ -1914,7 +1928,6 @@ footer {
 .modern-datepicker {
   width: 100%;
   min-height:100%;
-  padding: 1.2em ;
   font-size: 100%;
   border: 2px solid rgb(200, 200, 200);
   border-radius: 8px;
@@ -1964,6 +1977,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   transition: all 0.3s ease;
   padding-right: 2.5em;
   font-size: 14px;
+  margin-top: -10px;
 }
 
 .modern-location:focus {

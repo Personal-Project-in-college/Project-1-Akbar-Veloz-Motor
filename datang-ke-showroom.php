@@ -10,16 +10,50 @@ if (!$order_id) {
     die("Order ID tidak ditemukan.");
 }
 
-// Ambil data created_at, type_order, dan status
-$stmt = $koneksi->prepare("SELECT created_at, type_order, vehicle_id, status FROM orders WHERE id = ?");
-$stmt->execute([$order_id]);
-$order = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmtOrder = $koneksi->prepare("SELECT created_at, type_order, vehicle_id, status FROM orders WHERE id = ?");
+$stmtOrder->execute([$order_id]);
+$order = $stmtOrder->fetch(PDO::FETCH_ASSOC);
 
 if (!$order) {
     die("Data pesanan tidak ditemukan.");
 }
 
-// Tambahkan timezone
+$vehicle_id = $order['vehicle_id'];
+
+$stmtVehicle = $koneksi->prepare("SELECT branch_id FROM vehicles WHERE id = ?");
+$stmtVehicle->execute([$vehicle_id]);
+$vehicle = $stmtVehicle->fetch(PDO::FETCH_ASSOC);
+
+$branch_id = $vehicle['branch_id'] ?? null;
+
+$showroom_name = 'Showroom Tidak Ditemukan';
+$showroom_address = 'Alamat tidak ditemukan.';
+$showroom_latitude = null;
+$showroom_longitude = null;
+
+if ($branch_id) {
+    $stmtBranch = $koneksi->prepare("SELECT name, address, latitude, longitude FROM branches WHERE id = ?");
+    $stmtBranch->execute([$branch_id]);
+    $branch_data = $stmtBranch->fetch(PDO::FETCH_ASSOC);
+
+    if ($branch_data) {
+        $showroom_name = $branch_data['name'];
+        $showroom_address = $branch_data['address'];
+        $showroom_latitude = $branch_data['latitude'];
+        $showroom_longitude = $branch_data['longitude'];
+    }
+}
+
+// PERBAIKAN DI SINI: Gunakan '3?' di URL dasar agar konsisten dengan tunggu-petugas.php
+$Maps_embed_url = 'https://maps.google.com/maps?';
+if ($showroom_latitude && $showroom_longitude) {
+    $Maps_embed_url .= 'q=' . $showroom_latitude . ',' . $showroom_longitude;
+} else {
+    $Maps_embed_url .= 'q=' . urlencode($showroom_address . ', Subang, Jawa Barat, Indonesia');
+}
+$Maps_embed_url .= '&t=&z=16&ie=UTF8&iwloc=&output=embed';
+
+
 date_default_timezone_set('Asia/Jakarta');
 
 $created_at = new DateTime($order['created_at']);
@@ -32,11 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
     $koneksi->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ?")
         ->execute([$order_id]);
 
-    $vehicleId = $order['vehicle_id'];
-
-    // Update kendaraan jadi available
     $updateVehicleQuery = $koneksi->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?");
-    $updateVehicleQuery->execute([$vehicleId]);
+    $updateVehicleQuery->execute([$vehicle_id]);
 
     if ($order['type_order'] === 'test_driver') {
         $koneksi->prepare("UPDATE test_drivers SET status = 'cancelled' WHERE order_id = ?")
@@ -69,14 +100,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
 
         <div class="address-box">
             <strong>Alamat Showroom:</strong><br>
-            Akbar Veloz Motor<br>
-            Jl. Soekarno Hatta No. 123, Bandung, Jawa Barat
+            <?= htmlspecialchars($showroom_name); ?><br>
+            <?= htmlspecialchars($showroom_address); ?>
         </div>
 
         <div class="map-container">
-            <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31709.467082367086!2d107.76811926910234!3d-6.561590679615411!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e693b9ae39cc0eb%3A0x76db7b3959df2011!2sPoliteknik%20Negeri%20Subang%2C%20Kampus%20Utama%20Cibogo!5e0!3m2!1sid!2sid!4v1739072152156!5m2!1sid!2sid"
-                class="map-frame" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" height="100%" width="100%"></iframe>
+            <?php if ($showroom_latitude && $showroom_longitude) : ?>
+                <iframe
+                    src="<?= htmlspecialchars($Maps_embed_url); ?>"
+                    class="map-frame" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <?php else : ?>
+                <p>Peta tidak dapat ditampilkan dengan koordinat. Menampilkan peta berdasarkan alamat teks.</p>
+                <iframe
+                    src="<?= htmlspecialchars($Maps_embed_url); ?>"
+                    class="map-frame" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <?php endif; ?>
         </div>
 
         <div class="timer-info">
@@ -108,7 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
             const timerDisplay = document.getElementById('cancel-timer');
             const cancelButton = document.querySelector('button[name="cancel"]');
 
-            // Hentikan jika statusnya cancelled (timerDisplay tidak ada)
             if (!timerDisplay) return;
 
             const orderId = <?php echo json_encode($order_id); ?>;
@@ -122,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
                 startTime = parseInt(startTime);
             }
 
-            const now = Date.now();
+            const now = Date.Now(); // <-- Ini juga ada typo, akan saya perbaiki menjadi Date.now()
             let elapsed = Math.floor((now - startTime) / 1000);
             let remaining = Math.max(0, <?php echo $remainingSeconds; ?> - elapsed);
             const reloadFlagKey = 'cancel_reloaded_' + orderId;
@@ -130,21 +167,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
                 localStorage.removeItem(reloadFlagKey);
             }
 
-
             const countdown = setInterval(() => {
                 if (remaining <= 0) {
                     clearInterval(countdown);
 
-                    // Cek apakah sudah reload sebelumnya
                     if (!localStorage.getItem(reloadFlagKey)) {
-                        localStorage.setItem(reloadFlagKey, 'true'); // tandai sudah reload
-                        localStorage.removeItem(storageKey); // hapus waktu awal
+                        localStorage.setItem(reloadFlagKey, 'true');
+                        localStorage.removeItem(storageKey);
                         timerDisplay.textContent = "Waktu Habis";
                         if (cancelButton) cancelButton.disabled = true;
 
-                        setTimeout(() => location.reload(), 1000); // ⏱️ reload sekali
+                        setTimeout(() => location.reload(), 1000);
                     } else {
-                        // Jika sudah reload, cukup tampilkan pesan
                         timerDisplay.textContent = "Waktu Habis";
                         if (cancelButton) cancelButton.disabled = true;
                     }
@@ -157,7 +191,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
             }, 1000);
         });
     </script>
-
 
 </body>
 

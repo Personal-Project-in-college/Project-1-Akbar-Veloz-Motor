@@ -1,230 +1,213 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Inisialisasi Choices.js
-  let purposeChoicesInstance = null;
-  const modernSelects = document.querySelectorAll(".modern-select");
+    let purposeChoicesInstance = null;
+    const modernSelects = document.querySelectorAll(".modern-select");
 
-  modernSelects.forEach((selectElement) => {
-    let config;
+    modernSelects.forEach((selectElement) => {
+        let config;
 
-    if (
-      selectElement.id === "purpose" ||
-      selectElement.id === "arrival_method"
-    ) {
-      config = {
-        searchEnabled: false,
-        itemSelectText: "",
-        shouldSort: false,
-      };
-    } else {
-      config = {
-        searchEnabled: true,
-        itemSelectText: "",
-        shouldSort: false,
-      };
-    }
-
-    const choicesInstance = new Choices(selectElement, config);
-
-    if (selectElement.id === "purpose") {
-      purposeChoicesInstance = choicesInstance;
-    }
-  });
-
-  // Inisialisasi Flatpickr
-  const dateInput = document.getElementById("date");
-  const datepickerIconTrigger = document.getElementById("datepickerIconTrigger");
-  const isMobile = window.innerWidth <= 768;
-  const flatpickrContainer = document.getElementById("flatpickr-modal");
-
-  if (dateInput) {
-    const fp = flatpickr(dateInput, {
-      enableTime: true,
-      dateFormat: "Y-m-d H:i",
-      minDate: "today",
-      maxDate: new Date().fp_incr(6),
-      altInput: true,
-      altFormat: "d F Y H:i",
-      altInputClass: "modern-datepicker",
-      disableMobile: true,
-      defaultDate: dateInput.value || null,
-      placeholder: "Pilih Jadwal",
-      appendTo: isMobile && flatpickrContainer ? flatpickrContainer : undefined,
-
-      onReady: function (selectedDates, dateStr, instance) {
-        if (instance.altInput) {
-          instance.altInput.placeholder = "Pilih Jadwal";
+        if (
+            selectElement.id === "purpose" ||
+            selectElement.id === "arrival_method"
+        ) {
+            config = {
+                searchEnabled: false,
+                itemSelectText: "",
+                shouldSort: false,
+            };
+        } else {
+            config = {
+                searchEnabled: true,
+                itemSelectText: "",
+                shouldSort: false,
+            };
         }
 
-        if (datepickerIconTrigger) {
-          datepickerIconTrigger.addEventListener("click", function () {
-            instance.open();
-          });
+        const choicesInstance = new Choices(selectElement, config);
+
+        if (selectElement.id === "purpose") {
+            purposeChoicesInstance = choicesInstance;
         }
-      }
-    });
-  }
-
-  // Format & Validasi Input WhatsApp
-  const whatsappInput = document.getElementById("whatsapp");
-
-  if (whatsappInput) {
-    const prefix = "+62 ";
-
-    whatsappInput.addEventListener("focus", () => {
-      if (!whatsappInput.value) {
-        whatsappInput.value = prefix;
-        setTimeout(() => {
-          whatsappInput.setSelectionRange(prefix.length, prefix.length);
-        }, 0);
-      }
     });
 
-    whatsappInput.addEventListener("keydown", (e) => {
-      const cursorPos = whatsappInput.selectionStart;
-      if (cursorPos < prefix.length) e.preventDefault();
-      if (e.key === "Backspace" && cursorPos === prefix.length) e.preventDefault();
-    });
+    const dateInput = document.getElementById("date");
+    const datepickerIconTrigger = document.getElementById(
+        "datepickerIconTrigger"
+    );
+    const isMobile = window.innerWidth <= 768;
+    const flatpickrContainer = document.getElementById("flatpickr-modal");
 
-    whatsappInput.addEventListener("input", () => {
-      if (!whatsappInput.value.startsWith(prefix)) {
-        whatsappInput.value = prefix;
-      }
-    });
+    if (dateInput) {
+        const fp = flatpickr(dateInput, {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            maxDate: new Date().fp_incr(6),
+            altInput: true,
+            altFormat: "d F Y H:i",
+            altInputClass: "modern-datepicker",
+            disableMobile: true,
+            defaultDate: dateInput.value || null,
+            placeholder: "Pilih Jadwal",
+            appendTo: isMobile && flatpickrContainer ? flatpickrContainer : undefined,
 
-    whatsappInput.addEventListener("blur", () => {
-      if (whatsappInput.value.trim() === prefix.trim()) {
-        whatsappInput.value = "";
-      }
-    });
-  }
+            onReady: function (selectedDates, dateStr, instance) {
+                if (instance.altInput) {
+                    instance.altInput.placeholder = "Pilih Jadwal";
+                }
 
-  // Atur nilai default dari URL jika ada
-  const urlParams = new URLSearchParams(window.location.search);
-  const purposeFromUrl = urlParams.get("purpose");
+                if (datepickerIconTrigger) {
+                    datepickerIconTrigger.addEventListener("click", function () {
+                        instance.open();
+                    });
+                }
+            },
+        });
+    }
 
-  if (purposeFromUrl === "test_driver" && purposeChoicesInstance) {
-    purposeChoicesInstance.setChoiceByValue("test_driver");
-  }
+    const whatsappInput = document.getElementById("whatsapp");
+
+    if (whatsappInput) {
+        const prefix = "+62 ";
+
+        whatsappInput.addEventListener("focus", () => {
+            if (!whatsappInput.value) {
+                whatsappInput.value = prefix;
+                setTimeout(() => {
+                    whatsappInput.setSelectionRange(prefix.length, prefix.length);
+                }, 0);
+            }
+        });
+
+        whatsappInput.addEventListener("keydown", (e) => {
+            const cursorPos = whatsappInput.selectionStart;
+            if (cursorPos < prefix.length) e.preventDefault();
+            if (e.key === "Backspace" && cursorPos === prefix.length)
+                e.preventDefault();
+        });
+
+        whatsappInput.addEventListener("input", () => {
+            if (!whatsappInput.value.startsWith(prefix)) {
+                whatsappInput.value = prefix;
+            }
+        });
+
+        whatsappInput.addEventListener("blur", () => {
+            if (whatsappInput.value.trim() === prefix.trim()) {
+                whatsappInput.value = "";
+            }
+        });
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const purposeFromUrl = urlParams.get("purpose");
+
+    if (purposeFromUrl === "test_driver" && purposeChoicesInstance) {
+        purposeChoicesInstance.setChoiceByValue("test_driver");
+    }
 });
 
 
-// FUNGSI ALAMAT
 let map, marker;
+const modalMapElementId = 'modal-map';
+const latitudeInput = document.getElementById("latitude");
+const longitudeInput = document.getElementById("longitude");
+const modalLatitudeDisplay = document.getElementById("modal-latitude-display");
+const modalLongitudeDisplay = document.getElementById("modal-longitude-display");
+const imageModal = document.getElementById("imageModal");
+
+
+function openLocationModal() {
+    imageModal.style.display = "flex";
+    
+    let currentLat = parseFloat(latitudeInput.value);
+    let currentLon = parseFloat(longitudeInput.value);
+
+    const defaultLat = -6.5684;
+    const defaultLon = 107.7562;
+
+    if (isNaN(currentLat) || isNaN(currentLon)) {
+        currentLat = defaultLat;
+        currentLon = defaultLon;
+    }
+
+    // Leaflet map needs its container to be visible before it can calculate its size correctly.
+    // Use a small timeout to ensure the modal is fully displayed before initializing/resizing the map.
+    setTimeout(() => {
+        initMap(currentLat, currentLon);
+        if (map) {
+            map.invalidateSize(); 
+        }
+    }, 100);
+}
+
+function closeLocationModal() {
+    imageModal.style.display = "none";
+}
+
+function saveLocationAndCloseModal() {
+    if (marker) {
+        const pos = marker.getLatLng();
+        latitudeInput.value = pos.lat;
+        longitudeInput.value = pos.lng;
+    }
+    closeLocationModal();
+}
 
 function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success, error);
-  } else {
-    alert("Geolocation tidak didukung browser.");
-  }
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+        alert("Geolocation tidak didukung oleh browser Anda.");
+        openLocationModal(); 
+    }
 }
 
 function success(position) {
-  const lat = position.coords.latitude;
-  const lon = position.coords.longitude;
-  initMap(lat, lon);
-  updateAddress(lat, lon);
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    latitudeInput.value = lat;
+    longitudeInput.value = lon;
+
+    openLocationModal();
+    setTimeout(() => {
+        initMap(lat, lon);
+        if (map) {
+            map.invalidateSize(); 
+        }
+    }, 100);
 }
 
 function initMap(lat, lon) {
-  if (!map) {
-    map = L.map("map").setView([lat, lon], 16);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
-
-    marker.on("dragend", function () {
-      const pos = marker.getLatLng();
-      document.getElementById("latitude").value = pos.lat;
-      document.getElementById("longitude").value = pos.lng;
-      updateAddress(pos.lat, pos.lng);
-    });
-  } else {
-    map.setView([lat, lon], 16);
-    marker.setLatLng([lat, lon]);
-  }
-
-  document.getElementById("latitude").value = lat;
-  document.getElementById("longitude").value = lon;
-}
-
-function updateAddress(lat, lon) {
-  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`, {
-    headers: { "User-Agent": "MyLocationApp/1.0" }
-  })
-    .then(res => res.json())
-    .then(data => {
-      const address = data.address || {};
-
-      document.getElementById("jalan").value = address.road || address.pedestrian || "-";
-      document.getElementById("desa").value = address.village || address.suburb || address.hamlet || "-";
-      document.getElementById("kecamatan").value = address.city_district || address.town || address.city || "-";
-      document.getElementById("kabupaten").value = (address.city && !address.county ? `Kota ${address.city}` : address.county) || address.state_district || "-";
-      document.getElementById("provinsi").value = address.state || "-";
-      document.getElementById("kodepos").value = address.postcode || "Tidak ditemukan";
-    })
-    .catch(err => {
-      console.error("Gagal mengambil data:", err);
-    });
-}
-
-// DEBOUNCE FUNCTION agar tidak spam API
-function debounce(func, delay) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), delay);
-  };
-}
-
-// FUNGSI untuk gabung input alamat → geocode → update koordinat & peta
-function handleAddressInput() {
-  const jalan = document.getElementById("jalan").value;
-  const desa = document.getElementById("desa").value;
-  const kecamatan = document.getElementById("kecamatan").value;
-  const kabupaten = document.getElementById("kabupaten").value;
-  const provinsi = document.getElementById("provinsi").value;
-
-  const query = encodeURIComponent(`${jalan}, ${desa}, ${kecamatan}, ${kabupaten}, ${provinsi}, Indonesia`);
-
-  fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1`, {
-    headers: { "User-Agent": "MyLocationApp/1.0" }
-  })
-    .then(res => res.json())
-    .then(results => {
-      if (!results || results.length === 0) {
-        console.warn("Alamat tidak ditemukan.");
+    if (!document.getElementById(modalMapElementId)) {
+        console.error("Container peta dengan ID '" + modalMapElementId + "' tidak ditemukan.");
         return;
-      }
+    }
 
-      const best = results[0];
-      const lat = parseFloat(best.lat);
-      const lon = parseFloat(best.lon);
+    if (!map) {
+        map = L.map(modalMapElementId).setView([lat, lon], 16);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-      document.getElementById("latitude").value = lat;
-      document.getElementById("longitude").value = lon;
+        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
 
-      if (marker && map) {
-        marker.setLatLng([lat, lon]);
+        marker.on("dragend", function () {
+            const pos = marker.getLatLng();
+            modalLatitudeDisplay.textContent = pos.lat.toFixed(8);
+            modalLongitudeDisplay.textContent = pos.lng.toFixed(8);
+        });
+    } else {
         map.setView([lat, lon], 16);
-      }
-
-      updateAddress(lat, lon);
-    })
-    .catch(err => {
-      console.error("Gagal geocoding dari input:", err);
-    });
+        marker.setLatLng([lat, lon]);
+    }
+    
+    modalLatitudeDisplay.textContent = lat.toFixed(8);
+    modalLongitudeDisplay.textContent = lon.toFixed(8);
 }
-
-// EVENT semua input jalan-desa-dll otomatis panggil handleAddressInput
-const debouncedHandler = debounce(handleAddressInput, 800);
-["jalan", "desa", "kecamatan", "kabupaten", "provinsi"].forEach(id => {
-  document.getElementById(id).addEventListener("input", debouncedHandler);
-});
 
 function error() {
-  alert("Tidak bisa mendapatkan lokasi.");
+    alert("Tidak bisa mendapatkan lokasi Anda saat ini. Pastikan Anda telah mengizinkan akses lokasi. Anda akan diarahkan ke peta untuk memilih lokasi secara manual.");
+    openLocationModal();
 }

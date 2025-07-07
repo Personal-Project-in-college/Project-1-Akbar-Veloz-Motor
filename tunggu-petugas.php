@@ -10,31 +10,32 @@ if (!$order_id) {
     die("Order ID tidak ditemukan.");
 }
 
-// Ambil data created_at, type_order, dan status
 $stmt = $koneksi->prepare("SELECT created_at, type_order, vehicle_id, customer_id, status FROM orders WHERE id = ?");
 $stmt->execute([$order_id]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
-
-// Ambil customer_id dari order
-$customer_id = $order['customer_id'] ?? null;
-
-$alamat_customer = 'Alamat tidak ditemukan.';
-if ($customer_id) {
-    $stmtCustomer = $koneksi->prepare("SELECT address FROM customers WHERE id = ?");
-    $stmtCustomer->execute([$customer_id]);
-    $customer = $stmtCustomer->fetch(PDO::FETCH_ASSOC);
-
-    if ($customer) {
-        $alamat_customer = $customer['address'];
-    }
-}
-
 
 if (!$order) {
     die("Data pesanan tidak ditemukan.");
 }
 
-// Tambahkan timezone
+$customer_id = $order['customer_id'] ?? null;
+
+$alamat_customer = 'Alamat tidak ditemukan.';
+$customer_latitude = null;
+$customer_longitude = null;
+
+if ($customer_id) {
+    $stmtCustomer = $koneksi->prepare("SELECT address, latitude, longitude FROM customers WHERE id = ?");
+    $stmtCustomer->execute([$customer_id]);
+    $customer = $stmtCustomer->fetch(PDO::FETCH_ASSOC);
+
+    if ($customer) {
+        $alamat_customer = $customer['address'];
+        $customer_latitude = $customer['latitude'];
+        $customer_longitude = $customer['longitude'];
+    }
+}
+
 date_default_timezone_set('Asia/Jakarta');
 
 $created_at = new DateTime($order['created_at']);
@@ -49,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
 
     $vehicleId = $order['vehicle_id'];
 
-    // Update kendaraan jadi available
     $updateVehicleQuery = $koneksi->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?");
     $updateVehicleQuery->execute([$vehicleId]);
 
@@ -64,6 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
     header("Location: tunggu-petugas.php?id=$order_id");
     exit();
 }
+
+$Maps_embed_url = 'https://maps.google.com/maps?';
+if ($customer_latitude && $customer_longitude) {
+    $Maps_embed_url .= 'q=' . $customer_latitude . ',' . $customer_longitude;
+} else {
+    $Maps_embed_url .= 'q=' . urlencode($alamat_customer . ', Subang, Jawa Barat, Indonesia');
+}
+$Maps_embed_url .= '&t=&z=16&ie=UTF8&iwloc=&output=embed';
 ?>
 
 <!DOCTYPE html>
@@ -86,6 +94,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
         <div class="address-box">
             <strong>Tujuan Kunjungan:</strong><br>
             <?php echo htmlspecialchars($alamat_customer); ?>
+        </div>
+
+        <div class="map-container">
+            <?php if ($customer_latitude && $customer_longitude) : ?>
+                <iframe
+                    src="<?= htmlspecialchars($Maps_embed_url); ?>"
+                    class="map-frame" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            <?php else : ?>
+                <p>Peta tidak dapat ditampilkan dengan koordinat karena tidak tersedia. Menampilkan peta berdasarkan alamat teks.</p>
+                 <iframe
+                    src="<?= htmlspecialchars($Maps_embed_url); ?>"
+                    class="map-frame" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            <?php endif; ?>
         </div>
 
         <div class="timer-info">
@@ -118,7 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
             const timerDisplay = document.getElementById('cancel-timer');
             const cancelButton = document.querySelector('button[name="cancel"]');
 
-            // Hentikan jika statusnya cancelled (timerDisplay tidak ada)
             if (!timerDisplay) return;
 
             const orderId = <?php echo json_encode($order_id); ?>;
@@ -140,21 +162,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
                 localStorage.removeItem(reloadFlagKey);
             }
 
-
             const countdown = setInterval(() => {
                 if (remaining <= 0) {
                     clearInterval(countdown);
 
-                    // Cek apakah sudah reload sebelumnya
                     if (!localStorage.getItem(reloadFlagKey)) {
-                        localStorage.setItem(reloadFlagKey, 'true'); // tandai sudah reload
-                        localStorage.removeItem(storageKey); // hapus waktu awal
+                        localStorage.setItem(reloadFlagKey, 'true');
+                        localStorage.removeItem(storageKey);
                         timerDisplay.textContent = "Waktu Habis";
                         if (cancelButton) cancelButton.disabled = true;
 
-                        setTimeout(() => location.reload(), 1000); // ⏱️ reload sekali
+                        setTimeout(() => location.reload(), 1000);
                     } else {
-                        // Jika sudah reload, cukup tampilkan pesan
                         timerDisplay.textContent = "Waktu Habis";
                         if (cancelButton) cancelButton.disabled = true;
                     }
