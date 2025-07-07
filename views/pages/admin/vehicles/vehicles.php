@@ -67,7 +67,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
             <a href="create.php" class="btn btn-primary">Tambah</a>
 
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Kendaraan (Kode, Merek, Model)...">
             </div>
         </div>
 
@@ -83,7 +83,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overflow-auto">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -162,15 +162,9 @@ $activePage = basename($_SERVER['PHP_SELF']);
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
+            alertDiv;
 
             const container = document.getElementById('floating-alert-container');
             container.appendChild(alertDiv);

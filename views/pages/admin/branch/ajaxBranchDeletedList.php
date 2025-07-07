@@ -6,8 +6,8 @@ include '../../../../helpers/functionCheckRole.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$getDeleteBranchQuery = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NOT NULL AND name LIKE ? ORDER BY deleted_at DESC");
-$getDeleteBranchQuery->execute([$keyword]);
+$getDeleteBranchQuery = $koneksi->prepare("SELECT * FROM branches WHERE deleted_at IS NOT NULL AND (name LIKE ? OR address LIKE ?) ORDER BY deleted_at DESC");
+$getDeleteBranchQuery->execute([$keyword, $keyword]);
 $data = $getDeleteBranchQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

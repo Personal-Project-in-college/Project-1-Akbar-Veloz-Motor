@@ -53,6 +53,20 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
             opacity: 1;
         }
     }
+
+    /* Animasi baru untuk modal */
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        transform: scale(0.8);
+        /* Mulai dari ukuran 80% */
+        opacity: 0;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+        /* Kembali ke ukuran normal */
+        opacity: 1;
+    }
 </style>
 
 <div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
@@ -60,10 +74,6 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
 <!-- Main Content -->
 <div class="main-panel">
     <div class="content-wrapper">
-        <?php
-        // Menjalankan fungsi untuk menampilkan alert jika ada.
-        showAlert();
-        ?>
         <h3 class="mb-4">Data Kendaraan</h3>
 
         <!-- Actions -->
@@ -73,7 +83,7 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
 
             <!-- Search Box -->
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Kendaraan Terhapus (Kode, Merek, Model)...">
             </div>
         </div>
 
@@ -90,7 +100,7 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overflow-auto">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -115,7 +125,24 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
             </div>
         </div>
 
-
+        <!-- Modal Konfirmasi Hapus Permanen -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow rounded-4 border-0">
+                    <div class="modal-body text-center p-5">
+                        <div class="mb-3">
+                            <i class="mdi mdi-alert-circle-outline text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-danger mb-3" id="confirmDeleteModalLabel">Hapus Kendaraan Secara Permanen?</h5>
+                        <p class="mb-4 fs-6 text-muted">Tindakan ini <strong>tidak bisa dibatalkan</strong>.<br>Pastikan kamu sudah yakin.</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="button" class="btn btn-dark rounded-pill px-4 text-white" data-bs-dismiss="modal">Batal</button>
+                            <button id="confirmDestroyBtn" type="button" class="btn btn-danger rounded-pill px-4 text-white">Ya, Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <?php include '../layout/footer.php'; ?>
     </div>
 
@@ -244,15 +271,9 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            // Buat tombol close
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'close-btn';
-            closeBtn.onclick = () => alertDiv.remove();
-
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
-            alertDiv.appendChild(closeBtn);
+            alertDiv;
 
             const container = document.getElementById('floating-alert-container');
             container.appendChild(alertDiv);
@@ -286,6 +307,53 @@ $activePage = basename($_SERVER['PHP_SELF']); // Untuk menandai tab aktif
                 loadDeletedVehicles(this.value);
             });
         });
+
+        // Modal Bootstrap instance
+        let deleteModal;
+        let selectedDestroyId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (modalEl) {
+                deleteModal = new bootstrap.Modal(modalEl);
+            }
+
+            // Event tombol konfirmasi hapus
+            const confirmDestroyBtn = document.getElementById('confirmDestroyBtn');
+            if (confirmDestroyBtn) {
+                confirmDestroyBtn.addEventListener('click', () => {
+                    if (!selectedDestroyId) return;
+                    fetch('destroy.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(selectedDestroyId)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedVehicles(); // reload tabel
+                                showAlert(data.message, 'danger');
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                            deleteModal.hide();
+                            selectedDestroyId = null;
+                        });
+                });
+            }
+        });
+
+        // Override tombol hapus → tampilkan modal
+        function bindDestroyEvents() {
+            document.querySelectorAll('.destroy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectedDestroyId = this.dataset.id;
+                    deleteModal.show();
+                });
+            });
+        }
     </script>
 
 </div>

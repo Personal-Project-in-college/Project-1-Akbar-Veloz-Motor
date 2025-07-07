@@ -30,16 +30,6 @@ if (isset($_GET['id'])) {
     $data->execute([$document_id]);
 }
 
-// 4. Menyiapkan Pesan Notifikasi Sukses
-// Pesan ini akan ditampilkan di halaman detail setelah pengguna dialihkan.
-if ($vehicle_id) {
-    // Pesan jika ID kendaraan berhasil didapat.
-    $_SESSION['success'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil dikembalikan.";
-} else {
-    // Pesan fallback jika ID kendaraan tidak ada.
-    $_SESSION['success'] = "Data Dokumen Kendaraan berhasil dikembalikan.";
-}
-
 // 5. Mengalihkan Pengguna
 // Mengembalikan pengguna ke halaman detail kendaraan yang sesuai.
 // Pengguna akan langsung melihat dokumen yang baru dipulihkan muncul kembali di daftar.

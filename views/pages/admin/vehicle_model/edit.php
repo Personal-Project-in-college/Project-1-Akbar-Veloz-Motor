@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $update = $koneksi->prepare("UPDATE vehicle_models SET brand_id = ?, name = ?, slug = ?, updated_at = NOW() WHERE id = ?");
             $update->execute([$brand_id, $name, $slug_baru, $model['id']]);
 
-            $_SESSION['success'] = "Model kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
+            $_SESSION['success_message'] = "Model kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
             header("Location: vehicle_model.php");
             exit;
         } catch (PDOException $e) {

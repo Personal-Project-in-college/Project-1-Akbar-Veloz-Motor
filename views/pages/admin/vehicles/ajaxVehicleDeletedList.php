@@ -4,8 +4,8 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT vehicles.*, branches.name AS branch_name, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicles LEFT JOIN branches ON vehicles.branch_id = branches.id LEFT JOIN vehicle_models ON vehicles.vehicle_model_id = vehicle_models.id LEFT JOIN brands ON vehicle_models.brand_id = brands.id WHERE (vehicles.deleted_at IS NOT NULL OR vehicles.deleted_by_branch_at IS NOT NULL) AND vehicles.id LIKE ? ORDER BY COALESCE(vehicles.deleted_at, vehicles.deleted_by_branch_at) DESC");
-$stmt->execute([$keyword]);
+$stmt = $koneksi->prepare("SELECT vehicles.*, branches.name AS branch_name, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicles LEFT JOIN branches ON vehicles.branch_id = branches.id LEFT JOIN vehicle_models ON vehicles.vehicle_model_id = vehicle_models.id LEFT JOIN brands ON vehicle_models.brand_id = brands.id WHERE (vehicles.deleted_at IS NOT NULL OR vehicles.deleted_by_branch_at IS NOT NULL) AND (vehicles.id LIKE ? OR brands.name LIKE ? OR vehicle_models.name LIKE ?) ORDER BY COALESCE(vehicles.deleted_at, vehicles.deleted_by_branch_at) DESC");
+$stmt->execute([$keyword, $keyword, $keyword]);
 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

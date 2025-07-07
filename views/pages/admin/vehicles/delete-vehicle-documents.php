@@ -16,9 +16,29 @@ if (!$id) {
 }
 
 // 🪢 Ambil data vehicle berdasarkan Id
-$data = $koneksi->prepare("SELECT * FROM vehicles WHERE id = ?");
+$data = $koneksi->prepare("
+    SELECT 
+        vehicles.*, 
+        vehicle_models.name AS model_name, 
+        brands.name AS brand_name,
+        branches.name AS branch_name,
+        branches.address AS branch_address
+    FROM vehicles
+    JOIN vehicle_models ON vehicles.vehicle_model_id = vehicle_models.id
+    JOIN brands ON vehicle_models.brand_id = brands.id
+    JOIN branches ON vehicles.branch_id = branches.id
+    WHERE vehicles.id = ?
+");
 $data->execute([$id]);
 $vehicle = $data->fetch(PDO::FETCH_ASSOC);
+
+$getdata = $koneksi->prepare("SELECT * FROM vehicle_documents WHERE vehicle_id = ? AND deleted_at IS NULL");
+$getdata->execute([$id]);
+$vehicle_id = $getdata->fetch(PDO::FETCH_ASSOC);
+
+$getdataPhoto = $koneksi->prepare("SELECT * FROM vehicle_photos WHERE vehicle_id = ? AND deleted_at IS NULL");
+$getdataPhoto->execute([$id]);
+$vehiclePhoto_id = $getdataPhoto->fetch(PDO::FETCH_ASSOC);
 
 if (!$vehicle) {
     // ❗ Kalau datanya gak ditemukan
@@ -28,6 +48,11 @@ if (!$vehicle) {
 $branches = $koneksi->query("SELECT * FROM branches WHERE deleted_at IS NULL")->fetchAll();
 
 $vehicleModels = $koneksi->query("SELECT vehicle_models.id, vehicle_models.name AS model_name, brands.name AS brand_name FROM vehicle_models JOIN brands ON vehicle_models.brand_id = brands.id WHERE vehicle_models.deleted_at IS NULL")->fetchAll();
+
+$stnk_deadline = new DateTime($vehicle['stnk_deadline']);
+$today = new DateTime();
+$interval = $today->diff($stnk_deadline);
+$sisaHari = $interval->days . " hari (" . ($stnk_deadline > $today ? "tersisa" : "lewat") . ")";
 
 // Siapkan array untuk dropdown jenis kendaraan.
 $types = [
@@ -41,182 +66,313 @@ $typefuels = [
     'hybrid' => 'Hybrid'
 ];
 
+function getVehicleIcon($type)
+{
+    return [
+        'car' => 'mdi mdi-car-hatchback',
+        'motorcycle' => 'mdi mdi-motorbike'
+    ][$type] ?? 'mdi mdi-car';
+}
+
+function getFuelIcon($fuel)
+{
+    return [
+        'electric' => 'mdi mdi-lightning-bolt',
+        'gasoline' => 'mdi mdi-fuel',
+        'hybrid' => 'mdi mdi-cached'
+    ][$fuel] ?? 'mdi mdi-alert-circle';
+}
+
+function formatIndoDate($dateStr)
+{
+    $formatter = new IntlDateFormatter(
+        'id_ID',
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE,
+        'Asia/Jakarta',
+        IntlDateFormatter::GREGORIAN,
+        "EEEE, dd MMMM yyyy"
+    );
+    $timestamp = strtotime($dateStr);
+    return $formatter->format($timestamp);
+}
+
 // Siapkan array untuk dropdown status kendaraan.
 $statuses = [
     'available' => 'Tersedia',
-    'service' => 'Service',
+    'on_loan' => 'Dipinjam',
     'test_drive' => 'Tes Jalan',
-    'sold' => 'Terjual'
+    'transaction' => 'Dalam Transaksi',
+    'service' => 'Service',
+    'sold' => 'Terjual',
 ];
-
 
 include '../layout/header.php';
 include '../layout/sidebar.php';
 ?>
 
 <style>
-    @keyframes slideDown {
-        0% {
-            transform: translateY(-100px);
+    .fade-out {
+        transition: opacity 0.5s ease-out;
+        opacity: 1;
+    }
+
+    #floating-alert-container .alert {
+        animation: slideInLeft 0.3s ease-out;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-50px);
             opacity: 0;
         }
 
-        100% {
-            transform: translateY(0);
+        to {
+            transform: translateX(0);
             opacity: 1;
         }
     }
 
+    /* Animasi baru untuk modal */
     .modal.fade .modal-dialog {
         transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-        transform: translateY(-100px);
+        transform: scale(0.8);
+        /* Mulai dari ukuran 80% */
         opacity: 0;
     }
 
-    .modal.fade.show .modal-dialog {
-        transform: translateY(0);
+    .modal.show .modal-dialog {
+        transform: scale(1);
+        /* Kembali ke ukuran normal */
         opacity: 1;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .fullscreen-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.9);
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-
-    .fullscreen-overlay img {
-        max-width: 90%;
-        max-height: 90%;
-        object-fit: contain;
-        cursor: zoom-out;
     }
 </style>
 
+<div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
 
 <!-- Main Content -->
 <div class="main-panel">
     <div class="content-wrapper">
         <h3 class="mb-4">Detail Kendaraan</h3>
 
-        <?php
-        // Menjalankan fungsi untuk menampilkan alert jika ada.
-        showAlert();
-        ?>
+        <!-- TABEL Brand & Model -->
+        <div>
+            <!-- Desktop View -->
+            <div class="card mb-4 d-none d-sm-block">
+                <div class="card-body">
+                    <h5 class="mb-4">Informasi Merek</h5>
+                    <table class="table">
+                        <tr>
+                            <th class="w-25">Merek</th>
+                            <td><?= $vehicle['brand_name'] ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Model</th>
+                            <td><?= $vehicle['model_name'] ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-        <!-- Detail Vehicle -->
-        <div class="card">
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="kode_kendaraan" class="form-label">Kode Kendaraan</label>
-                        <input type="text" class="form-control" id="id_show" name="id_show" value="<?= $vehicle['id'] ?>" disabled>
-                        <input type="hidden" class="form-control" id="id" name="id" value="<?= $vehicle['id'] ?>">
+            <!-- Mobile View -->
+            <div class="card mb-4 d-block d-sm-none">
+                <div class="card-body">
+                    <h5 class="mb-4 text-center">Informasi Merek</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Merek</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['brand_name']) ?></div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="vehicle_model_id" class="form-label">Model Kendaraan</label>
-                        <select class="form-select" id="vehicle_model_id" name="vehicle_model_id" style="color: black;" disabled>
-                            <?php foreach ($vehicleModels as $model): ?>
-                                <option value="<?= $model['id'] ?>" <?= $vehicle['vehicle_model_id'] == $model['id'] ? 'selected' : '' ?>>
-                                    <?= $model['brand_name'] . ' - ' . $model['model_name'] ?>
-                                </option>
-                            <?php endforeach ?>
-                        </select>
-                    </div>
-
-
-                    <div class="mb-3">
-                        <label for="jenis_kendaraan" class="form-label">Jenis Kendaraan</label>
-                        <select class="form-select" id="type_vehicle" name="type_vehicle" style="color: black;" disabled>
-                            <?php foreach ($types as $key => $label): ?>
-                                <option value="<?= $key ?>" <?= $vehicle['type_vehicle'] == $key ? 'selected' : '' ?>><?= $label ?></option>
-                            <?php endforeach ?>
-                        </select>
-
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="bahan_bakar" class="form-label">Bahan Bakar</label>
-                        <select class="form-select" id="type_fuel" name="type_fuel" style="color: black;" disabled>
-                            <?php foreach ($typefuels as $valuefuel => $labelfuel): ?>
-                                <option value="<?= $valuefuel ?>" <?= ($vehicle['type_fuel'] ?? '') == $valuefuel ? 'selected' : '' ?>><?= $labelfuel ?></option>
-                            <?php endforeach ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="warna" class="form-label">Warna</label>
-                        <input type="text" class="form-control" id="color" name="color" value="<?= $vehicle['color'] ?>" disabled>
-                    </div>
-
-
+                    <hr class="my-3">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="tahun_produksi" class="form-label">Tahun Produksi</label>
-                            <input type="date" class="form-control" id="production_year" name="production_year" value="<?= $vehicle['production_year'] ?>" disabled>
-                        </div>
+                        <div class="col-12 col-md-3 mb-3"><strong>Model</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['model_name']) ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <div class="col-md-4 mb-3">
-                            <label for="nomor_mesin" class="form-label">Nomor Mesin</label>
-                            <input type="number" class="form-control" id="serial_number" name="serial_number" value="<?= $vehicle['serial_number'] ?>" disabled>
-                        </div>
+        <!-- TABEL KENDARAAN -->
+        <div>
+            <!-- Desktop View -->
+            <div class="card mb-4 d-none d-sm-block">
+                <div class="card-body">
+                    <h5 class="mb-4">Informasi Kendaraan</h5>
+                    <table class="table">
+                        <tr>
+                            <th class="w-25">Kode</th>
+                            <td><?= htmlspecialchars($vehicle['id']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Tipe</th>
+                            <td><?= $types[$vehicle['type_vehicle']] ?? '-' ?> <i class="<?= getVehicleIcon($vehicle['type_vehicle']) ?>"></i></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Warna</th>
+                            <td><?= htmlspecialchars($vehicle['color']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Tahun Produksi</th>
+                            <td><?= formatIndoDate($vehicle['production_year']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Jatuh Tempo STNK</th>
+                            <td><?= formatIndoDate($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Bahan Bakar</th>
+                            <td><?= $typefuels[$vehicle['type_fuel']] ?? '-' ?> <i class="<?= getFuelIcon($vehicle['type_fuel']) ?>"></i></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">CC Mesin</th>
+                            <td><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Serial Number</th>
+                            <td><?= htmlspecialchars($vehicle['serial_number']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Kilometer</th>
+                            <td><?= htmlspecialchars($vehicle['kilometer']) ?> KM</td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Harga Terendah</th>
+                            <td>Rp <?= number_format($vehicle['lowest_price'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Harga Display</th>
+                            <td>Rp <?= number_format($vehicle['price_displayed'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Status</th>
+                            <td><?= $statuses[$vehicle['status']] ?? '-' ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Deskripsi</th>
+                            <td class="text-wrap"><?= htmlspecialchars($vehicle['description']) ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-                        <div class="col-md-4 mb-3">
-                            <label for="tenggat_SNTK" class="form-label">Tenggat STNK</label>
-                            <input type="date" class="form-control" id="stnk_deadline" name="stnk_deadline" value="<?= $vehicle['stnk_deadline'] ?>" disabled>
-                        </div>
+            <!-- Mobile View -->
+            <div class="card mb-4 d-block d-sm-none">
+                <div class="card-body">
+                    <h5 class="mb-4 text-center">Informasi Kendaraan</h5>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Kode</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['id']) ?></div>
                     </div>
 
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Tipe</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= $types[$vehicle['type_vehicle']] ?? '-' ?> <i class="<?= getVehicleIcon($vehicle['type_vehicle']) ?>"></i></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Warna</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['color']) ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Tahun Produksi</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= formatIndoDate($vehicle['production_year']) ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Jatuh Tempo STNK</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= formatIndoDate($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></div>
+                    </div>
+
+                    <hr class="my-3">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="kilometer" class="form-label">Kilometer</label>
-                            <input type="number" class="form-control" id="kilometer" name="kilometer" value="<?= $vehicle['kilometer'] ?>" disabled>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="cc_mesin" class="form-label">CC Mesin</label>
-                            <input type="number" class="form-control" id="cc_engine" name="cc_engine" value="<?= $vehicle['cc_engine'] ?>" disabled>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="harga" class="form-label">Harga</label>
-                            <input type="number" class="form-control" id="price" name="price" value="<?= $vehicle['price'] ?>" disabled>
-                        </div>
+                        <div class="col-12 col-md-3 mb-3"><strong>Bahan Bakar</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= $typefuels[$vehicle['type_fuel']] ?? '-' ?> <i class="<?= getFuelIcon($vehicle['type_fuel']) ?>"></i></div>
                     </div>
 
+                    <hr class="my-3">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status" style="color: black;" disabled>
-                                <?php foreach ($statuses as $key => $label): ?>
-                                    <option value="<?= $key ?>" <?= $vehicle['status'] == $key ? 'selected' : '' ?>><?= $label ?></option>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="cabang" class="form-label">Cabang</label>
-                            <select class="form-select" id="branch_id" name="branch_id" style="color: black;" disabled>
-                                <?php foreach ($branches as $branch): ?>
-                                    <option value="<?= $branch['id'] ?>" <?= $vehicle['branch_id'] == $branch['id'] ? 'selected' : '' ?>><?= $branch['name'] ?></option>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
+                        <div class="col-12 col-md-3 mb-3"><strong>CC Mesin</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="Deskripsi" class="form-label">Deskripsi</label>
-                        <textarea cols="15" rows="15" type="alamat" class="form-control" id="description" name="description" placeholder="Masukan Deskripsi" disabled><?= $vehicle['description'] ?></textarea>
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Nomor Seri Kendaraan</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['serial_number']) ?></div>
                     </div>
-                </form>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Kilometer</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['kilometer']) ?> km</div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Harga Terendah</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap">Rp <?= number_format($vehicle['lowest_price'], 0, ',', '.') ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Harga Display</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap">Rp <?= number_format($vehicle['price_displayed'], 0, ',', '.') ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Status</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= $statuses[$vehicle['status']]  ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Deskripsi</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['description']) ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL Cabang -->
+        <div>
+            <!-- Desktop View -->
+            <div class="card mb-4 d-none d-sm-block">
+                <div class="card-body">
+                    <h5 class="mb-4">Informasi Cabang</h5>
+                    <table class="table">
+                        <tr>
+                            <th class="w-25">Nama</th>
+                            <td><?= $vehicle['branch_name'] ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Alamat</th>
+                            <td class="text-wrap"><?= $vehicle['branch_address'] ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile View -->
+            <div class="card mb-4 d-block d-sm-none">
+                <div class="card-body">
+                    <h5 class="mb-4 text-center">Informasi Cabang</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Nama</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['branch_name']) ?></div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Alamat</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['branch_address']) ?></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -225,26 +381,12 @@ include '../layout/sidebar.php';
 
             <h3 class="mb-4">Data Dokumen Kendaraan</h3>
 
-            <?php
-            $cekVehicleDocs = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_documents WHERE vehicle_id = ? AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL");
-            $cekVehicleDocs->execute([$id]);
-            $adaDokumenAktif = $cekVehicleDocs->fetchColumn();
-
-            $cekDeletedVehicleDocs = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_documents WHERE vehicle_id = ? AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
-            $cekDeletedVehicleDocs->execute([$id]);
-            $adaDokumenSoftDelete = $cekDeletedVehicleDocs->fetchColumn();
-
-            $bolehTambahDokumen = ($adaDokumenAktif == 0 && $adaDokumenSoftDelete >= 0);
-            ?>
-
-            <!-- Tombol Memunculkan Form Tambah Data Vehicle Documents -->
-            <?php if ($bolehTambahDokumen): ?>
-                <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadDocument">
-                        Tambah
-                    </button>
-                </div>
-            <?php endif ?>
+            <!-- Ubah agar tombol bisa dikontrol dari JS -->
+            <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
+                <button type="button" id="btn-add-document" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadDocument" style="display: none;">
+                    Tambah
+                </button>
+            </div>
 
             <?php
             $activePage = basename($_SERVER['PHP_SELF']);
@@ -262,7 +404,7 @@ include '../layout/sidebar.php';
             <div class="row">
                 <div class="col-lg-12 grid-margin stretch-card">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body overflow-auto">
                             <table class="table table-striped" id="productTable">
                                 <thead>
                                     <tr>
@@ -274,84 +416,16 @@ include '../layout/sidebar.php';
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <?php
-                                    $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-                                    $limit = 10;
-                                    $offset = ($page - 1) * $limit;
-
-                                    $stmtCount = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_documents WHERE vehicle_id = :vehicle_id AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
-                                    $stmtCount->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
-                                    $stmtCount->execute();
-                                    $totalData = $stmtCount->fetchColumn();
-                                    var_dump($totalData);
-                                    $totalPages = ceil($totalData / $limit);
-
-                                    $query = $koneksi->prepare("SELECT * FROM vehicle_documents WHERE vehicle_id = :vehicle_id AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL) ORDER BY created_at ASC LIMIT :limit OFFSET :offset");
-                                    $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
-                                    $query->bindValue(':limit', $limit, PDO::PARAM_INT);
-                                    $query->bindValue(':offset', $offset, PDO::PARAM_INT);
-                                    $query->execute();
-
-                                    $dataVehicleDocuments = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                    $formatTeks = function ($filePath, $label) {
-                                        if (empty($filePath)) return 'Kosong';
-                                        return "<a href='../../../../storage/" . $filePath . "' target='_blank'>Buka $label</a>";
-                                    };
-
-                                    $cekAktif = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_documents WHERE vehicle_id = ? AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL");
-                                    $cekAktif->execute([$id]);
-                                    $adaAktif = $cekAktif->fetchColumn() > 0;
-
-                                    foreach ($dataVehicleDocuments as $row) {
-                                        echo "<tr>
-                                            <td>" . $formatTeks($row['stnk'], 'STNK') . "</td>
-                                            <td>" . $formatTeks($row['bpkb'], 'BPKB') . "</td>
-                                            <td>" . $formatTeks($row['service_note'], 'Nota Service') . "</td>
-                                            <td>" . $formatTeks($row['nota'], 'Nota') . "</td>
-                                            <td>" . $formatTeks($row['asuransi'], 'Asuransi') . "</td>
-                                            <td style='display: flex; align-items: center; gap: 8px;'>";
-                                        if (!$adaAktif) {
-                                            echo "<a href='./vehicle_documents/restore.php?id={$row['id']}&vehicle_id={$vehicle['id']}' title='Restore' class='btn btn-success btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-restore'></i>
-                                                </a>";
-                                        }
-
-                                        echo "<a href='./vehicle_documents/destroy.php?id={$row['id']}&vehicle_id={$vehicle['id']}' title='Permanent Delete' class='btn btn-danger btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px; color: white;'>
-                                                    <i class='mdi mdi-delete-forever' style='color: white;'></i>
-                                                </a>
-                                            </td>
-                                        </tr>";
-                                    }
-                                    if (empty($dataVehicleDocuments)) {
-                                        echo "<tr><td colspan='8' class='text-center'>Dokumen kendaraan {$id} yang di hapus kosong.</td></tr>";
-                                    }
-                                    ?>
+                                <tbody id="deletedVehicleDocumentTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Memuat data...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <?php if ($totalPages > 1) : ?>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-end">
-                        <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                            <a class="page-link bg-primary text-white" href="?page=<?= $page - 1 ?>&id=<?= $id ?>">Previous</a>
-                        </li>
-                        <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
-                            <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
-                                <a class="page-link <?= ($page == $i) ? 'bg-primary text-white' : 'text-primary bg-white' ?>" href="?page=<?= $i ?>&id=<?= $id ?>"><?= $i ?></a>
-                            </li>
-                        <?php endfor; ?>
-                        <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                            <a class="page-link bg-primary text-white" href="?page=<?= $page + 1 ?>&id=<?= $id ?>">Next</a>
-                        </li>
-                    </ul>
-                </nav>
-            <?php endif; ?>
         </div>
 
         <!-- Table Vehicle Photos -->
@@ -423,10 +497,25 @@ include '../layout/sidebar.php';
             </div>
         </div>
 
-        <?php
-        // Mengimpor bagian layout footer (termasuk tag penutup, script JS, dll).
-        include '../layout/footer.php';
-        ?>
+        <!-- Modal Konfirmasi Hapus Permanen -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow rounded-4 border-0">
+                    <div class="modal-body text-center p-5">
+                        <div class="mb-3">
+                            <i class="mdi mdi-alert-circle-outline text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-danger mb-3" id="confirmDeleteModalLabel">Hapus Dokumen Kendaraan Secara Permanen?</h5>
+                        <p class="mb-4 fs-6 text-muted">Tindakan ini <strong>tidak bisa dibatalkan</strong>.<br>Pastikan kamu sudah yakin.</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="button" class="btn btn-dark rounded-pill px-4 text-white" data-bs-dismiss="modal">Batal</button>
+                            <button id="confirmDestroyBtn" type="button" class="btn btn-danger rounded-pill px-4 text-white">Ya, Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php include '../layout/footer.php'; ?>
     </div>
 </div>
 
@@ -536,3 +625,213 @@ include '../layout/sidebar.php';
         document.getElementById('fullscreenImage').src = '';
     }
 </script>
+
+<script>
+    const searchInput = document.getElementById('search-input');
+    const tableBody = document.getElementById('deletedVehicleDocumentTableBody');
+
+    // Ambil vehicle_id dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const vehicleId = urlParams.get('id');
+
+    function loadDeletedVehicleDocuments(keyword = '') {
+        fetch(`vehicle_documents/ajaxVehicleDocumentDeletedList.php?vehicle_id=${vehicleId}`)
+            .then(res => res.text())
+            .then(html => {
+                tableBody.innerHTML = html;
+                checkAddButtonVisibility(); // ← tambahkan di sini
+            });
+    }
+
+    loadDeletedVehicleDocuments();
+
+    searchInput.addEventListener('keyup', function() {
+        loadDeletedVehicleDocuments(this.value);
+    });
+
+    function checkAddButtonVisibility() {
+        fetch(`vehicle_documents/checkActiveDocument.php?vehicle_id=${vehicleId}`)
+            .then(res => res.json())
+            .then(data => {
+                const addButton = document.getElementById('btn-add-document');
+                if (addButton) {
+                    if (data.active) {
+                        addButton.style.display = 'none'; // Ada data aktif → sembunyikan
+                    } else {
+                        addButton.style.display = 'inline-block'; // Tidak ada → tampilkan
+                    }
+                }
+            });
+    }
+</script>
+
+<script>
+    function bindRestoreEvents() {
+        document.querySelectorAll('.restore-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const vehicleId = this.dataset.vehicleId;
+
+                fetch(`vehicle_documents/restore.php?id=${id}&vehicle_id=${vehicleId}`)
+                    .then(() => {
+                        loadDeletedVehicleDocuments(); // reload tabel
+                        showAlert(`Dokumen kendaraan <strong>${vehicleId}</strong> berhasil dikembalikan.`, 'success');
+                    });
+            });
+        });
+    }
+
+    function showAlert(message, type = 'success') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+        // Masukkan isi alert + tombol close
+        alertDiv.innerHTML = `<span>${message}</span>`;
+        alertDiv;
+
+        const container = document.getElementById('floating-alert-container');
+        container.appendChild(alertDiv);
+
+        // Fade out mulai di detik ke-4.5
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+        }, 1500);
+
+        // Remove dari DOM di detik ke-5
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 2000);
+    }
+
+    function loadDeletedVehicleDocuments(keyword = '') {
+        fetch(`vehicle_documents/ajaxVehicleDocumentDeletedList.php?vehicle_id=${vehicleId}`)
+            .then(res => res.text())
+            .then(html => {
+                tableBody.innerHTML = html;
+                bindRestoreEvents(); // PENTING!
+                bindDestroyEvents(); // PENTING!
+                checkAddButtonVisibility(); // ← tambahkan di sini
+            });
+    }
+
+    // Event awal
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDeletedVehicleDocuments();
+
+        searchInput.addEventListener('keyup', function() {
+            loadDeletedVehicleDocuments(this.value);
+        });
+    });
+</script>
+
+<script>
+    function bindDestroyEvents() {
+        document.querySelectorAll('.destroy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                selectedDestroyId = this.dataset.id;
+                selectedDestroyVehicleId = this.dataset.vehicleId;
+                deleteModal.show();
+            });
+        });
+    }
+
+    function showAlert(message, type = 'success') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+        // Masukkan isi alert + tombol close
+        alertDiv.innerHTML = `<span>${message}</span>`;
+        alertDiv;
+
+        const container = document.getElementById('floating-alert-container');
+        container.appendChild(alertDiv);
+
+        // Fade out mulai di detik ke-4.5
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+        }, 1500);
+
+        // Remove dari DOM di detik ke-5
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 2000);
+    }
+
+    function loadDeletedVehicleDocuments(keyword = '') {
+        fetch(`vehicle_documents/ajaxVehicleDocumentDeletedList.php?vehicle_id=${vehicleId}`)
+            .then(res => res.text())
+            .then(html => {
+                tableBody.innerHTML = html;
+                bindDestroyEvents(); // PENTING!
+                bindRestoreEvents(); // PENTING!
+                checkAddButtonVisibility(); // ← tambahkan di sini
+            });
+    }
+
+    // Event awal
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDeletedVehicleDocuments();
+
+        searchInput.addEventListener('keyup', function() {
+            loadDeletedVehicleDocuments(this.value);
+        });
+    });
+
+    // Modal Bootstrap instance
+    let deleteModal;
+    let selectedDestroyId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalEl = document.getElementById('confirmDeleteModal');
+        if (modalEl) {
+            deleteModal = new bootstrap.Modal(modalEl);
+        }
+
+        // Event tombol konfirmasi hapus
+        const confirmDestroyBtn = document.getElementById('confirmDestroyBtn');
+        if (confirmDestroyBtn) {
+            confirmDestroyBtn.addEventListener('click', () => {
+                if (!selectedDestroyId) return;
+                fetch(`vehicle_documents/destroy.php?id=${selectedDestroyId}&vehicle_id=${selectedDestroyVehicleId}`)
+                    .then(() => {
+                        loadDeletedVehicleDocuments();
+                        showAlert(`Dokumen kendaraan <strong>${selectedDestroyVehicleId}</strong> berhasil dihapus selamanya.`, 'danger');
+                        deleteModal.hide();
+                        selectedDestroyId = null;
+                        selectedDestroyVehicleId = null;
+                    });
+            });
+        }
+    });
+
+    // Override tombol hapus → tampilkan modal
+    function bindDestroyEvents() {
+        document.querySelectorAll('.destroy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                selectedDestroyId = this.dataset.id;
+                selectedDestroyVehicleId = this.dataset.vehicleId;
+                deleteModal.show();
+            });
+        });
+    }
+</script>
+
+
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+        });
+    </script>
+    <?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['danger_message'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+        });
+    </script>
+    <?php unset($_SESSION['danger_message']); ?>
+<?php endif; ?>

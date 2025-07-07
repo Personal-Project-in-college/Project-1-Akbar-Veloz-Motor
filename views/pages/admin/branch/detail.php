@@ -30,8 +30,8 @@ include '../layout/sidebar.php';
     <div class="content-wrapper">
         <h3 class="mb-4">Detail Cabang</h3>
 
-        <!-- TABEL Cabang -->
-        <div class="card mb-4">
+        <!-- Desktop View -->
+        <div class="card mb-4 d-none d-sm-block">
             <div class="card-body">
                 <h5 class="mb-4">Informasi Cabang</h5>
                 <table class="table">
@@ -44,6 +44,23 @@ include '../layout/sidebar.php';
                         <td class="text-wrap"><?= htmlspecialchars($branch['address']) ?></td>
                     </tr>
                 </table>
+            </div>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="card mb-4 d-block d-sm-none">
+            <div class="card-body">
+                <h5 class="mb-4 text-center">Informasi Cabang</h5>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-3 mb-3"><strong>Nama</strong></div>
+                    <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($branch['name']) ?></div>
+                </div>
+                <hr class="my-3">
+                <div class="row">
+                    <div class="col-12 col-md-3 mb-3"><strong>Alamat</strong></div>
+                    <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($branch['address']) ?></div>
+                </div>
             </div>
         </div>
 

@@ -41,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $updateQuery = $koneksi->prepare("UPDATE branches SET name = ?, slug = ?, address = ?, updated_at = NOW() WHERE id = ?");
             $updateQuery->execute([$name, $newSlug, $address, $branch['id']]);
-
-            $_SESSION['success'] = "Cabang <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
+            $_SESSION['success_message'] = "Cabang <strong>" . htmlspecialchars($name) . "</strong> berhasil diupdate.";
             header("Location: branch.php");
             exit;
         } catch (PDOException $e) {

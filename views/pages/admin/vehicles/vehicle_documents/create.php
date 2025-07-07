@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$bolehTambahDokumen) {
         // Jika tidak memenuhi syarat, hentikan proses dan beri pesan.
         // Sebaiknya ini dihandle dengan $_SESSION['error'] dan redirect agar UI lebih baik.
-        $_SESSION['error'] = "Gagal: Kendaraan ini sudah memiliki set dokumen aktif. Anda tidak bisa menambahkan lagi kecuali set dokumen lama dihapus (soft delete).";
+        $_SESSION['danger_message'] = "<strong>Error: </strong>Kendaraan ini sudah memiliki set dokumen aktif. Anda tidak bisa menambahkan lagi kecuali set dokumen lama dihapus (soft delete).";
         header('Location: ../detail.php?id=' . urlencode($vehicle_id)); // Asumsi nama file ini create.php
         exit;
     }
@@ -114,10 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 3.5 Siapkan Pesan Sukses dan Redirect
     if ($vehicle_id) { // Cek $vehicle_id sekali lagi untuk konsistensi pesan
-        $_SESSION['success'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil ditambahkan.";
     } else {
         // Ini seharusnya tidak terjadi jika $vehicle_id dari POST selalu ada.
-        $_SESSION['success'] = "Data Dokumen Kendaraan berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Data Dokumen Kendaraan berhasil ditambahkan.";
     }
 
     // Arahkan ke halaman detail kendaraan yang baru ditambahkan dokumennya.

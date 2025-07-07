@@ -4,8 +4,8 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT vehicle_models.*, brands.name AS brand_name FROM vehicle_models JOIN brands ON vehicle_models.brand_id = brands.id WHERE (vehicle_models.deleted_at IS NOT NULL OR vehicle_models.deleted_by_brand_at IS NOT NULL) AND vehicle_models.name LIKE ? ORDER BY brands.name ASC");
-$stmt->execute([$keyword]);
+$stmt = $koneksi->prepare("SELECT vehicle_models.*, brands.name AS brand_name FROM vehicle_models JOIN brands ON vehicle_models.brand_id = brands.id WHERE (vehicle_models.deleted_at IS NOT NULL OR vehicle_models.deleted_by_brand_at IS NOT NULL) AND (brands.name LIKE ? OR vehicle_models.name LIKE ?) ORDER BY brands.name ASC");
+$stmt->execute([$keyword, $keyword]);
 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

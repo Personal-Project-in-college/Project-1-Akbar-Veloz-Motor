@@ -4,8 +4,8 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$getPartnerQuery = $koneksi->prepare("SELECT * FROM partners WHERE deleted_at IS NULL AND name LIKE ? ORDER BY created_at ASC");
-$getPartnerQuery->execute([$keyword]);
+$getPartnerQuery = $koneksi->prepare("SELECT * FROM partners WHERE deleted_at IS NULL AND (name LIKE ? OR phone LIKE ? OR email LIKE ?) ORDER BY created_at ASC");
+$getPartnerQuery->execute([$keyword, $keyword, $keyword]);
 $data = $getPartnerQuery->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

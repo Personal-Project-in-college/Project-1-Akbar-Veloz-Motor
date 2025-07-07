@@ -61,10 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($vehicles_id) {
         // Pesan yang lebih informatif jika ID kendaraan ada.
-        $_SESSION['success'] = "Foto untuk kendaraan <strong>" . htmlspecialchars($vehicles_id) . "</strong> berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Foto untuk kendaraan <strong>" . htmlspecialchars($vehicles_id) . "</strong> berhasil ditambahkan.";
     } else {
         // Pesan fallback jika `vehicle_id` tidak ada di URL.
-        $_SESSION['success'] = "Data Foto Kendaraan berhasil ditambahkan.";
+        $_SESSION['success_message'] = "Data Foto Kendaraan berhasil ditambahkan.";
     }
 
     // 🚀 Setelah berhasil, balik ke halaman index

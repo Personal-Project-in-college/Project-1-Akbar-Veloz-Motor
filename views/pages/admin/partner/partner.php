@@ -9,48 +9,19 @@ include '../layout/sidebar.php';
 $activePage = basename($_SERVER['PHP_SELF']);
 ?>
 <style>
-    @keyframes slideDown {
-        0% {
-            transform: translateY(-100px);
-            opacity: 0;
-        }
-
-        100% {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
+    /* Animasi baru untuk modal */
     .modal.fade .modal-dialog {
         transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-        transform: translateY(-100px);
+        transform: scale(0.8);
+        /* Mulai dari ukuran 80% */
         opacity: 0;
     }
 
-    .modal.fade.show .modal-dialog {
-        transform: translateY(0);
-        opacity: 1;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .fade-out {
-        transition: opacity 0.5s ease-out;
+    .modal.show .modal-dialog {
+        transform: scale(1);
+        /* Kembali ke ukuran normal */
         opacity: 1;
     }
-
-    .alert .close-btn {
-        float: right;
-        font-size: 1.2rem;
-        font-weight: bold;
-        line-height: 1;
-        color: inherit;
-        background: none;
-        border: none;
-        padding: 0;
-        margin-left: 10px;
-        cursor: pointer;
-    }
-
 
     #floating-alert-container .alert {
         animation: slideInLeft 0.3s ease-out;
@@ -81,7 +52,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 <a href="create.php" class="btn btn-primary">Tambah</a>
             <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Partner Terhapus(Nama, Telepon, Email)...">
             </div>
         </div>
 
@@ -97,7 +68,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overflow-auto">
                         <table class="table table-striped">
                             <thead>
                                 <tr>

@@ -33,10 +33,10 @@ $data->execute([$id]);
 // Catatan: Key 'danger' biasanya untuk error, 'success' mungkin lebih cocok untuk aksi yang berhasil.
 if ($vehicle_id) {
     // Pesan yang lebih informatif jika ID kendaraan ada.
-    $_SESSION['danger'] = "Dokumen untuk kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil dihapus sementara.";
+    $_SESSION['danger_message'] = "Dokumen untuk kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil dihapus sementara.";
 } else {
     // Pesan fallback jika `vehicle_id` tidak ada di URL.
-    $_SESSION['danger'] = "Data Dokumen Kendaraan berhasil dihapus sementara.";
+    $_SESSION['danger_message'] = "Data Dokumen Kendaraan berhasil dihapus sementara.";
 }
 
 

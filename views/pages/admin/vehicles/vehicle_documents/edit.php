@@ -17,7 +17,11 @@ checkLogin(); // Pastikan pengguna sudah login.
 // 2. Ambil dan Validasi Data Dokumen Awal
 // Ambil ID record dokumen dari URL.
 $id = $_GET['id'];
-if (!$id) die("Id tidak ditemukan.");
+if (!$id) {
+    $_SESSION['danger_message'] = "<strong>Error: </strong> ID jabatan tidak ditemukan di URL.";
+    header("Location: ../vehicle.php");
+    exit;
+}
 
 // Ambil data record dokumen dari database yang statusnya tidak terhapus.
 $data = $koneksi->prepare("SELECT * FROM vehicle_documents WHERE id = ? AND deleted_at IS NULL");
@@ -90,9 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 5. Siapkan Pesan Sukses dan Redirect
     if ($vehicle_id) {
-        $_SESSION['success'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil diupdate.";
+        $_SESSION['success_message'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil diupdate.";
     } else {
-        $_SESSION['success'] = "Data Dokumen Kendaraan berhasil diupdate.";
+        $_SESSION['success_message'] = "Data Dokumen Kendaraan berhasil diupdate.";
     }
 
     // Arahkan kembali ke halaman detail kendaraan.

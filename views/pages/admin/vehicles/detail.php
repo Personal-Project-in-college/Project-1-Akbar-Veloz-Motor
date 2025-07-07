@@ -66,13 +66,45 @@ $typefuels = [
     'hybrid' => 'Hybrid'
 ];
 
+function getVehicleIcon($type)
+{
+    return [
+        'car' => 'mdi mdi-car-hatchback',
+        'motorcycle' => 'mdi mdi-motorbike'
+    ][$type] ?? 'mdi mdi-car';
+}
+
+function getFuelIcon($fuel)
+{
+    return [
+        'electric' => 'mdi mdi-lightning-bolt',
+        'gasoline' => 'mdi mdi-fuel',
+        'hybrid' => 'mdi mdi-cached'
+    ][$fuel] ?? 'mdi mdi-alert-circle';
+}
+
+function formatIndoDate($dateStr)
+{
+    $formatter = new IntlDateFormatter(
+        'id_ID',
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE,
+        'Asia/Jakarta',
+        IntlDateFormatter::GREGORIAN,
+        "EEEE, dd MMMM yyyy"
+    );
+    $timestamp = strtotime($dateStr);
+    return $formatter->format($timestamp);
+}
+
 // Siapkan array untuk dropdown status kendaraan.
 $statuses = [
+    'available' => 'Tersedia',
     'on_loan' => 'Dipinjam',
+    'test_drive' => 'Tes Jalan',
+    'transaction' => 'Dalam Transaksi',
     'service' => 'Service',
     'sold' => 'Terjual',
-    'available' => 'Tersedia',
-    'test_drive' => 'Tes Jalan',
 ];
 
 include '../layout/header.php';
@@ -80,51 +112,55 @@ include '../layout/sidebar.php';
 ?>
 
 <style>
-    @keyframes slideDown {
-        0% {
-            transform: translateY(-100px);
+    .fade-out {
+        transition: opacity 0.5s ease-out;
+        opacity: 1;
+    }
+
+    #floating-alert-container .alert {
+        animation: slideInLeft 0.3s ease-out;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-50px);
             opacity: 0;
         }
 
-        100% {
-            transform: translateY(0);
+        to {
+            transform: translateX(0);
             opacity: 1;
         }
     }
 
+    /* Animasi baru untuk modal */
     .modal.fade .modal-dialog {
         transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-        transform: translateY(-100px);
+        transform: scale(0.8);
+        /* Mulai dari ukuran 80% */
         opacity: 0;
     }
 
-    .modal.fade.show .modal-dialog {
-        transform: translateY(0);
+    .modal.show .modal-dialog {
+        transform: scale(1);
+        /* Kembali ke ukuran normal */
         opacity: 1;
-        animation: slideDown 0.3s ease-out;
     }
 
-    .fullscreen-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.9);
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
 
-    .fullscreen-overlay img {
-        max-width: 90%;
-        max-height: 90%;
-        object-fit: contain;
-        cursor: zoom-out;
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 </style>
 
+<div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
 
 <!-- Main Content -->
 <div class="main-panel">
@@ -132,98 +168,223 @@ include '../layout/sidebar.php';
         <h3 class="mb-4">Detail Kendaraan</h3>
 
         <!-- TABEL Brand & Model -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="mb-4">Informasi Merek</h5>
-                <table class="table">
-                    <tr>
-                        <th class="w-25">Merek</th>
-                        <td><?= $vehicle['brand_name'] ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Model</th>
-                        <td><?= $vehicle['model_name'] ?></td>
-                    </tr>
-                </table>
+        <div>
+            <!-- Desktop View -->
+            <div class="card mb-4 d-none d-sm-block">
+                <div class="card-body">
+                    <h5 class="mb-4">Informasi Merek</h5>
+                    <table class="table">
+                        <tr>
+                            <th class="w-25">Merek</th>
+                            <td><?= $vehicle['brand_name'] ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Model</th>
+                            <td><?= $vehicle['model_name'] ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile View -->
+            <div class="card mb-4 d-block d-sm-none">
+                <div class="card-body">
+                    <h5 class="mb-4 text-center">Informasi Merek</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Merek</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['brand_name']) ?></div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Model</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['model_name']) ?></div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- TABEL KENDARAAN -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="mb-4">Informasi Kendaraan</h5>
-                <table class="table">
-                    <tr>
-                        <th class="w-25">Kode</th>
-                        <td><?= htmlspecialchars($vehicle['id']) ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Tipe</th>
-                        <td><?= $types[$vehicle['type_vehicle']] ?? '-' ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Warna</th>
-                        <td><?= htmlspecialchars($vehicle['color']) ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Tahun Produksi</th>
-                        <td><?= htmlspecialchars($vehicle['production_year']) ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">STNK Deadline</th>
-                        <td><?= htmlspecialchars($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Bahan Bakar</th>
-                        <td><?= $typefuels[$vehicle['type_fuel']] ?? '-' ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">CC Engine</th>
-                        <td><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Serial Number</th>
-                        <td><?= htmlspecialchars($vehicle['serial_number']) ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Kilometer</th>
-                        <td><?= htmlspecialchars($vehicle['kilometer']) ?> KM</td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Harga Terendah</th>
-                        <td>Rp <?= htmlspecialchars($vehicle['lowest_price']) ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Harga Display</th>
-                        <td>Rp <?= htmlspecialchars($vehicle['price_displayed']) ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Status</th>
-                        <td><?= $statuses[$vehicle['status']] ?? '-' ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Deskripsi</th>
-                        <td class="text-wrap"><?= htmlspecialchars($vehicle['description']) ?></td>
-                    </tr>
-                </table>
+        <div>
+            <!-- Desktop View -->
+            <div class="card mb-4 d-none d-sm-block">
+                <div class="card-body">
+                    <h5 class="mb-4">Informasi Kendaraan</h5>
+                    <table class="table">
+                        <tr>
+                            <th class="w-25">Kode</th>
+                            <td><?= htmlspecialchars($vehicle['id']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Tipe</th>
+                            <td><?= $types[$vehicle['type_vehicle']] ?? '-' ?> <i class="<?= getVehicleIcon($vehicle['type_vehicle']) ?>"></i></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Warna</th>
+                            <td><?= htmlspecialchars($vehicle['color']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Tahun Produksi</th>
+                            <td><?= formatIndoDate($vehicle['production_year']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Jatuh Tempo STNK</th>
+                            <td><?= formatIndoDate($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Bahan Bakar</th>
+                            <td><?= $typefuels[$vehicle['type_fuel']] ?? '-' ?> <i class="<?= getFuelIcon($vehicle['type_fuel']) ?>"></i></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">CC Mesin</th>
+                            <td><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Serial Number</th>
+                            <td><?= htmlspecialchars($vehicle['serial_number']) ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Kilometer</th>
+                            <td><?= htmlspecialchars($vehicle['kilometer']) ?> KM</td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Harga Terendah</th>
+                            <td>Rp <?= number_format($vehicle['lowest_price'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Harga Display</th>
+                            <td>Rp <?= number_format($vehicle['price_displayed'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Status</th>
+                            <td><?= $statuses[$vehicle['status']] ?? '-' ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Deskripsi</th>
+                            <td class="text-wrap"><?= htmlspecialchars($vehicle['description']) ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile View -->
+            <div class="card mb-4 d-block d-sm-none">
+                <div class="card-body">
+                    <h5 class="mb-4 text-center">Informasi Kendaraan</h5>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Kode</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['id']) ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Tipe</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= $types[$vehicle['type_vehicle']] ?? '-' ?> <i class="<?= getVehicleIcon($vehicle['type_vehicle']) ?>"></i></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Warna</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['color']) ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Tahun Produksi</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= formatIndoDate($vehicle['production_year']) ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Jatuh Tempo STNK</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= formatIndoDate($vehicle['stnk_deadline']) ?> <br><small class="text-muted"><?= $sisaHari ?></small></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Bahan Bakar</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= $typefuels[$vehicle['type_fuel']] ?? '-' ?> <i class="<?= getFuelIcon($vehicle['type_fuel']) ?>"></i></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>CC Mesin</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['cc_engine']) ?> cc</div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Nomor Seri Kendaraan</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['serial_number']) ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Kilometer</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['kilometer']) ?> km</div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Harga Terendah</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap">Rp <?= number_format($vehicle['lowest_price'], 0, ',', '.') ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Harga Display</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap">Rp <?= number_format($vehicle['price_displayed'], 0, ',', '.') ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Status</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= $statuses[$vehicle['status']]  ?></div>
+                    </div>
+
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Deskripsi</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['description']) ?></div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- TABEL Cabang -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="mb-4">Informasi Cabang</h5>
-                <table class="table">
-                    <tr>
-                        <th class="w-25">Nama</th>
-                        <td><?= $vehicle['branch_name'] ?></td>
-                    </tr>
-                    <tr>
-                        <th class="w-25">Alamat</th>
-                        <td class="text-wrap"><?= $vehicle['branch_address'] ?></td>
-                    </tr>
-                </table>
+        <div>
+            <!-- Desktop View -->
+            <div class="card mb-4 d-none d-sm-block">
+                <div class="card-body">
+                    <h5 class="mb-4">Informasi Cabang</h5>
+                    <table class="table">
+                        <tr>
+                            <th class="w-25">Nama</th>
+                            <td><?= $vehicle['branch_name'] ?></td>
+                        </tr>
+                        <tr>
+                            <th class="w-25">Alamat</th>
+                            <td class="text-wrap"><?= $vehicle['branch_address'] ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile View -->
+            <div class="card mb-4 d-block d-sm-none">
+                <div class="card-body">
+                    <h5 class="mb-4 text-center">Informasi Cabang</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-3 mb-3"><strong>Nama</strong></div>
+                        <div class="col-12 col-md-9 text-small"><?= htmlspecialchars($vehicle['branch_name']) ?></div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12 col-md-3 mb-3"><strong>Alamat</strong></div>
+                        <div class="col-12 col-md-9 text-small text-wrap"><?= htmlspecialchars($vehicle['branch_address']) ?></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -231,26 +392,12 @@ include '../layout/sidebar.php';
         <div class="mt-5">
             <h3 class="mb-4">Data Dokumen Kendaraan</h3>
 
-            <?php
-            $cekVehicleDocs = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_documents WHERE vehicle_id = ? AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL");
-            $cekVehicleDocs->execute([$id]);
-            $adaDokumenAktif = $cekVehicleDocs->fetchColumn();
-
-            $cekDeletedVehicleDocs = $koneksi->prepare("SELECT COUNT(*) FROM vehicle_documents WHERE vehicle_id = ? AND (deleted_at IS NOT NULL OR deleted_by_vehicle_at IS NOT NULL)");
-            $cekDeletedVehicleDocs->execute([$id]);
-            $adaDokumenSoftDelete = $cekDeletedVehicleDocs->fetchColumn();
-
-            $bolehTambahDokumen = ($adaDokumenAktif == 0 && $adaDokumenSoftDelete >= 0);
-            ?>
-
-            <!-- Tombol Memunculkan Form Tambah Data Vehicle Documents -->
-            <?php if ($bolehTambahDokumen): ?>
-                <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadDocument">
-                        Tambah
-                    </button>
-                </div>
-            <?php endif ?>
+            <!-- Ubah agar tombol bisa dikontrol dari JS -->
+            <div class="d-flex align-items-center flex-wrap mb-3 gap-2">
+                <button type="button" id="btn-add-document" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadDocument" style="display: none;">
+                    Tambah
+                </button>
+            </div>
 
             <?php
             $activePage = basename($_SERVER['PHP_SELF']);
@@ -270,7 +417,7 @@ include '../layout/sidebar.php';
             <div class="row">
                 <div class="col-lg-12 grid-margin stretch-card">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body overflow-auto">
                             <table class="table table-striped" id="productTable">
                                 <thead>
                                     <tr>
@@ -282,40 +429,10 @@ include '../layout/sidebar.php';
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <?php
-                                    $query = $koneksi->prepare("SELECT * FROM vehicle_documents WHERE vehicle_id = :vehicle_id AND deleted_at IS NULL AND deleted_by_vehicle_at IS NULL ORDER BY created_at ASC");
-                                    $query->bindValue(':vehicle_id', $id, PDO::PARAM_STR);
-                                    $query->execute();
-
-                                    $dataVehicleDocuments = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                                    $formatTeks = function ($filePath, $label) {
-                                        if (empty($filePath)) return 'Kosong';
-                                        return "<a href='../../../../storage/" . $filePath . "' target='_blank'>Buka $label</a>";
-                                    };
-
-                                    foreach ($dataVehicleDocuments as $row) {
-                                        echo "<tr>
-                                            <td>" . $formatTeks($row['stnk'], 'STNK') . "</td>
-                                            <td>" . $formatTeks($row['bpkb'], 'BPKB') . "</td>
-                                            <td>" . $formatTeks($row['service_note'], 'Nota Service') . "</td>
-                                            <td>" . $formatTeks($row['nota'], 'Nota') . "</td>
-                                            <td>" . $formatTeks($row['asuransi'], 'Asuransi') . "</td>
-                                            <td style='display: flex; align-items: center; gap: 8px;'>
-                                                <button  data-bs-toggle='modal' data-bs-target='#modalEditDocument' title='Edit' class='btn btn-primary btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; border-radius: 4px;'>
-                                                    <i class='mdi mdi-pencil'></i>
-                                                </button>
-                                                <a href='./vehicle_documents/softDelete.php?id={$row['id']}&vehicle_id={$vehicle['id']}' title='Delete' class='btn btn-danger btn-sm d-flex justify-content-center align-items-center' style='width: 28px; height: 28px; color: white; border-radius: 4px;'>
-                                                    <i class='mdi mdi-delete-restore'></i>
-                                                </a>
-                                            </td>
-                                        </tr>";
-                                    }
-                                    if (empty($dataVehicleDocuments)) {
-                                        echo "<tr><td colspan='8' class='text-center'>Dokumen kendaraan {$id} belum ditambahkan.</td></tr>";
-                                    }
-                                    ?>
+                                <tbody id="vehicleDocumentTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Memuat data...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -326,7 +443,6 @@ include '../layout/sidebar.php';
 
 
         <!-- Table Vehicle Photos -->
-
         <div class="mt-5">
             <h3 class="mb-4">Data Foto Kendaraan</h3>
 
@@ -376,10 +492,10 @@ include '../layout/sidebar.php';
                                 <?php endif; ?>
 
                                 <div class="d-flex gap-2">
-                                    <button data-bs-toggle="modal" data-bs-target="#modalEditPhoto" title="Edit"
+                                    <!-- <button data-bs-toggle="modal" data-bs-target="#modalEditPhoto" title="Edit"
                                         class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                                         <i class="mdi mdi-pencil"></i>
-                                    </button>
+                                    </button> -->
                                     <a href="./vehicle_photos/softDelete.php?id=<?= $row['id'] ?>&vehicle_id=<?= $vehicle['id'] ?>"
                                         title="Delete" class="btn btn-danger btn-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; color: white;">
                                         <i class="mdi mdi-delete-restore"></i>
@@ -567,3 +683,121 @@ include '../layout/sidebar.php';
         document.getElementById('fullscreenImage').src = '';
     }
 </script>
+
+<script>
+    const searchInput = document.getElementById('search-input');
+    const tableBody = document.getElementById('vehicleDocumentTableBody');
+
+    // Ambil vehicle_id dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const vehicleId = urlParams.get('id');
+
+
+    function loadVehicleDocuments(keyword = '') {
+        fetch(`vehicle_documents/ajaxVehicleDocumentList.php?vehicle_id=${vehicleId}`)
+            .then(res => res.text())
+            .then(html => {
+                tableBody.innerHTML = html;
+                bindDeleteEvents(); // wajib ulang
+                checkAddButtonVisibility(); // ← tambahkan di sini
+            });
+    }
+
+    function checkAddButtonVisibility() {
+        fetch(`vehicle_documents/checkActiveDocument.php?vehicle_id=${vehicleId}`)
+            .then(res => res.json())
+            .then(data => {
+                const addButton = document.getElementById('btn-add-document');
+                if (addButton) {
+                    if (data.active) {
+                        addButton.style.display = 'none'; // Ada data aktif → sembunyikan
+                    } else {
+                        addButton.style.display = 'inline-block'; // Tidak ada → tampilkan
+                    }
+                }
+            });
+    }
+
+    // Load pertama
+    loadVehicleDocuments();
+
+    // Saat ketik di search
+    searchInput.addEventListener('keyup', function() {
+        loadVehicleDocuments(this.value);
+    });
+</script>
+
+<script>
+    function bindDeleteEvents() {
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const vehicleId = this.dataset.vehicleId;
+
+                fetch(`vehicle_documents/softDelete.php?id=${id}&vehicle_id=${vehicleId}`)
+                    .then(() => {
+                        loadVehicleDocuments(); // reload tabel
+                        showAlert(`Dokumen untuk kendaraan <strong>${vehicleId}</strong> berhasil dihapus sementara.`, 'danger');
+                    });
+            });
+        });
+    }
+
+    function showAlert(message, type = 'success') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
+
+        // Masukkan isi alert + tombol close
+        alertDiv.innerHTML = `<span>${message}</span>`;
+        alertDiv;
+
+        const container = document.getElementById('floating-alert-container');
+        container.appendChild(alertDiv);
+
+        // Fade out mulai di detik ke-4.5
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+        }, 1500);
+
+        // Remove dari DOM di detik ke-5
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 2000);
+    }
+
+    function loadVehicleDocuments(keyword = '') {
+        fetch(`vehicle_documents/ajaxVehicleDocumentList.php?vehicle_id=${vehicleId}`)
+            .then(res => res.text())
+            .then(html => {
+                tableBody.innerHTML = html;
+                bindDeleteEvents(); // PENTING!
+                checkAddButtonVisibility(); // ← tambahkan di sini
+            });
+    }
+
+    // Event awal
+    document.addEventListener('DOMContentLoaded', () => {
+        loadVehicleDocuments();
+
+        searchInput.addEventListener('keyup', function() {
+            loadVehicleDocuments(this.value);
+        });
+    });
+</script>
+<?php if (isset($_SESSION['success_message'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert(`<?= $_SESSION['success_message'] ?>`, 'success');
+        });
+    </script>
+    <?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['danger_message'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert(`<?= $_SESSION['danger_message'] ?>`, 'danger');
+        });
+    </script>
+    <?php unset($_SESSION['danger_message']); ?>
+<?php endif; ?>

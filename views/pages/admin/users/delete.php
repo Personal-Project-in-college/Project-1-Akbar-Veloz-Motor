@@ -34,32 +34,15 @@ $activePage = basename($_SERVER['PHP_SELF']);
 
     .modal.fade .modal-dialog {
         transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-        transform: translateY(-100px);
+        transform: scale(0.8);
+        /* Mulai dari ukuran 80% */
         opacity: 0;
     }
 
-    .modal.fade.show .modal-dialog {
-        transform: translateY(0);
+    .modal.show .modal-dialog {
+        transform: scale(1);
+        /* Kembali ke ukuran normal */
         opacity: 1;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .fade-out {
-        transition: opacity 0.5s ease-out;
-        opacity: 1;
-    }
-
-    .alert .close-btn {
-        float: right;
-        font-size: 1.2rem;
-        font-weight: bold;
-        line-height: 1;
-        color: inherit;
-        background: none;
-        border: none;
-        padding: 0;
-        margin-left: 10px;
-        cursor: pointer;
     }
 
 
@@ -78,6 +61,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
             opacity: 1;
         }
     }
+
 </style>
 
 <div id="floating-alert-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; max-width: 300px;"></div>
@@ -97,7 +81,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 <a href="create.php" class="btn btn-primary">Tambah</a>
             <?php endif ?>
             <div class="flex-grow-1 d-flex align-items-center" style="min-width: 250px;">
-                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari">
+                <input type="text" class="form-control rounded-pill" id="search-input" placeholder="Cari Karyawan (Nama, Telepon, Alamat)...">
             </div>
         </div>
 
@@ -113,7 +97,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overflow-auto">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -136,6 +120,24 @@ $activePage = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
 
+        <!-- Modal Konfirmasi Hapus Permanen -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow rounded-4 border-0">
+                    <div class="modal-body text-center p-5">
+                        <div class="mb-3">
+                            <i class="mdi mdi-alert-circle-outline text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-danger mb-3" id="confirmDeleteModalLabel">Hapus Karyawan Secara Permanen?</h5>
+                        <p class="mb-4 fs-6 text-muted">Tindakan ini <strong>tidak bisa dibatalkan</strong>.<br>Pastikan kamu sudah yakin.</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="button" class="btn btn-dark rounded-pill px-4 text-white" data-bs-dismiss="modal">Batal</button>
+                            <button id="confirmDestroyBtn" type="button" class="btn btn-danger rounded-pill px-4 text-white">Ya, Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <?php include '../layout/footer.php'; ?>
     </div>
 
@@ -188,7 +190,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            
+
 
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
@@ -258,7 +260,7 @@ $activePage = basename($_SERVER['PHP_SELF']);
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} shadow rounded mb-2 fade-out`;
 
-            
+
 
             // Masukkan isi alert + tombol close
             alertDiv.innerHTML = `<span>${message}</span>`;
@@ -296,5 +298,52 @@ $activePage = basename($_SERVER['PHP_SELF']);
                 loadDeletedUsers(this.value);
             });
         });
+
+        // Modal Bootstrap instance
+        let deleteModal;
+        let selectedDestroyId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (modalEl) {
+                deleteModal = new bootstrap.Modal(modalEl);
+            }
+
+            // Event tombol konfirmasi hapus
+            const confirmDestroyBtn = document.getElementById('confirmDestroyBtn');
+            if (confirmDestroyBtn) {
+                confirmDestroyBtn.addEventListener('click', () => {
+                    if (!selectedDestroyId) return;
+                    fetch('destroy.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: 'id=' + encodeURIComponent(selectedDestroyId)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadDeletedUsers(); // reload tabel
+                                showAlert(data.message, 'danger');
+                            } else {
+                                showAlert(data.message, 'danger');
+                            }
+                            deleteModal.hide();
+                            selectedDestroyId = null;
+                        });
+                });
+            }
+        });
+
+        // Override tombol hapus → tampilkan modal
+        function bindDestroyEvents() {
+            document.querySelectorAll('.destroy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectedDestroyId = this.dataset.id;
+                    deleteModal.show();
+                });
+            });
+        }
     </script>
 </div>

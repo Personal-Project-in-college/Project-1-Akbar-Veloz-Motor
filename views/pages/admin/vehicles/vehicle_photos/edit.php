@@ -60,9 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data->execute([$photo_path, $id]);
 
     if ($vehicle_id) {
-        $_SESSION['success'] = "Foto Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil diupdate.";
+        $_SESSION['success_message'] = "Foto Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil diupdate.";
     } else {
-        $_SESSION['success'] = "Data Foto Kendaraan berhasil diupdate.";
+        $_SESSION['success_message'] = "Data Foto Kendaraan berhasil diupdate.";
     }
 
     header('Location: ../detail.php?id=' . urlencode($vehicle_id));

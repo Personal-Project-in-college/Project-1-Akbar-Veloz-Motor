@@ -104,7 +104,7 @@ include '../layout/sidebar.php';
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overflow-auto">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -115,7 +115,7 @@ include '../layout/sidebar.php';
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="transactionTableBody">
+                            <tbody id="transactionTableBody" >
                                 <tr>
                                     <td colspan="5" class="text-center">Memuat data...</td>
                                 </tr>

@@ -4,8 +4,8 @@ include '../../../../config/koneksi.php';
 $keyword = $_GET['keyword'] ?? '';
 $keyword = "%$keyword%";
 
-$stmt = $koneksi->prepare("SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id WHERE (users.deleted_at IS NOT NULL OR deleted_by_role_at IS NOT NULL) AND users.role_id = 2 AND users.name LIKE ? ORDER BY users.name ASC");
-$stmt->execute([$keyword]);
+$stmt = $koneksi->prepare("SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id WHERE (users.deleted_at IS NOT NULL OR deleted_by_role_at IS NOT NULL) AND users.role_id = 2 AND (users.name LIKE ? OR users.phone LIKE ? OR users.address LIKE ?) ORDER BY users.name ASC");
+$stmt->execute([$keyword, $keyword, $keyword]);
 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $no = 1;

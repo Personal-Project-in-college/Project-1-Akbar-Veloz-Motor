@@ -16,10 +16,10 @@ if (isset($_GET['id'])) {
 
     if ($vehicle_id) {
         // Pesan jika ID berhasil diambil, lebih spesifik.
-        $_SESSION['danger'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil dihapus selamanya.";
+        $_SESSION['danger_message'] = "Dokumen Kendaraan <strong>" . htmlspecialchars($vehicle_id) . "</strong> berhasil dihapus selamanya.";
     } else {
         // Pesan fallback jika karena suatu hal ID tidak terambil.
-        $_SESSION['danger'] = "Kendaraan tidak ditemukan atau sudah dihapus sebelumnya.";
+        $_SESSION['danger_message'] = "Kendaraan tidak ditemukan atau sudah dihapus sebelumnya.";
     }
 
     

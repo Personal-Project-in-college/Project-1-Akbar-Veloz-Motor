@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $query = $koneksi->prepare("INSERT INTO vehicle_models (brand_id, name, slug, created_at) VALUES (?, ?, ?, NOW())");
             $query->execute([$brand_id, $name, $slug]);
 
-            $_SESSION['success'] = "Model kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
+            $_SESSION['success_message'] = "Model kendaraan <strong>" . htmlspecialchars($name) . "</strong> berhasil ditambahkan.";
             header("Location: vehicle_model.php");
             exit;
         } catch (PDOException $e) {
