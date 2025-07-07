@@ -14,14 +14,9 @@ if (!isset($_SESSION['pending_order'])) {
 $data = $_SESSION['pending_order'];
 $customer_id = $_SESSION['customer_id'];
 
-if (!isset($_SESSION['pending_order'])) {
-    echo "Data pesanan belum tersedia.";
-    exit();
-}
-
-$data = $_SESSION['pending_order'];
 $vehicle_id = $data['vehicle_id'];
 $type_arrival = $data['type_arrival'];
+$negotiated_price = $data['negotiated_price'] ?? 0;
 
 // Query kendaraan & relasi
 $stmt = $koneksi->prepare("SELECT v.type_vehicle, v.color, v.production_year, v.type_fuel, v.cc_engine, v.price_displayed, v.stnk_deadline, v.description, vm.name AS model_name, b.name AS brand_name FROM vehicles v JOIN vehicle_models vm ON v.vehicle_model_id = vm.id JOIN brands b ON vm.brand_id = b.id WHERE v.id = ?");
@@ -32,8 +27,6 @@ $vehicle = $stmt->fetch(PDO::FETCH_ASSOC);
 $data = array_merge($data, $vehicle);
 $data['vehicle_name'] = $vehicle['brand_name'] . ' ' . $vehicle['model_name'];
 
-$negotiated_price = 0;
-
 // Hitung sisa hari STNK
 $today = new DateTime();
 $stnkDate = new DateTime($data['stnk_deadline']);
@@ -41,7 +34,7 @@ $sisaHariSTNK = $today->diff($stnkDate)->days;
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) {
-    $data = $_SESSION['pending_order'];
+    $data = $_SESSION['pending_order']; // Ambil data terbaru dari sesi
 
     try {
         $koneksi->beginTransaction();
@@ -51,13 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
         $stmt->execute([$data['phone'], $data['address'], $customer_id]);
 
         // Isi otomatis order_date jika type_order adalah 'transaction'
-        if ($data['type_order'] === 'transaction') {
-            $data['order_date'] = date('Y-m-d');
+        // Jika order_date kosong dan type_order adalah transaction, gunakan tanggal sekarang
+        if ($data['type_order'] === 'transaction' && empty($data['order_date'])) {
+            $data['order_date'] = date('Y-m-d H:i:s');
         }
 
+
         // Insert order
-        $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-        $stmtOrder->execute([$customer_id, $data['vehicle_id'], $data['type_order'], $data['type_arrival'], $data['order_date']]);
+        // Tambahkan negotiated_price ke query INSERT
+        $stmtOrder = $koneksi->prepare("INSERT INTO orders (customer_id, vehicle_id, type_order, type_arrival, order_date, negotiated_price, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+        $stmtOrder->execute([$customer_id, $data['vehicle_id'], $data['type_order'], $data['type_arrival'], $data['order_date'], $negotiated_price]); // Gunakan $negotiated_price dari sesi
         $order_id = $koneksi->lastInsertId();
 
         $orderLink = "http://project-1-akbar-veloz-motor.com/detail-pesanan.php?id={$order_id}";
@@ -81,13 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['pending_order'])) 
             $koneksi->prepare("UPDATE vehicles SET status = 'test_drive' WHERE id = ?")
                 ->execute([$data['vehicle_id']]);
         } elseif ($data['type_order'] === 'transaction') {
-            $stmt = $koneksi->prepare("SELECT price_displayed FROM vehicles WHERE id = ?");
-            $stmt->execute([$data['vehicle_id']]);
-            $vehicle = $stmt->fetch();
+            // Jika ada harga negosiasi, gunakan itu sebagai deal_negotiation
+            // Jika tidak ada, deal_negotiation bisa 0 atau harga asli kendaraan
+            $final_deal_negotiation = $negotiated_price > 0 ? $negotiated_price : ($vehicle['price_displayed'] ?? 0);
 
-            $price = $vehicle['price_displayed'] ?? 0;
-            $koneksi->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, status, created_at) VALUES (?, ?, 0, 'pending', NOW())")
-                ->execute([$order_id, $price]);
+            $insertTransaction = $koneksi->prepare("INSERT INTO transactions (order_id, vehicle_price, deal_negotiation, grand_total, payment_type, payment_method, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+            $insertTransaction->execute([$order_id, $vehicle['price_displayed'], $final_deal_negotiation, $final_deal_negotiation, 'tunai', 'cash', 'pending']);
+
 
             $koneksi->prepare("UPDATE vehicles SET status = 'transaction' WHERE id = ?")
                 ->execute([$data['vehicle_id']]);
@@ -221,9 +217,10 @@ function translate_fuel($value)
                                 <dt>Harga Kendaraan</dt>
                                 <dd>Rp <?php echo number_format($data['price_displayed'], 0, ',', '.'); ?></dd>
                             </div>
-                            <?php if (!$negotiated_price == 0) : ?>
+                            <?php if ($negotiated_price > 0) : // Tampilkan jika ada harga negosiasi 
+                            ?>
                                 <div class="detail-item">
-                                    <dt>Harga Negoisasi</dt>
+                                    <dt>Harga Negosiasi</dt>
                                     <dd>Rp <?php echo number_format($negotiated_price, 0, ',', '.'); ?></dd>
                                 </div>
                             <?php endif ?>

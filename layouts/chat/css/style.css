@@ -459,6 +459,11 @@
   width: 20px;
   height: 20px;
 }
+
+.offer-input {
+  margin-left: 0;
+  margin: 0px auto;
+}
 }
 
 
@@ -546,15 +551,20 @@
     display: flex;
     gap: 5px; 
     align-items: center;
+    padding: 2px;
+    box-sizing: border-box;
 }
 
 #vehicleSearchInput {
-    flex-grow: 1; 
+    flex-grow: 1;
     padding: 8px 10px;
     border: 1px solid var(--gray);
     border-radius: 5px;
     font-size: 14px;
     outline: none;
+    background-color: white;
+    box-sizing: border-box;
+    min-width: 0; 
 }
 
 #vehicleSearchInput:focus {
@@ -572,8 +582,8 @@
     font-size: 14px;
     display: none; 
     transition: background-color 0.2s ease;
+    box-sizing: border-box;
 }
-
 #clearSearchButton:hover {
     background-color: #bbb;
 }

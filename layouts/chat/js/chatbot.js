@@ -58,13 +58,12 @@ async function sendMessage(inputElement, chatBodyElement) {
   const sendResult = await sendChatMessageToBackend(message, "customer");
 
   if (sendResult && sendResult.success && sendResult.ai_messages) {
-  sendResult.ai_messages.forEach(aiMsg => {
-    appendMessage(aiMsg.sender_type, aiMsg.message_text, chatBody.id);
-    appendMessage(aiMsg.sender_type, aiMsg.message_text, fullPageChatBody.id);
-  });
-  attachPromoCardListeners();
-}
-
+    sendResult.ai_messages.forEach((aiMsg) => {
+      appendMessage(aiMsg.sender_type, aiMsg.message_text, chatBody.id);
+      appendMessage(aiMsg.sender_type, aiMsg.message_text, fullPageChatBody.id);
+    });
+    attachPromoCardListeners();
+  }
 
   const lowerCaseMessage = message.toLowerCase();
   if (lowerCaseMessage === "motor dengan budget murah!") {
@@ -142,16 +141,21 @@ function attachNegotiationListeners(containerId) {
   });
 
   container.querySelectorAll(".negotiation-btn").forEach((btn) => {
-    btn.onclick = null;
+    btn.onclick = null; 
     btn.onclick = async () => {
       const action = btn.dataset.action;
       const vehicleId = btn.dataset.vehicleId;
       const negotiatedPrice = btn.dataset.negotiatedPrice;
 
-      if (action === "testDrive") {
-        // ... (logika test drive)
-      } else if (action === "continueTransaction") {
-        // ... (logika transaksi)
+      if (action === "testDrive" || action === "continueTransaction") {
+        const typeOrder =
+          action === "testDrive" ? "test_driver" : "transaction";
+        const url = `contact-us.php?vehicle_id=${encodeURIComponent(
+          vehicleId
+        )}&type_order=${encodeURIComponent(
+          typeOrder
+        )}&negotiated_price=${encodeURIComponent(negotiatedPrice)}`;
+        window.location.href = url;
       } else if (action === "newNegotiation") {
         resetNegotiation();
       } else if (action === "tryAgain") {

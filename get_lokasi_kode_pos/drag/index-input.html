@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deteksi Lokasi - Input Form</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #map { height: 300px; margin-top: 10px; }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; padding: 5px; margin-top: 4px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+
+<h2>Deteksi Lokasi</h2>
+
+<label>Latitude:
+  <input type="text" id="latitude" readonly>
+</label>
+
+<label>Longitude:
+  <input type="text" id="longitude" readonly>
+</label>
+
+<label>Jalan:
+  <input type="text" id="jalan" readonly>
+</label>
+
+<label>Desa/Kelurahan:
+  <input type="text" id="desa" readonly>
+</label>
+
+<label>Kecamatan:
+  <input type="text" id="kecamatan" readonly>
+</label>
+
+<label>Kabupaten/Kota:
+  <input type="text" id="kabupaten" readonly>
+</label>
+
+<label>Provinsi:
+  <input type="text" id="provinsi" readonly>
+</label>
+
+<label>Kode Pos:
+  <input type="text" id="kodepos" readonly>
+</label>
+
+<div id="map"></div>
+<br />
+<button onclick="getLocation()">Deteksi Lokasi Saya</button>
+
+<script>
+let map, marker;
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(success, error);
+  } else {
+    alert("Geolocation tidak didukung browser.");
+  }
+}
+
+function success(position) {
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+  initMap(lat, lon);
+  updateAddress(lat, lon);
+}
+
+function initMap(lat, lon) {
+  if (!map) {
+    map = L.map("map").setView([lat, lon], 16);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+
+    marker.on("dragend", function (e) {
+      const pos = marker.getLatLng();
+      document.getElementById("latitude").value = pos.lat;
+      document.getElementById("longitude").value = pos.lng;
+      updateAddress(pos.lat, pos.lng);
+    });
+  } else {
+    map.setView([lat, lon], 16);
+    marker.setLatLng([lat, lon]);
+  }
+
+  document.getElementById("latitude").value = lat;
+  document.getElementById("longitude").value = lon;
+}
+
+function updateAddress(lat, lon) {
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`, {
+    headers: {
+      "User-Agent": "MyLocationApp/1.0"
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      const address = data.address || {};
+
+      const jalan = address.road || address.pedestrian || "-";
+      const desa = address.village || address.suburb || address.hamlet || "-";
+      const kecamatan = address.city_district || address.town || address.city || "-";
+      const kabupatenKota =
+        (address.city && !address.county ? `Kota ${address.city}` : address.county) ||
+        address.state_district || "-";
+      const provinsi = address.state || "-";
+      const kodepos = address.postcode || "Tidak ditemukan";
+
+      document.getElementById("jalan").value = jalan;
+      document.getElementById("desa").value = desa;
+      document.getElementById("kecamatan").value = kecamatan;
+      document.getElementById("kabupaten").value = kabupatenKota;
+      document.getElementById("provinsi").value = provinsi;
+      document.getElementById("kodepos").value = kodepos;
+    })
+    .catch(err => {
+      console.error("Gagal mengambil data:", err);
+    });
+}
+
+function error() {
+  alert("Tidak bisa mendapatkan lokasi.");
+}
+</script>
+
+</body>
+</html>

@@ -1,114 +1,69 @@
-document.addEventListener("DOMContentLoaded", function () {
-  // Inisialisasi Choices.js
-  let purposeChoicesInstance = null;
-  const modernSelects = document.querySelectorAll(".modern-select");
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deteksi Lokasi Lengkap</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #map { height: 300px; margin-top: 10px; }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; padding: 5px; margin-top: 4px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
 
-  modernSelects.forEach((selectElement) => {
-    let config;
+<h2>Deteksi Lokasi</h2>
 
-    if (
-      selectElement.id === "purpose" ||
-      selectElement.id === "arrival_method"
-    ) {
-      config = {
-        searchEnabled: false,
-        itemSelectText: "",
-        shouldSort: false,
-      };
-    } else {
-      config = {
-        searchEnabled: true,
-        itemSelectText: "",
-        shouldSort: false,
-      };
-    }
+<label>Latitude:
+  <input type="text" id="latitude" readonly>
+</label>
 
-    const choicesInstance = new Choices(selectElement, config);
+<label>Longitude:
+  <input type="text" id="longitude" readonly>
+</label>
 
-    if (selectElement.id === "purpose") {
-      purposeChoicesInstance = choicesInstance;
-    }
-  });
+<label>Provinsi:
+  <input type="text" id="provinsi">
+</label>
 
-  // Inisialisasi Flatpickr
-  const dateInput = document.getElementById("date");
-  const datepickerIconTrigger = document.getElementById("datepickerIconTrigger");
-  const isMobile = window.innerWidth <= 768;
-  const flatpickrContainer = document.getElementById("flatpickr-modal");
+<label>Kabupaten/Kota:
+  <input type="text" id="kabupaten">
+</label>
 
-  if (dateInput) {
-    const fp = flatpickr(dateInput, {
-      enableTime: true,
-      dateFormat: "Y-m-d H:i",
-      minDate: "today",
-      maxDate: new Date().fp_incr(6),
-      altInput: true,
-      altFormat: "d F Y H:i",
-      altInputClass: "modern-datepicker",
-      disableMobile: true,
-      defaultDate: dateInput.value || null,
-      placeholder: "Pilih Jadwal",
-      appendTo: isMobile && flatpickrContainer ? flatpickrContainer : undefined,
+<label>Kecamatan:
+  <input type="text" id="kecamatan">
+</label>
 
-      onReady: function (selectedDates, dateStr, instance) {
-        if (instance.altInput) {
-          instance.altInput.placeholder = "Pilih Jadwal";
-        }
-
-        if (datepickerIconTrigger) {
-          datepickerIconTrigger.addEventListener("click", function () {
-            instance.open();
-          });
-        }
-      }
-    });
-  }
-
-  // Format & Validasi Input WhatsApp
-  const whatsappInput = document.getElementById("whatsapp");
-
-  if (whatsappInput) {
-    const prefix = "+62 ";
-
-    whatsappInput.addEventListener("focus", () => {
-      if (!whatsappInput.value) {
-        whatsappInput.value = prefix;
-        setTimeout(() => {
-          whatsappInput.setSelectionRange(prefix.length, prefix.length);
-        }, 0);
-      }
-    });
-
-    whatsappInput.addEventListener("keydown", (e) => {
-      const cursorPos = whatsappInput.selectionStart;
-      if (cursorPos < prefix.length) e.preventDefault();
-      if (e.key === "Backspace" && cursorPos === prefix.length) e.preventDefault();
-    });
-
-    whatsappInput.addEventListener("input", () => {
-      if (!whatsappInput.value.startsWith(prefix)) {
-        whatsappInput.value = prefix;
-      }
-    });
-
-    whatsappInput.addEventListener("blur", () => {
-      if (whatsappInput.value.trim() === prefix.trim()) {
-        whatsappInput.value = "";
-      }
-    });
-  }
-
-  // Atur nilai default dari URL jika ada
-  const urlParams = new URLSearchParams(window.location.search);
-  const purposeFromUrl = urlParams.get("purpose");
-
-  if (purposeFromUrl === "test_driver" && purposeChoicesInstance) {
-    purposeChoicesInstance.setChoiceByValue("test_driver");
-  }
-});
+<label>Desa/Kelurahan:
+  <input type="text" id="desa">
+</label>
 
 
-// FUNGSI ALAMAT
+<label>Jalan:
+  <input type="text" id="jalan">
+</label>
+
+
+<label>Kode Pos:
+  <input type="text" id="kodepos" readonly>
+</label>
+
+<label>Detail Lainnya (Cth: Blok / Unit No., Patokan)
+  <input type="text" id="patokan" placeholder="nama jalan, gedung, no. rumah">
+</label>
+
+
+
+<br>
+<button onclick="getLocation()">Deteksi Lokasi Saya</button>
+
+<div id="map"></div>
+<br />
+
+<script>
 let map, marker;
 
 function getLocation() {
@@ -228,3 +183,7 @@ const debouncedHandler = debounce(handleAddressInput, 800);
 function error() {
   alert("Tidak bisa mendapatkan lokasi.");
 }
+</script>
+
+</body>
+</html>

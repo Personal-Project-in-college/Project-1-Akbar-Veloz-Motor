@@ -131,19 +131,22 @@ function render_vehicle_card($vehicle)
     <!-- Carousel -->
     <section class="slideshow-container">
 
+    <!-- https://www.hondaibrm.co.id/assets/slider/72a3952588207e9c8fe5dac7d5c338e1.webp -->
+     <!-- https://www.hondaibrm.co.id/assets/slider/db4199b624c93e6bd687b0676892eb18.webp -->
+      <!-- https://www.hondaibrm.co.id/assets/slider/72a3952588207e9c8fe5dac7d5c338e1.webp -->
       <div class="banner-container">
         <div class="banner-slides">
           <div class="banner-slide">
             <img
-              src="https://www.hondaibrm.co.id/assets/slider/72a3952588207e9c8fe5dac7d5c338e1.webp" />
+              src="./assets/images/slideshow/1.png" />
           </div>
           <div class="banner-slide">
             <img
-              src="https://www.hondaibrm.co.id/assets/slider/db4199b624c93e6bd687b0676892eb18.webp" />
+              src="./assets/images/slideshow/2.jpeg" />
           </div>
           <div class="banner-slide">
             <img
-              src="https://www.hondaibrm.co.id/assets/slider/72a3952588207e9c8fe5dac7d5c338e1.webp" />
+              src="./assets/images/slideshow/3.png" />
           </div>
         </div>
 
@@ -274,12 +277,19 @@ function render_vehicle_card($vehicle)
         <div class="map-wrapper">
           <div class="map-container">
             <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3964.4631387550817!2d107.7643724835682!3d-6.462859211900479!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMjcnNDYuMiJTIDEwN8KwNDUnNTEuOCJF!5e0!3m2!1sid!2sid!4v1750216898951!5m2!1sid!2sid" class="map-frame" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+<!--  
+            Jl. Raya Desa Munjul, No 1, RT 08 RW 04, DS. Munjul, Kec.Pagaden Barat, Kab.Subang 41252
 
-            <!-- cabang -->
-            <!-- 
-<iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3964.5227567644665!2d107.8121152572227!3d-6.455248575640003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMjcnMTguOSJTIDEwN8KwNDgnNDMuNiJF!5e0!3m2!1sid!2sid!4v1750217111437!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+              https://www.google.com/maps/@-6.4628592,107.7643725,3a,90y,13.15h,84.51t/data=!3m7!1e1!3m5!1sHrNH-CcwovEzFNZ4uIS6Cg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D5.489226069246428%26panoid%3DHrNH-CcwovEzFNZ4uIS6Cg%26yaw%3D13.148024439918533!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D -->
 
-          </div>
+                  <!-- cabang -->
+                   <!-- Jl. Subang Pamanukan No.224, Pagaden, Kec. Pagaden, Kabupaten Subang, Jawa Barat 41252
+                    
+                   -->
+                  <!-- 
+      <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3964.5227567644665!2d107.8121152572227!3d-6.455248575640003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMjcnMTguOSJTIDEwN8KwNDgnNDMuNiJF!5e0!3m2!1sid!2sid!4v1750217111437!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+
+                </div>
         </div>
 
         <div class="location-info">

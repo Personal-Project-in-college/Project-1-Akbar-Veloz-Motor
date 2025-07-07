@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
             ->execute([$order_id]);
     }
 
-    header("Location: tunggu-pesanan.php?id=$order_id");
+    header("Location: tunggu-petugas.php?id=$order_id");
     exit();
 }
 ?>

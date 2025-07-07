@@ -53,16 +53,6 @@ document.addEventListener("DOMContentLoaded", function () {
     menuOverlay.addEventListener("click", toggleMenu);
   }
 
-  // if (testDriveLink) {
-  //   testDriveLink.addEventListener("click", function (event) {
-  //     if (!isLoggedIn) {
-  //       event.preventDefault();
-  //       alert("Anda harus login terlebih dahulu untuk melakukan test drive.");
-  //       window.location.href = "login.php";
-  //     }
-  //   });
-  // }
-
 
   if (logoutLink) {
     logoutLink.addEventListener("click", async (e) => {
@@ -106,6 +96,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
+
+  
 });
 
 

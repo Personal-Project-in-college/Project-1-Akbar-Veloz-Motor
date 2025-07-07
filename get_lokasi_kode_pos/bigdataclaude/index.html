@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deteksi Lokasi Lengkap</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      #map {
+        height: 300px;
+        margin-top: 10px;
+      }
+      p {
+        margin: 4px 0;
+      }
+      span {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Deteksi Lokasi</h2>
+    <p>Latitude / Longitude: <span id="coords">-</span></p>
+    <p>Jalan: <span id="jalan">-</span></p>
+    <p>Desa/Kelurahan: <span id="desa">-</span></p>
+    <p>Kecamatan: <span id="kecamatan">-</span></p>
+    <p>Kabupaten/Kota: <span id="kabupaten">-</span></p>
+    <p>Provinsi: <span id="provinsi">-</span></p>
+    <p>Kode Pos: <span id="kodepos">-</span></p>
+
+    <div id="map"></div>
+    <br />
+    <button onclick="getLocation()">Isi Otomatis</button>
+
+    <script>
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(success, error);
+        } else {
+          alert("Geolocation tidak didukung browser.");
+        }
+      }
+
+      function success(position) {
+        //   const lat = position.coords.latitude;
+        //   const lon = position.coords.longitude;
+        // -6.906039308279297, 107.61674056417552
+        const lat = -6.906039308279297;
+        const lon = 107.61674056417552;
+        document.getElementById("coords").textContent = `${lat}, ${lon}`;
+
+        // Tampilkan peta
+        const map = L.map("map").setView([lat, lon], 15);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap",
+        }).addTo(map);
+        L.marker([lat, lon]).addTo(map);
+
+        // Ambil data lokasi dari BigDataCloud
+        fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=id`
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("RESPON:", data);
+
+            // Fallback dan pencarian manual berdasarkan deskripsi
+            const getAdministrative = (keyword) => {
+              return data.localityInfo?.administrative?.find((item) =>
+                item.description?.toLowerCase().includes(keyword)
+              )?.name;
+            };
+
+            const jalan = data.principalStreet || "-";
+            const desa =
+              data.locality ||
+              getAdministrative("kelurahan") ||
+              getAdministrative("village") ||
+              "-";
+            const kecamatan =
+              data.locality || getAdministrative("kecamatan") || "-";
+            const kabupaten =
+              getAdministrative("kabupaten") ||
+              getAdministrative("regency") ||
+              getAdministrative("city") ||
+              data.principalSubdivision ||
+              "-";
+            const provinsi =
+              getAdministrative("provinsi") ||
+              getAdministrative("state") ||
+              data.countrySubdivision ||
+              "-";
+            const kodepos = data.postcode || "Tidak ditemukan";
+
+            // Tampilkan di HTML
+            document.getElementById("jalan").textContent = jalan;
+            document.getElementById("desa").textContent = desa;
+            document.getElementById("kecamatan").textContent = kecamatan;
+            document.getElementById("kabupaten").textContent = kabupaten;
+            document.getElementById("provinsi").textContent = provinsi;
+            document.getElementById("kodepos").textContent = kodepos;
+          })
+          .catch((err) => {
+            console.error("Gagal mengambil data lokasi:", err);
+          });
+      }
+
+      function error() {
+        alert("Gagal mengambil lokasi.");
+      }
+    </script>
+  </body>
+</html>

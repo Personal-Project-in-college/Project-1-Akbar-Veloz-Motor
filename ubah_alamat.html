@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubah Alamat</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoMasUgg7tb8RK5IA7miMAkdlC8CthO+NkLgrSY="
+     crossorigin=""/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        input[type="text"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: calc(100% - 20px); /* Kurangi padding */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Pastikan padding masuk dalam lebar */
+        }
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        .select-with-search-container {
+            position: relative;
+        }
+        .select-with-search-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .select-with-search-dropdown {
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            display: none; /* Sembunyikan secara default */
+        }
+        .select-with-search-dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .select-with-search-dropdown div:hover {
+            background-color: #f0f0f0;
+        }
+        .select-with-search-dropdown div:last-child {
+            border-bottom: none;
+        }
+
+        /* Tabs for Province, City, Kecamatan, Kode Pos */
+        .address-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        .address-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #888;
+            border-bottom: 3px solid transparent;
+        }
+        .address-tab.active {
+            color: #e44d26; /* Warna Shopee */
+            border-bottom: 3px solid #e44d26;
+        }
+        .address-tab-content {
+            display: none;
+            padding-top: 15px;
+        }
+        .address-tab-content.active {
+            display: block;
+        }
+
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .map-buttons {
+            text-align: center;
+            margin-top: -15px; /* Sedikit naik untuk menempel map */
+            margin-bottom: 20px;
+        }
+        .map-buttons button {
+            background-color: #e44d26; /* Shopee-like orange */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 0 5px;
+        }
+        .map-buttons button:hover {
+            background-color: #c93a1e;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .button-group button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-group .btn-cancel {
+            background-color: #f0f0f0;
+            color: #555;
+        }
+        .button-group .btn-cancel:hover {
+            background-color: #e0e0e0;
+        }
+        .button-group .btn-ok {
+            background-color: #e44d26; /* Shopee-like orange */
+            color: white;
+        }
+        .button-group .btn-ok:hover {
+            background-color: #c93a1e;
+        }
+
+        .tag-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .tag-buttons button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .tag-buttons button.active {
+            background-color: #ffe8e0;
+            border-color: #e44d26;
+            color: #e44d26;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ubah Alamat</h2>
+
+        <div class="form-group">
+            <label for="addressSummary">Provinsi, Kota, Kecamatan, Kode Pos</label>
+            <input type="text" id="addressSummary" class="select-with-search-input" readonly placeholder="JAWA BARAT, KAB. SUBANG, CIBOGO, 41285">
+            <div class="select-with-search-dropdown" id="addressDropdown">
+                <div class="address-tabs">
+                    <div class="address-tab" data-tab="provinsi">Provinsi</div>
+                    <div class="address-tab" data-tab="kota">Kota</div>
+                    <div class="address-tab active" data-tab="kecamatan">Kecamatan</div>
+                    <div class="address-tab" data-tab="kodePos">Kode Pos</div>
+                </div>
+
+                <div id="tabContentProvinsi" class="address-tab-content">
+                    <p>Provinsi: Jawa Barat (Otomatis)</p>
+                </div>
+                <div id="tabContentKota" class="address-tab-content">
+                    <p>Kabupaten: Subang (Otomatis)</p>
+                </div>
+
+                <div id="tabContentKecamatan" class="address-tab-content active">
+                    <input type="text" id="searchKecamatan" placeholder="Cari kecamatan..." class="select-with-search-input" style="margin-bottom: 10px;">
+                    <div id="kecamatanList" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px;">
+                        </div>
+                </div>
+
+                <div id="tabContentKodePos" class="address-tab-content">
+                    <input type="text" id="searchKelurahan" placeholder="Cari kelurahan/desa..." class="select-with-search-input" style="margin-bottom: 10px;">
+                    <div id="kelurahanList" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px;">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="namaJalan">Nama Jalan, Gedung, No. Rumah</label>
+            <input type="text" id="namaJalan" placeholder="Contoh: Jl. Raya Pagaden No. 10" value="">
+        </div>
+
+        <div class="form-group">
+            <label for="detailLainnya">Detail Lainnya (Cth: Blok / Unit No., Patokan)</label>
+            <textarea id="detailLainnya" placeholder="Contoh: Belakang Indomaret, dekat pos satpam"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Tentukan Titik Lokasi</label>
+            <div id="map"></div>
+            <div class="map-buttons">
+                <button onclick="confirmMapLocation()">Konfirmasi Lokasi Peta</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Tandai Sebagai:</label>
+            <div class="tag-buttons">
+                <button class="tag-button active" data-type="Rumah">Rumah</button>
+                <button class="tag-button" data-type="Kantor">Kantor</button>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn-cancel">Nanti Saja</button>
+            <button type="submit" class="btn-ok" onclick="saveAddress()">OK</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nEFhZWRD8v/tI7FfW0s2wVb+R2f3PzK/j2M3hP+C0="
+     crossorigin=""></script>
+    <script>
+        // Variabel Global untuk menyimpan data terpilih
+        let selectedKecamatan = { id: null, nama: '' };
+        let selectedKelurahanDesa = { id: null, nama: '', kode_pos: '' };
+        let currentLatitude = -6.5627; // Koordinat Subang, Jawa Barat
+        let currentLongitude = 107.7656; // Koordinat Subang, Jawa Barat
+        let map;
+        let marker;
+        let selectedAddressType = 'Rumah'; // Default
+
+        // --- Inisialisasi Peta ---
+        function initializeMap() {
+            map = L.map('map').setView([currentLatitude, currentLongitude], 13); // Zoom 13 untuk detail lebih
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            marker = L.marker([currentLatitude, currentLongitude], { draggable: true }).addTo(map);
+
+            // Update Lat/Lng saat marker digeser
+            marker.on('dragend', function(event) {
+                const latlng = marker.getLatLng();
+                currentLatitude = latlng.lat;
+                currentLongitude = latlng.lng;
+                updateAddressSummaryFromMap();
+            });
+
+            // Update Lat/Lng saat peta diklik (untuk menempatkan marker)
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                currentLatitude = e.latlng.lat;
+                currentLongitude = e.latlng.lng;
+                updateAddressSummaryFromMap();
+            });
+
+            updateAddressSummaryFromMap(); // Initial update
+        }
+
+        // --- Update Summary Alamat dari Peta (Reverse Geocoding) ---
+        // Catatan: OpenStreetMap Nominatim API memiliki batasan penggunaan yang cukup ketat
+        // (1 request per detik). Untuk produksi, pertimbangkan layanan berbayar.
+        // Untuk pengembangan lokal, ini OK.
+        async function updateAddressSummaryFromMap() {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${currentLatitude}&lon=${currentLongitude}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                let addressText = "Lokasi Peta: " + currentLatitude.toFixed(6) + ", " + currentLongitude.toFixed(6);
+
+                if (data && data.address) {
+                    const addr = data.address;
+                    let parts = [];
+                    if (addr.road) parts.push(addr.road);
+                    if (addr.village || addr.suburb || addr.town || addr.city) {
+                        parts.push(addr.village || addr.suburb || addr.town || addr.city);
+                    }
+                    if (addr.postcode) parts.push(addr.postcode);
+                    if (addr.county) parts.push(addr.county); // Ini bisa jadi kabupaten/kota
+                    if (addr.state) parts.push(addr.state); // Ini bisa jadi provinsi
+
+                    addressText = parts.filter(Boolean).join(', ');
+
+                    // Coba deteksi kecamatan dan kode pos dari reverse geocoding
+                    // Ini tidak 100% akurat dan tergantung data OSM
+                    const detectedKecamatan = addr.suburb || addr.town || addr.city || addr.county;
+                    const detectedKodePos = addr.postcode;
+
+                    // Set input Nama Jalan dari data peta (jika ada)
+                    const namaJalanInput = document.getElementById('namaJalan');
+                    if (addr.road) {
+                         namaJalanInput.value = addr.road + (addr.house_number ? ' No. ' + addr.house_number : '');
+                    } else if (addr.hamlet) {
+                        namaJalanInput.value = addr.hamlet;
+                    }
+                }
+                // Anda bisa menampilkan ini di suatu tempat, misal di bawah peta
+                // Untuk demo, kita tidak tampilkan di input ringkasan alamat atas, karena itu untuk pemilihan manual.
+                console.log("Alamat dari Peta:", addressText);
+            } catch (error) {
+                console.error("Error reverse geocoding:", error);
+            }
+        }
+
+        function confirmMapLocation() {
+            // Ketika tombol "Konfirmasi Lokasi Peta" diklik
+            // Anda bisa menampilkan koordinat di suatu tempat atau memprosesnya
+            alert(`Lokasi Peta dikonfirmasi:\nLatitude: ${currentLatitude}\nLongitude: ${currentLongitude}`);
+            // Di sini Anda bisa mengirim koordinat ke backend atau menyimpannya di form hidden
+        }
+
+        // --- Logika Pemilihan Alamat (Dropdown Shopee-like) ---
+        const addressSummaryInput = document.getElementById('addressSummary');
+        const addressDropdown = document.getElementById('addressDropdown');
+        const searchKecamatanInput = document.getElementById('searchKecamatan');
+        const kecamatanListDiv = document.getElementById('kecamatanList');
+        const searchKelurahanInput = document.getElementById('searchKelurahan');
+        const kelurahanListDiv = document.getElementById('kelurahanList');
+
+        const addressTabs = document.querySelectorAll('.address-tab');
+        const addressTabContents = document.querySelectorAll('.address-tab-content');
+
+        let allKecamatan = [];
+        let allKelurahan = [];
+
+        // Fetch Kecamatan saat halaman dimuat
+        async function fetchKecamatan() {
+            try {
+                const response = await fetch('api/get_kecamatan.php');
+                const data = await response.json();
+                if (data.success) {
+                    allKecamatan = data.data;
+                    displayKecamatan(allKecamatan);
+                } else {
+                    console.error('Gagal mengambil kecamatan:', data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching kecamatan:', error);
+            }
+        }
+
+        function displayKecamatan(kecamatanArray) {
+            kecamatanListDiv.innerHTML = '';
+            kecamatanArray.forEach(kec => {
+                const div = document.createElement('div');
+                div.textContent = kec.nama_kecamatan;
+                div.dataset.id = kec.id;
+                div.onclick = () => selectKecamatan(kec);
+                kecamatanListDiv.appendChild(div);
+            });
+        }
+
+        async function selectKecamatan(kec) {
+            selectedKecamatan = { id: kec.id, nama: kec.nama_kecamatan };
+            // Update summary
+            updateAddressSummaryDisplay();
+            // Pindah ke tab Kode Pos dan load kelurahan
+            activateTab('kodePos');
+            await fetchKelurahanByKecamatan(kec.id);
+        }
+
+        async function fetchKelurahanByKecamatan(idKecamatan) {
+            try {
+                const response = await fetch(`api/get_kode_pos.php?id_kecamatan=${idKecamatan}`);
+                const data = await response.json();
+                if (data.success) {
+                    allKelurahan = data.data;
+                    displayKelurahan(allKelurahan);
+                } else {
+                    console.error('Gagal mengambil kelurahan:', data.message);
+                    kelurahanListDiv.innerHTML = '<div>Tidak ada data kelurahan untuk kecamatan ini.</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching kelurahan:', error);
+            }
+        }
+
+        function displayKelurahan(kelurahanArray) {
+            kelurahanListDiv.innerHTML = '';
+            if (kelurahanArray.length === 0) {
+                kelurahanListDiv.innerHTML = '<div>Tidak ada kelurahan/desa yang cocok.</div>';
+                return;
+            }
+            kelurahanArray.forEach(kel => {
+                const div = document.createElement('div');
+                div.textContent = `${kel.nama_kelurahan_desa} (${kel.kode_pos})`;
+                div.dataset.id = kel.id;
+                div.dataset.kodePos = kel.kode_pos;
+                div.onclick = () => selectKelurahan(kel);
+                kelurahanListDiv.appendChild(div);
+            });
+        }
+
+        function selectKelurahan(kel) {
+            selectedKelurahanDesa = {
+                id: kel.id,
+                nama: kel.nama_kelurahan_desa,
+                kode_pos: kel.kode_pos
+            };
+            updateAddressSummaryDisplay();
+            addressDropdown.style.display = 'none'; // Sembunyikan dropdown setelah memilih
+        }
+
+        function updateAddressSummaryDisplay() {
+            let summary = 'JAWA BARAT, KAB. SUBANG';
+            if (selectedKecamatan.nama) {
+                summary += `, ${selectedKecamatan.nama}`;
+            }
+            if (selectedKelurahanDesa.kode_pos) {
+                summary += `, ${selectedKelurahanDesa.kode_pos}`;
+            }
+            addressSummaryInput.value = summary;
+        }
+
+        // Event Listeners untuk Dropdown Alamat
+        addressSummaryInput.addEventListener('focus', () => {
+            addressDropdown.style.display = 'block';
+            fetchKecamatan(); // Muat kecamatan saat input difokus
+        });
+
+        // Contoh: Menutup dropdown saat klik di luar
+        document.addEventListener('click', (event) => {
+            if (!addressSummaryInput.contains(event.target) && !addressDropdown.contains(event.target)) {
+                addressDropdown.style.display = 'none';
+            }
+        });
+
+        // Search Kecamatan
+        searchKecamatanInput.addEventListener('keyup', (event) => {
+            const searchTerm = event.target.value.toLowerCase();
+            const filteredKecamatan = allKecamatan.filter(kec =>
+                kec.nama_kecamatan.toLowerCase().includes(searchTerm)
+            );
+            displayKecamatan(filteredKecamatan);
+        });
+
+        // Search Kelurahan/Desa
+        searchKelurahanInput.addEventListener('keyup', (event) => {
+            const searchTerm = event.target.value.toLowerCase();
+            const filteredKelurahan = allKelurahan.filter(kel =>
+                kel.nama_kelurahan_desa.toLowerCase().includes(searchTerm) || kel.kode_pos.includes(searchTerm)
+            );
+            displayKelurahan(filteredKelurahan);
+        });
+
+
+        // Tabs logic
+        addressTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                activateTab(targetTab);
+            });
+        });
+
+        function activateTab(tabName) {
+            addressTabs.forEach(t => t.classList.remove('active'));
+            addressTabContents.forEach(tc => tc.classList.remove('active'));
+
+            document.querySelector(`.address-tab[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`tabContent${capitalizeFirstLetter(tabName)}`).classList.add('active');
+
+            // Khusus untuk tab kecamatan, panggil ulang fetchKecamatan
+            if (tabName === 'kecamatan') {
+                fetchKecamatan();
+            } else if (tabName === 'kodePos' && selectedKecamatan.id) {
+                // Pastikan ada kecamatan yang terpilih sebelum menampilkan kode pos
+                fetchKelurahanByKecamatan(selectedKecamatan.id);
+            } else if (tabName === 'kodePos' && !selectedKecamatan.id) {
+                kelurahanListDiv.innerHTML = '<div>Pilih kecamatan terlebih dahulu.</div>';
+            }
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // --- Logika Tag Alamat (Rumah/Kantor) ---
+        const tagButtons = document.querySelectorAll('.tag-button');
+        tagButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tagButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedAddressType = button.dataset.type;
+            });
+        });
+
+        // --- Simpan Alamat (Event untuk tombol OK) ---
+        async function saveAddress() {
+            const namaLengkap = document.getElementById('namaLengkap').value;
+            const nomorTelepon = document.getElementById('nomorTelepon').value;
+            const namaJalan = document.getElementById('namaJalan').value;
+            const detailLainnya = document.getElementById('detailLainnya').value;
+
+            if (!namaLengkap || !nomorTelepon || !selectedKecamatan.id || !selectedKelurahanDesa.id || !namaJalan || !currentLatitude || !currentLongitude) {
+                alert('Mohon lengkapi semua data alamat termasuk pemilihan kecamatan, kelurahan/desa, dan titik lokasi di peta.');
+                return;
+            }
+
+            const addressData = {
+                nama_lengkap: namaLengkap,
+                nomor_telepon: nomorTelepon,
+                id_kecamatan: selectedKecamatan.id,
+                id_kelurahan_desa: selectedKelurahanDesa.id,
+                nama_jalan: namaJalan,
+                detail_lainnya: detail_lainnya,
+                latitude: currentLatitude,
+                longitude: currentLongitude,
+                tipe_alamat: selectedAddressType
+            };
+
+            try {
+                const response = await fetch('api/save_alamat.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(addressData)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Alamat berhasil diperbarui!');
+                    // Redirect atau refresh halaman jika diperlukan
+                } else {
+                    alert('Gagal memperbarui alamat: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error saving address:', error);
+                alert('Terjadi kesalahan saat menyimpan alamat.');
+            }
+        }
+
+        // Inisialisasi saat DOM siap
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMap();
+            fetchKecamatan(); // Muat kecamatan awal
+        });
+    </script>
+</body>
+</html>

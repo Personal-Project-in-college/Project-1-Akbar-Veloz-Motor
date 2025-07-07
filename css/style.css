@@ -1692,7 +1692,7 @@ footer {
   display: flex;
   flex-direction: row;
   gap: 20px;
-  padding: 20px;
+  padding: 20px ;
   background-color: var(--white-color);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
@@ -1857,7 +1857,7 @@ footer {
 .select-wrapper {
   position: relative;
   width: 100%;
-  margin-bottom: 1em;
+  margin-bottom: 2em;
 }
 
 .modern-select {
@@ -1900,31 +1900,31 @@ footer {
 .datepicker-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  margin-top: -15px;
+  margin-bottom: 0.9em;
 }
 
-.datepicker-wrapper label {
-  color: var(--gray-color);
-  font-size: 100%;
-  margin-left: 0.5em;
-  border-radius: 4px;
-}
 
 .datepicker-container {
   position: relative;
   width: 100%;
+  height: 50px;
 }
 
 .modern-datepicker {
   width: 100%;
-  padding: 1em;
+  min-height:100%;
+  padding: 1.2em ;
   font-size: 100%;
   border: 2px solid rgb(200, 200, 200);
   border-radius: 8px;
   background-color: var(--white-color);
   color: var(--dark-color);
   transition: all 0.3s ease;
-  padding-right: 2.5em;
+}
+
+.datepicker-container input {
+  font-size: 14px;
 }
 
 .modern-datepicker:focus {
@@ -1940,7 +1940,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .datepicker-icon {
   position: absolute;
   top: 50%;
-  right: 0.8em;
+  right: 1em;
   transform: translateY(-50%);
   pointer-events: none;
   color: var(--gray-color);
@@ -1949,6 +1949,27 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 .modern-datepicker:focus + .datepicker-icon {
   color: var(--secondary-color);
+}
+
+/* moderen location */
+
+.modern-location {
+  width: 100%;
+  padding: 1em;
+  font-size: 100%;
+  border: 2px solid rgb(200, 200, 200);
+  border-radius: 8px;
+  background-color: var(--white-color);
+  color: var(--dark-color);
+  transition: all 0.3s ease;
+  padding-right: 2.5em;
+  font-size: 14px;
+}
+
+.modern-location:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(255, 109, 0, 0.2);
 }
 
 /* Hide default date picker icon in some browsers */
@@ -3251,6 +3272,7 @@ container {
  } */
 
   /* contact-us.php */
+
   .test-drive-form {
     margin: 15px 0px;
   }
@@ -3333,5 +3355,291 @@ container {
     height: 24px;
     margin: 3px;
     border-width: 3px;
+  }
+}
+
+.calendar-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 350px; /* Adjust width as needed */
+  overflow: hidden; /* To contain shadows or borders within */
+}
+
+.header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.date-input-wrapper {
+  position: relative;
+  padding: 20px;
+  padding-bottom: 10px; /* Adjust padding to bring closer to calendar */
+}
+
+.date-input {
+  width: calc(100% - 40px); /* Adjust for padding */
+  padding: 10px 15px;
+  padding-right: 40px; /* Space for icon */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  color: #555;
+  outline: none;
+  box-sizing: border-box;
+  cursor: pointer; /* Indicate it's clickable, even if readonly */
+  background-color: #fff; /* Ensure background is white */
+}
+
+.date-input:focus {
+  border-color: #ff8c00; /* Orange border on focus */
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.2);
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 1.2em;
+  pointer-events: none; /* Make icon unclickable */
+}
+
+.calendar-picker {
+  border: 1px solid #ddd; /* Border similar to the image's calendar box */
+  border-radius: 8px;
+  margin: 0 20px 20px; /* Add margin around the calendar picker */
+  padding: 15px;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 1.1em;
+  color: #555;
+}
+
+.nav-arrow {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-arrow:hover {
+  background-color: #eee;
+}
+
+.month-year {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.month-select,
+.year-input {
+  border: none;
+  background-color: transparent;
+  font-size: 1em;
+  font-weight: bold;
+  color: #333;
+  outline: none;
+  padding: 3px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-appearance: none; /* Remove default arrow for select */
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.month-select {
+  width: auto;
+  min-width: 80px; /* Ensure enough space for month names */
+}
+
+.year-input {
+  width: 60px;
+  text-align: center;
+}
+
+.year-nav-arrow {
+  cursor: pointer;
+  font-size: 0.8em;
+  color: #888;
+  padding: 2px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  text-align: center;
+}
+
+.day-label {
+  font-weight: bold;
+  color: #888;
+  padding: 8px 0;
+  font-size: 0.9em;
+}
+
+.day {
+  padding: 10px 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-size: 0.9em;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px; /* Fixed width for circular days */
+  height: 32px; /* Fixed height for circular days */
+  margin: 0 auto; /* Center the circular days */
+}
+
+.day:hover:not(.disabled):not(.selected) {
+  background-color: #f0f0f0;
+}
+
+.day.selected {
+  background-color: #ff8c00; /* Orange selected day */
+  color: #fff;
+  font-weight: bold;
+}
+
+.day.current-day {
+  /* Styles for the current day if not selected */
+  border: 1px solid #ff8c00; /* Outline current day */
+  color: #ff8c00;
+}
+
+.day.current-day.selected {
+  border: none; /* No outline if current day is also selected */
+}
+
+.day.other-month {
+  color: #bbb;
+  cursor: default;
+  background-color: transparent;
+}
+
+.day.disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  background-color: transparent;
+}
+
+.time-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.hour-input,
+.minute-input,
+.ampm-select {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 1em;
+  text-align: center;
+  outline: none;
+  color: #333;
+  -webkit-appearance: none; /* Remove default arrow for select */
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.hour-input,
+.minute-input {
+  width: 50px;
+}
+
+.time-separator {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 0 5px;
+  color: #555;
+}
+
+.ampm-select {
+  margin-left: 10px;
+  width: 60px;
+}
+
+.lanjut-button {
+  width: calc(100% - 40px);
+  padding: 12px 20px;
+  background-color: #ff8c00;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin: 20px;
+  box-sizing: border-box;
+}
+
+.lanjut-button:hover {
+  background-color: #e07b00;
+}
+
+/* contact-us.php */
+.datepicker-icon:hover {
+  cursor: pointer;
+}
+
+input.modern-datepicker {
+  text-align: center;
+  height: 40px;
+  width: 100%;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+.datepicker-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.datepicker-container {
+  position: relative;
+}
+
+.select-wrapper.error .choices {
+  border: 1px solid red;
+}
+
+@media (max-width: 768px) {
+  #flatpickr-modal .flatpickr-calendar {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999 !important;
+    width: 90vw;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
 }
